@@ -1,6 +1,6 @@
 package com.cocinacapital.app.data.repository
 
-import com.cocinacapital.app.data.auth.AuthGateway
+import com.cocinacapital.app.data.auth.PerfilSesion
 import com.cocinacapital.app.data.local.CategoriaPreferidaEntity
 import com.cocinacapital.app.data.local.PreferenciasDao
 import com.cocinacapital.app.data.local.PreferenciasEntity
@@ -21,7 +21,7 @@ internal const val INVITADO = "invitado"
 @OptIn(ExperimentalCoroutinesApi::class)
 class PreferenciasRepository(
     private val dao: PreferenciasDao,
-    private val auth: AuthGateway
+    private val auth: PerfilSesion
 ) {
     private val userId: String get() = auth.usuario.value?.id ?: INVITADO
 

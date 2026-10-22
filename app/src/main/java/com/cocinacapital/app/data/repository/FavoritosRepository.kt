@@ -1,6 +1,6 @@
 package com.cocinacapital.app.data.repository
 
-import com.cocinacapital.app.data.auth.AuthGateway
+import com.cocinacapital.app.data.auth.PerfilSesion
 import com.cocinacapital.app.data.local.FavoritoEntity
 import com.cocinacapital.app.data.local.FavoritosDao
 import com.cocinacapital.app.data.model.Favorito
@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.map
 @OptIn(ExperimentalCoroutinesApi::class)
 class FavoritosRepository(
     private val dao: FavoritosDao,
-    private val auth: AuthGateway
+    private val auth: PerfilSesion
 ) {
     private val userId: String get() = auth.usuario.value?.id ?: INVITADO
 

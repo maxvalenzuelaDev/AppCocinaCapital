@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.cocinacapital.app.data.auth.AuthGateway
+import com.cocinacapital.app.data.auth.PerfilSesion
 import com.cocinacapital.app.data.model.Categoria
 import com.cocinacapital.app.data.model.Favorito
 import com.cocinacapital.app.data.model.RangoPrecio
@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
  * y las categorías disponibles (las mismas del Home).
  */
 class PerfilViewModel(
-    private val auth: AuthGateway,
+    private val auth: PerfilSesion,
     private val preferencias: PreferenciasRepository,
     private val favoritos: FavoritosRepository,
     private val catalogo: HomeRepository
@@ -97,7 +97,7 @@ class PerfilViewModel(
         val Factory = viewModelFactory {
             initializer {
                 PerfilViewModel(
-                    AppContainer.authGateway,
+                    AppContainer.perfilSesion,
                     AppContainer.preferenciasRepository,
                     AppContainer.favoritosRepository,
                     AppContainer.homeRepository

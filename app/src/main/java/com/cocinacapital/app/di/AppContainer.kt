@@ -1,8 +1,10 @@
 package com.cocinacapital.app.di
 
 import android.content.Context
+import com.cocinacapital.app.data.auth.LoginRepository
 import com.cocinacapital.app.data.auth.PerfilSesion
-import com.cocinacapital.app.data.auth.FakePerfilSesion
+import com.cocinacapital.app.data.auth.SupabaseAuthGateway
+import com.cocinacapital.app.data.auth.SupabasePerfilSesion
 import com.cocinacapital.app.data.local.CocinaDatabase
 import com.cocinacapital.app.data.remote.SupabaseProvider
 import com.cocinacapital.app.data.repository.FakeHomeRepository
@@ -23,8 +25,13 @@ object AppContainer {
         appContext = context.applicationContext
     }
 
-    /** TODO: reemplazar por la implementación real cuando se integre el Login de los compañeros. */
-    val authGateway: PerfilSesion by lazy { FakePerfilSesion() }
+    // ---- Login (Nevan): usa el cliente compartido de Supabase ----
+    val authRepository: LoginRepository by lazy {
+        LoginRepository(SupabaseAuthGateway(SupabaseProvider.client))
+    }
+
+    // ---- Perfil: el usuario sale de la misma sesión de Supabase ----
+    val perfilSesion: PerfilSesion by lazy { SupabasePerfilSesion(SupabaseProvider.client) }
 
     private val database: CocinaDatabase by lazy { CocinaDatabase.crear(appContext) }
 
@@ -34,10 +41,10 @@ object AppContainer {
     }
 
     val preferenciasRepository: PreferenciasRepository by lazy {
-        PreferenciasRepository(database.preferenciasDao(), authGateway)
+        PreferenciasRepository(database.preferenciasDao(), perfilSesion)
     }
 
     val favoritosRepository: FavoritosRepository by lazy {
-        FavoritosRepository(database.favoritosDao(), authGateway)
+        FavoritosRepository(database.favoritosDao(), perfilSesion)
     }
 }

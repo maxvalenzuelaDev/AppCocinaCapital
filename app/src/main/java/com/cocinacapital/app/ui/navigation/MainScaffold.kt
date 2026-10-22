@@ -27,6 +27,9 @@ import com.cocinacapital.app.ui.perfil.PerfilScreen
  *
  * Los insets de sistema se desactivan en el Scaffold (`WindowInsets(0, 0, 0, 0)`) porque
  * cada pantalla maneja los suyos: el TopAppBar el de arriba y la NavigationBar el de abajo.
+ *
+ * El cierre de sesión vive en Perfil: al cerrar, el AuthViewModel detecta la sesión terminada
+ * y la app vuelve sola al Login.
  */
 @Composable
 fun MainScaffold() {

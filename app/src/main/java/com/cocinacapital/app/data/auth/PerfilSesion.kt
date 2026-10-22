@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.update
  * Puente entre el Perfil y el módulo de Login/Registro (hecho por los compañeros).
  * Cuando suban su código, se crea una implementación real y se cambia en AppContainer.
  */
-interface AuthGateway {
+interface PerfilSesion {
     /** Usuario actual, o `null` si no hay sesión. */
     val usuario: StateFlow<PerfilUsuario?>
     suspend fun actualizarNombre(nombre: String)
@@ -18,7 +18,7 @@ interface AuthGateway {
 }
 
 /** Usuario ficticio para desarrollar sin Login. */
-class FakeAuthGateway : AuthGateway {
+class FakePerfilSesion : PerfilSesion {
     private val _usuario = MutableStateFlow<PerfilUsuario?>(
         PerfilUsuario(id = "usuario-demo", nombre = "Usuario Demo", correo = "usuario.demo@ejemplo.cl")
     )

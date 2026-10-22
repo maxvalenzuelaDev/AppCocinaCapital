@@ -16,8 +16,8 @@ import com.cocinacapital.app.data.repository.SupabaseHomeRepository
 /** Inyección de dependencias manual y simple (sin Hilt). Se inicializa en CocinaApp. */
 object AppContainer {
 
-    /** Cambia a `false` cuando Supabase esté configurado y las tablas creadas. */
-    private const val USE_FAKE_DATA = true
+    /** Cambiar a `false` cuando Supabase esté configurado y las tablas creadas. */
+    private const val USE_FAKE_DATA = false
 
     private lateinit var appContext: Context
 

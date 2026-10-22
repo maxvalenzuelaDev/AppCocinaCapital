@@ -4,21 +4,23 @@ import com.cocinacapital.app.BuildConfig
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.auth.Auth
 
 /**
  * Único cliente de Supabase de toda la app (singleton).
  *
- * IMPORTANTE para el equipo: Login/Registro deben usar ESTE mismo cliente. Cuando ellos
- * necesiten autenticación, solo hay que agregar `install(Auth)` dentro del builder.
+ * Login y Home usan ESTE cliente. El registro del compañero también debe usarlo
+ * cuando se incorpore, para compartir sesión y renovación de tokens.
  */
 object SupabaseProvider {
+    val isConfigured: Boolean get() = BuildConfig.SUPABASE_URL.isNotBlank() && BuildConfig.SUPABASE_ANON_KEY.isNotBlank()
     val client: SupabaseClient by lazy {
         createSupabaseClient(
             supabaseUrl = BuildConfig.SUPABASE_URL,
             supabaseKey = BuildConfig.SUPABASE_ANON_KEY
         ) {
             install(Postgrest)
-            // install(Auth)  // ← lo agregan los compañeros de Login/Registro
+            install(Auth)
         }
     }
 }

@@ -4,12 +4,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.cocinacapital.app.ui.navigation.MainScaffold
+import com.cocinacapital.app.ui.auth.AppEntry
 import com.cocinacapital.app.ui.theme.CocinaCapitalTheme
 
 /**
- * Para probar el Home de forma aislada. Cuando Login/Registro estén listos, el flujo
- * debería ser: Login → (autenticado) → MainScaffold().
+ * Login y home comparten el cliente y la sesión de Supabase.
  */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -17,7 +16,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             CocinaCapitalTheme {
-                MainScaffold()
+                AppEntry()
             }
         }
     }

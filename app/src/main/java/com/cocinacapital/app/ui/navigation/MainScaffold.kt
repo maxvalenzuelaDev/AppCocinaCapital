@@ -1,6 +1,11 @@
 package com.cocinacapital.app.ui.navigation
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -28,7 +33,7 @@ import com.cocinacapital.app.ui.home.HomeScreen
  * cada pantalla maneja los suyos: el TopAppBar el de arriba y la NavigationBar el de abajo.
  */
 @Composable
-fun MainScaffold() {
+fun MainScaffold(userEmail: String? = null, onLogout: () -> Unit = {}, logoutInProgress: Boolean = false, authError: String? = null) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val rutaActual = backStackEntry?.destination?.route
@@ -62,7 +67,16 @@ fun MainScaffold() {
             composable(BottomNavItem.Home.route) { HomeScreen() }
             composable(BottomNavItem.Explorar.route) { PantallaPendiente("Explorar (locales y mapa)") }
             composable(BottomNavItem.Billetera.route) { PantallaPendiente("Billetera (mis beneficios)") }
-            composable(BottomNavItem.Perfil.route) { PantallaPendiente("Perfil") }
+            composable(BottomNavItem.Perfil.route) {
+                Column(Modifier.fillMaxSize().padding(28.dp), verticalArrangement = Arrangement.Center) {
+                    Text("Mi cuenta")
+                    Text(userEmail.orEmpty())
+                    authError?.let { Text(it, color = androidx.compose.material3.MaterialTheme.colorScheme.error) }
+                    Button(onClick = onLogout, enabled = !logoutInProgress) {
+                        if (logoutInProgress) CircularProgressIndicator() else Text("Cerrar sesión")
+                    }
+                }
+            }
         }
     }
 }

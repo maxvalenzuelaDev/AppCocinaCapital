@@ -8,6 +8,11 @@ import com.cocinacapital.app.data.repository.SupabaseHomeRepository
 /** Inyección de dependencias manual y simple (sin Hilt). */
 object AppContainer {
 
+    val authRepository: com.cocinacapital.app.data.auth.LoginRepository by lazy {
+        com.cocinacapital.app.data.auth.LoginRepository(
+            com.cocinacapital.app.data.auth.SupabaseAuthGateway(SupabaseProvider.client))
+    }
+
     /** Cambia a `false` cuando Supabase esté configurado y las tablas creadas. */
     private const val USE_FAKE_DATA = true
 

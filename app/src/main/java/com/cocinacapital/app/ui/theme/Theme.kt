@@ -10,6 +10,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import com.cocinacapital.app.data.model.TemaApp
 
 // Paleta base (terracota + dorado). Si el equipo ya tiene un tema, usen el suyo y borren este archivo.
 private val LightColors = lightColorScheme(
@@ -25,7 +26,12 @@ private val DarkColors = darkColorScheme(
 
 @Composable
 fun CocinaCapitalTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    temaApp: TemaApp = TemaApp.SISTEMA,
+    darkTheme: Boolean = when (temaApp) {
+        TemaApp.CLARO -> false
+        TemaApp.OSCURO -> true
+        TemaApp.SISTEMA -> isSystemInDarkTheme()
+    },
     dynamicColor: Boolean = false, // true = colores del fondo de pantalla (Android 12+)
     content: @Composable () -> Unit
 ) {

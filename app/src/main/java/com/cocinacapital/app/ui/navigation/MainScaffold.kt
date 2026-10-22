@@ -20,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.cocinacapital.app.ui.home.HomeScreen
+import com.cocinacapital.app.ui.perfil.PerfilScreen
 
 /**
  * Estructura principal de la app (ya autenticado): barra inferior + contenido.
@@ -62,7 +63,7 @@ fun MainScaffold() {
             composable(BottomNavItem.Home.route) { HomeScreen() }
             composable(BottomNavItem.Explorar.route) { PantallaPendiente("Explorar (locales y mapa)") }
             composable(BottomNavItem.Billetera.route) { PantallaPendiente("Billetera (mis beneficios)") }
-            composable(BottomNavItem.Perfil.route) { PantallaPendiente("Perfil") }
+            composable(BottomNavItem.Perfil.route) { PerfilScreen() }
         }
     }
 }

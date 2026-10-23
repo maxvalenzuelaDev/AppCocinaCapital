@@ -69,7 +69,12 @@ fun MainScaffold() {
             startDestination = BottomNavItem.Home.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(BottomNavItem.Home.route) { HomeScreen() }
+            composable(BottomNavItem.Home.route) {
+                HomeScreen(
+                    onLocalClick = { id -> navController.navigate(RutasDetalle.local(id)) },
+                    onPromocionClick = { id -> navController.navigate(RutasDetalle.promocion(id)) }
+                )
+            }
             composable(BottomNavItem.Explorar.route) { PantallaPendiente("Explorar (locales y mapa)") }
             composable(BottomNavItem.Billetera.route) { PantallaPendiente("Billetera (mis beneficios)") }
             composable(BottomNavItem.Perfil.route) { PerfilScreen() }
@@ -101,6 +106,9 @@ private object RutasDetalle {
     const val ARG_ID = "id"
     const val LOCAL = "local/{$ARG_ID}"
     const val PROMOCION = "promocion/{$ARG_ID}"
+
+    fun local(id: String) = "local/$id"
+    fun promocion(id: String) = "promocion/$id"
 }
 
 /** Navegación entre pestañas: conserva el estado de cada una y evita duplicar pantallas. */

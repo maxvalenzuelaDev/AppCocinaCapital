@@ -45,6 +45,7 @@ captures/
 .idea/navEditor.xml
 .idea/studiobot.xml
 .idea/other.xml
+.idea/.name
 
 # Memory dumps and heap profiles
 *.hprof

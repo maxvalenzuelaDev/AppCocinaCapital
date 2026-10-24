@@ -47,6 +47,7 @@ import com.cocinacapital.app.R
 import com.cocinacapital.app.data.model.LocalGastronomico
 import com.cocinacapital.app.data.model.Plato
 import com.cocinacapital.app.data.model.precioTexto
+import com.cocinacapital.app.ui.components.BotonFavorito
 import com.cocinacapital.app.ui.detalle.components.DetalleTopBar
 import com.cocinacapital.app.ui.home.components.PromocionCard
 import com.cocinacapital.app.util.LocaleCL
@@ -61,11 +62,14 @@ fun DetalleLocalScreen(
     viewModel: DetalleLocalViewModel = viewModel(factory = DetalleLocalViewModel.factory(localId))
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val esFavorito by viewModel.esFavorito.collectAsStateWithLifecycle()
 
     DetalleLocalContent(
         uiState = uiState,
+        esFavorito = esFavorito,
         onVolver = onVolver,
         onReintentar = viewModel::onReintentar,
+        onFavoritoClick = viewModel::onFavoritoClick,
         onPromocionClick = onPromocionClick,
         modifier = modifier
     )
@@ -75,8 +79,10 @@ fun DetalleLocalScreen(
 @Composable
 fun DetalleLocalContent(
     uiState: DetalleLocalUiState,
+    esFavorito: Boolean,
     onVolver: () -> Unit,
     onReintentar: () -> Unit,
+    onFavoritoClick: () -> Unit,
     onPromocionClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -86,7 +92,12 @@ fun DetalleLocalContent(
             DetalleTopBar(
                 titulo = (uiState as? DetalleLocalUiState.Success)?.local?.nombre
                     ?: stringResource(R.string.detalle_local_titulo),
-                onVolver = onVolver
+                onVolver = onVolver,
+                acciones = {
+                    if (uiState is DetalleLocalUiState.Success) {
+                        BotonFavorito(esFavorito = esFavorito, onClick = onFavoritoClick)
+                    }
+                }
             )
         }
     ) { innerPadding ->

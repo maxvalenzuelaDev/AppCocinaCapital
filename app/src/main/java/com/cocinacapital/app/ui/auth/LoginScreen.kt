@@ -1,5 +1,12 @@
 package com.cocinacapital.app.ui.auth
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -177,16 +184,28 @@ import androidx.lifecycle.viewmodel.compose.viewModel
     unfocusedTextColor = MaterialTheme.colorScheme.onSurface
 )
 
+private data class FeedbackMessage(val text: String, val isError: Boolean)
+
+/** El mensaje aparece y se oculta animado (T-24); AnimatedContent mantiene visible el anterior mientras sale. */
 @Composable private fun Feedback(state: AuthUiState) {
-    val message = state.error ?: state.notice ?: return
-    val feedbackBackground = if (state.error != null) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer
-    val feedbackContent = if (state.error != null) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSecondaryContainer
-    Spacer(Modifier.height(16.dp))
-    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(feedbackBackground).padding(14.dp)) {
-        Text(if (state.error != null) "!" else "i", fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace, color = feedbackContent)
-        Spacer(Modifier.width(10.dp))
-        Text(message, fontSize = 12.sp, lineHeight = 18.sp, color = feedbackContent,
-            modifier = Modifier.testTag(if (state.error != null) "errorMessage" else "noticeMessage"))
+    val feedback = (state.error ?: state.notice)?.let { FeedbackMessage(it, state.error != null) }
+    AnimatedContent(
+        targetState = feedback,
+        transitionSpec = { (fadeIn() + expandVertically()) togetherWith (fadeOut() + shrinkVertically()) },
+        label = "feedback"
+    ) { message ->
+        if (message == null) return@AnimatedContent
+        val feedbackBackground = if (message.isError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer
+        val feedbackContent = if (message.isError) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSecondaryContainer
+        Column {
+            Spacer(Modifier.height(16.dp))
+            Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(feedbackBackground).padding(14.dp)) {
+                Text(if (message.isError) "!" else "i", fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace, color = feedbackContent)
+                Spacer(Modifier.width(10.dp))
+                Text(message.text, fontSize = 12.sp, lineHeight = 18.sp, color = feedbackContent,
+                    modifier = Modifier.testTag(if (message.isError) "errorMessage" else "noticeMessage"))
+            }
+        }
     }
 }
 
@@ -194,7 +213,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
     Button(onClick, enabled = !busy, modifier = Modifier.fillMaxWidth().height(56.dp).testTag(tag),
         shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary)) {
-        if (busy) CircularProgressIndicator(Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
-        else Text(label, fontSize = 15.sp, fontWeight = FontWeight.Medium, letterSpacing = .2.sp)
+        // Fundido entre el texto y el indicador de carga (T-24).
+        Crossfade(targetState = busy, label = "botonCargando") { cargando ->
+            if (cargando) CircularProgressIndicator(Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary, strokeWidth = 2.dp)
+            else Text(label, fontSize = 15.sp, fontWeight = FontWeight.Medium, letterSpacing = .2.sp)
+        }
     }
 }

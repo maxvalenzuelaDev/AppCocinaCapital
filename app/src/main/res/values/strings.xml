@@ -4,8 +4,21 @@
 
     <!-- Pantallas de detalle -->
     <string name="detalle_volver">Volver</string>
+    <string name="detalle_reintentar">Reintentar</string>
     <string name="detalle_local_titulo">Detalle del local</string>
-    <string name="detalle_local_pendiente">El detalle del local %1$s estará disponible pronto.</string>
+    <string name="detalle_local_cargando">Cargando el local…</string>
+    <string name="detalle_local_error">No pudimos cargar el local. Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="detalle_local_no_encontrado">Este local ya no está disponible.</string>
+    <string name="detalle_local_foto">Foto de %1$s</string>
+    <string name="detalle_local_valoracion">Valoración</string>
+    <string name="detalle_local_horario">Horario</string>
+    <string name="detalle_local_horario_no_informado">Horario no informado</string>
+    <string name="detalle_local_ubicacion">Ubicación</string>
+    <string name="detalle_local_como_llegar">Cómo llegar</string>
+    <string name="detalle_local_menu">Menú destacado</string>
+    <string name="detalle_local_menu_vacio">Este local aún no publica su menú.</string>
+    <string name="detalle_local_promociones">Promociones activas</string>
+    <string name="detalle_local_promociones_vacio">Este local no tiene promociones vigentes.</string>
     <string name="detalle_promocion_titulo">Detalle de la promoción</string>
     <string name="detalle_promocion_pendiente">El detalle de la promoción %1$s estará disponible pronto.</string>
 </resources>

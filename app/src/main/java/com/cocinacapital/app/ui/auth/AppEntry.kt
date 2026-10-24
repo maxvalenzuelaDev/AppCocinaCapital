@@ -20,6 +20,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cocinacapital.app.data.remote.SupabaseProvider
 import com.cocinacapital.app.ui.navigation.MainScaffold
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.cocinacapital.app.ui.registro.RegistroScreen
 
 const val REGISTER_ACTION = "com.cocinacapital.action.OPEN_REGISTER"
 
@@ -33,6 +37,8 @@ fun AppEntry(onRegisterRequested: (() -> Unit)? = null) {
         return
     }
     val context = LocalContext.current
+    // Controla si se muestra la pantalla de registro.
+    var mostrarRegistro by remember { mutableStateOf(false) }
     val model: AuthViewModel = viewModel(factory = AuthViewModel.Factory)
     val state by model.uiState.collectAsStateWithLifecycle()
     val view = LocalView.current
@@ -45,17 +51,32 @@ fun AppEntry(onRegisterRequested: (() -> Unit)? = null) {
             }
         }
     }
+    // Abre el registro cuando se presiona "Crear cuenta".
     val openRegister: () -> Unit = onRegisterRequested ?: {
-        val intent = Intent(REGISTER_ACTION).setPackage(context.packageName)
-        if (intent.resolveActivity(context.packageManager) != null) context.startActivity(intent)
-        else Toast.makeText(context, "El registro todavía no está disponible en esta versión.", Toast.LENGTH_LONG).show()
+        mostrarRegistro = true
     }
-    when (state.screen) {
-        AuthScreen.LOGIN -> LoginScreen(onRegisterClick = openRegister, model = model)
-        AuthScreen.SESSION -> MainScaffold()
+    // Muestra el login, el registro o la pantalla principal.
+    when {
+        state.screen == AuthScreen.SESSION -> {
+            MainScaffold()
+        }
+
+        mostrarRegistro -> {
+            RegistroScreen(
+                onVolverLogin = {
+                    mostrarRegistro = false
+                }
+            )
+        }
+
+        else -> {
+            LoginScreen(
+                onRegisterClick = openRegister,
+                model = model
+            )
+        }
     }
 }
-
 private tailrec fun Context.hostActivity(): Activity? = when (this) {
     is Activity -> this
     is android.content.ContextWrapper -> baseContext.hostActivity()

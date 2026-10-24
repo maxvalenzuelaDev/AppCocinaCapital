@@ -20,6 +20,10 @@ data class LocalGastronomico(
     val valoracion: Double = 0.0,
     val latitud: Double? = null,
     val longitud: Double? = null,
+    val descripcion: String = "",
+    val direccion: String? = null,
+    /** Texto libre, ej: "Lun a Jue 12:00–22:00 · Vie y Sáb 12:00–00:00". */
+    val horario: String? = null,
     @Transient val categoriaNombre: String = "",
     @Transient val distanciaKm: Double? = null
 )

@@ -47,4 +47,10 @@
     <string name="perfil_ahora_no">Ahora no</string>
     <string name="perfil_cancelar">Cancelar</string>
     <string name="perfil_entendido">Entendido</string>
+
+    <!-- Login: saludo según si ya hubo sesión en este teléfono -->
+    <string name="login_titulo_bienvenida">Te damos la\nbienvenida.</string>
+    <string name="login_subtitulo_bienvenida">Inicia sesión o crea tu cuenta y descubre\ntu próxima experiencia gastronómica.</string>
+    <string name="login_titulo_regreso">Qué bueno\nvolver a verte.</string>
+    <string name="login_subtitulo_regreso">Inicia sesión y encuentra tu próxima\nexperiencia gastronómica.</string>
 </resources>

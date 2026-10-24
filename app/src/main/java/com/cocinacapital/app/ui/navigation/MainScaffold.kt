@@ -1,5 +1,12 @@
 package com.cocinacapital.app.ui.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,6 +37,10 @@ import com.cocinacapital.app.ui.perfil.PerfilScreen
  * Estructura principal de la app (ya autenticado): barra inferior + contenido.
  * La barra inferior solo se muestra en las pestañas; las pantallas de detalle la ocultan.
  *
+ * Animaciones (T-24): el detalle entra deslizándose desde la derecha y sale hacia la derecha al
+ * volver; entre pestañas hay un fundido; la barra inferior se oculta y aparece con una animación.
+ * Compose respeta la opción del sistema "Quitar animaciones" (escala de animación en 0).
+ *
  * Los insets de sistema se desactivan en el Scaffold (`WindowInsets(0, 0, 0, 0)`) porque
  * cada pantalla maneja los suyos: el TopAppBar el de arriba y la NavigationBar el de abajo.
  *
@@ -46,7 +57,12 @@ fun MainScaffold() {
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
-            if (esPestana) NavigationBar {
+            // expand/shrink (no slide) para que el contenido también se ajuste suavemente.
+            AnimatedVisibility(
+                visible = esPestana,
+                enter = expandVertically(tween(DURACION_MS)),
+                exit = shrinkVertically(tween(DURACION_MS))
+            ) { NavigationBar {
                 BottomNavItem.items.forEach { item ->
                     val seleccionado = rutaActual == item.route
                     NavigationBarItem(
@@ -61,13 +77,33 @@ fun MainScaffold() {
                         label = { Text(item.label) }
                     )
                 }
-            }
+            } }
         }
     ) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = BottomNavItem.Home.route,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
+            // Hacia un detalle: desliza. Entre pestañas: fundido.
+            enterTransition = {
+                if (targetState.destination.route.esDetalle()) slideIntoContainer(SlideDirection.Start, tween(DURACION_MS))
+                else fadeIn(tween(DURACION_MS))
+            },
+            exitTransition = {
+                if (targetState.destination.route.esDetalle())
+                    slideOutOfContainer(SlideDirection.Start, tween(DURACION_MS)) { it / 4 } + fadeOut(tween(DURACION_MS))
+                else fadeOut(tween(DURACION_MS))
+            },
+            // Al volver desde un detalle: el movimiento inverso.
+            popEnterTransition = {
+                if (initialState.destination.route.esDetalle())
+                    slideIntoContainer(SlideDirection.End, tween(DURACION_MS)) { it / 4 } + fadeIn(tween(DURACION_MS))
+                else fadeIn(tween(DURACION_MS))
+            },
+            popExitTransition = {
+                if (initialState.destination.route.esDetalle()) slideOutOfContainer(SlideDirection.End, tween(DURACION_MS))
+                else fadeOut(tween(DURACION_MS))
+            }
         ) {
             composable(BottomNavItem.Home.route) {
                 HomeScreen(
@@ -101,6 +137,10 @@ fun MainScaffold() {
         }
     }
 }
+
+private const val DURACION_MS = 300
+
+private fun String?.esDetalle() = this == RutasDetalle.LOCAL || this == RutasDetalle.PROMOCION
 
 /** Rutas con argumento que no pertenecen a la barra inferior. */
 private object RutasDetalle {

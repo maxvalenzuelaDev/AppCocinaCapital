@@ -5,7 +5,9 @@ import com.cocinacapital.app.data.auth.LoginRepository
 import com.cocinacapital.app.data.auth.PerfilSesion
 import com.cocinacapital.app.data.auth.SupabaseAuthGateway
 import com.cocinacapital.app.data.auth.SupabasePerfilSesion
+import com.cocinacapital.app.data.local.AndroidFotoPerfilArchivos
 import com.cocinacapital.app.data.local.CocinaDatabase
+import com.cocinacapital.app.data.local.FotoPerfilArchivos
 import com.cocinacapital.app.data.remote.SupabaseProvider
 import com.cocinacapital.app.data.repository.DetalleLocalRepository
 import com.cocinacapital.app.data.repository.FakeDetalleLocalRepository
@@ -51,6 +53,8 @@ object AppContainer {
     val preferenciasRepository: PreferenciasRepository by lazy {
         PreferenciasRepository(database.preferenciasDao(), perfilSesion)
     }
+
+    val fotoPerfilArchivos: FotoPerfilArchivos by lazy { AndroidFotoPerfilArchivos(appContext) }
 
     val favoritosRepository: FavoritosRepository by lazy {
         FavoritosRepository(database.favoritosDao(), perfilSesion)

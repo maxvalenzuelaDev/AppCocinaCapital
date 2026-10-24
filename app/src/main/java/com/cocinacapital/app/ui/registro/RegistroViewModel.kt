@@ -32,6 +32,12 @@ class RegistroViewModel(
 
     // ---------------- Acciones de la UI ----------------
 
+    // Vacía el formulario al salir del registro, para que no queden datos (ni la contraseña)
+    // si el usuario vuelve a entrar más tarde.
+    fun reiniciar() {
+        _uiState.value = RegistroUiState()
+    }
+
     // Actualiza el nombre y elimina su error anterior.
     fun onNombreChange(nombre: String) {
         _uiState.update {

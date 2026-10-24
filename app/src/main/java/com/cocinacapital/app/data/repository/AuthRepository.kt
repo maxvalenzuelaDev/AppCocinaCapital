@@ -37,8 +37,9 @@ class AuthRepository {
             password = contrasena
 
             // Guarda el nombre completo como metadato de la cuenta.
+            // Usa la misma clave que lee y edita el Perfil (SupabasePerfilSesion).
             data = buildJsonObject {
-                put("full_name", nombre.trim())
+                put("nombre", nombre.trim())
             }
         }
     }

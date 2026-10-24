@@ -2,10 +2,55 @@
 <resources>
     <string name="app_name">CocinaCapital</string>
 
+    <!-- Registro -->
+    <string name="registro_corregir_datos">¿Te equivocaste en algún dato? Corrígelo y vuelve a tocar Registrarse; el correo de confirmación se enviará a la nueva dirección.</string>
+
+    <!-- Favoritos -->
+    <string name="favorito_agregar">Agregar a favoritos</string>
+    <string name="favorito_quitar">Quitar de favoritos</string>
+
     <!-- Pantallas de detalle -->
     <string name="detalle_volver">Volver</string>
+    <string name="detalle_reintentar">Reintentar</string>
     <string name="detalle_local_titulo">Detalle del local</string>
-    <string name="detalle_local_pendiente">El detalle del local %1$s estará disponible pronto.</string>
+    <string name="detalle_local_cargando">Cargando el local…</string>
+    <string name="detalle_local_error">No pudimos cargar el local. Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="detalle_local_no_encontrado">Este local ya no está disponible.</string>
+    <string name="detalle_local_foto">Foto de %1$s</string>
+    <string name="detalle_local_valoracion">Valoración</string>
+    <string name="detalle_local_horario">Horario</string>
+    <string name="detalle_local_horario_no_informado">Horario no informado</string>
+    <string name="detalle_local_ubicacion">Ubicación</string>
+    <string name="detalle_local_como_llegar">Cómo llegar</string>
+    <string name="detalle_local_menu">Menú destacado</string>
+    <string name="detalle_local_menu_vacio">Este local aún no publica su menú.</string>
+    <string name="detalle_local_promociones">Promociones activas</string>
+    <string name="detalle_local_promociones_vacio">Este local no tiene promociones vigentes.</string>
     <string name="detalle_promocion_titulo">Detalle de la promoción</string>
     <string name="detalle_promocion_pendiente">El detalle de la promoción %1$s estará disponible pronto.</string>
+
+    <!-- Perfil: foto de perfil (T-23) -->
+    <string name="perfil_foto_descripcion">Foto de perfil de %1$s</string>
+    <string name="perfil_foto_cambiar">Cambiar foto de perfil</string>
+    <string name="perfil_foto_titulo">Foto de perfil</string>
+    <string name="perfil_foto_tomar">Tomar foto</string>
+    <string name="perfil_foto_galeria">Elegir de la galería</string>
+    <string name="perfil_foto_quitar">Quitar foto</string>
+    <string name="perfil_foto_error_titulo">No se pudo guardar la foto</string>
+    <string name="perfil_foto_error">Ocurrió un problema al guardar la imagen. Inténtalo de nuevo o elige otra foto.</string>
+    <string name="perfil_permiso_camara_titulo">Permiso de cámara</string>
+    <string name="perfil_permiso_camara_explicacion">Usamos la cámara solo para tomar tu foto de perfil. La foto se guarda en tu teléfono y no se comparte.</string>
+    <string name="perfil_permiso_camara_denegado_titulo">Cámara sin permiso</string>
+    <string name="perfil_permiso_camara_denegado">Sin el permiso de cámara no podemos tomar la foto. Puedes elegir una de la galería o activar el permiso en los ajustes de la app.</string>
+    <string name="perfil_abrir_ajustes">Abrir ajustes</string>
+    <string name="perfil_continuar">Continuar</string>
+    <string name="perfil_ahora_no">Ahora no</string>
+    <string name="perfil_cancelar">Cancelar</string>
+    <string name="perfil_entendido">Entendido</string>
+
+    <!-- Login: saludo según si ya hubo sesión en este teléfono -->
+    <string name="login_titulo_bienvenida">Te damos la\nbienvenida.</string>
+    <string name="login_subtitulo_bienvenida">Inicia sesión o crea tu cuenta y descubre\ntu próxima experiencia gastronómica.</string>
+    <string name="login_titulo_regreso">Qué bueno\nvolver a verte.</string>
+    <string name="login_subtitulo_regreso">Inicia sesión y encuentra tu próxima\nexperiencia gastronómica.</string>
 </resources>

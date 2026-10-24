@@ -1,5 +1,6 @@
 package com.cocinacapital.app.ui.detalle.components
 
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -14,13 +15,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.cocinacapital.app.R
 
-/** Encabezado de las pantallas de detalle: título + flecha para volver a la pantalla anterior. */
+/** Encabezado de las pantallas de detalle: título + flecha para volver + [acciones] opcionales a la derecha. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetalleTopBar(
     titulo: String,
     onVolver: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    acciones: @Composable RowScope.() -> Unit = {}
 ) {
     TopAppBar(
         modifier = modifier,
@@ -33,6 +35,7 @@ fun DetalleTopBar(
                 )
             }
         },
+        actions = acciones,
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.background
         )

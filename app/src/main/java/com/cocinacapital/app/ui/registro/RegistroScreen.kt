@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -16,6 +17,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.cocinacapital.app.R
 
 /**
  * Pantalla de registro conectada al ViewModel.
@@ -129,7 +131,8 @@ fun RegistroContent(
                 label = { Text("Nombre completo") },
                 placeholder = { Text("Ej. Juan Pérez") },
                 singleLine = true,
-                enabled = !state.cargando && !state.registroExitoso,
+                // Editable tras enviar: si el correo estaba mal, se corrige y se vuelve a registrar.
+                enabled = !state.cargando,
                 isError = state.errorNombre != null,
                 supportingText = {
                     state.errorNombre?.let {
@@ -151,7 +154,8 @@ fun RegistroContent(
                 label = { Text("Correo electrónico") },
                 placeholder = { Text("tu@correo.com") },
                 singleLine = true,
-                enabled = !state.cargando && !state.registroExitoso,
+                // Editable tras enviar: si el correo estaba mal, se corrige y se vuelve a registrar.
+                enabled = !state.cargando,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email
                 ),
@@ -175,7 +179,8 @@ fun RegistroContent(
                 onValueChange = onContrasenaChange,
                 label = { Text("Contraseña") },
                 singleLine = true,
-                enabled = !state.cargando && !state.registroExitoso,
+                // Editable tras enviar: si el correo estaba mal, se corrige y se vuelve a registrar.
+                enabled = !state.cargando,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password
                 ),
@@ -255,6 +260,16 @@ fun RegistroContent(
                         colores.error
                     },
                     style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            // Tras enviar, se avisa que los datos se pueden corregir (por ejemplo, un correo mal escrito).
+            if (state.registroExitoso) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = stringResource(R.string.registro_corregir_datos),
+                    color = colores.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
 

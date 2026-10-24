@@ -50,6 +50,13 @@ class PreferenciasRepository(
         it.copy(consentimiento = acepta, consentimientoFecha = if (acepta) System.currentTimeMillis() else null)
     }
 
+    /** Guarda la nueva ruta (o `null` para quitar la foto) y devuelve la anterior, para borrar su archivo. */
+    suspend fun setFotoPerfil(ruta: String?): String? {
+        val anterior = dao.obtener(userId)?.fotoPerfilRuta
+        modificar { it.copy(fotoPerfilRuta = ruta) }
+        return anterior
+    }
+
     private suspend fun modificar(cambio: (PreferenciasEntity) -> PreferenciasEntity) {
         val id = userId
         dao.guardar(cambio(dao.obtener(id) ?: PreferenciasEntity(userId = id)))
@@ -63,6 +70,7 @@ class PreferenciasRepository(
         soloCategoriasFavoritas = soloCategoriasFavoritas,
         consentimiento = consentimiento,
         consentimientoFecha = consentimientoFecha,
-        tema = runCatching { TemaApp.valueOf(tema) }.getOrDefault(TemaApp.SISTEMA)
+        tema = runCatching { TemaApp.valueOf(tema) }.getOrDefault(TemaApp.SISTEMA),
+        fotoPerfilRuta = fotoPerfilRuta
     )
 }

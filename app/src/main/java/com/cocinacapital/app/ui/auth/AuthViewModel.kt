@@ -3,6 +3,7 @@ package com.cocinacapital.app.ui.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cocinacapital.app.data.auth.*
+import com.cocinacapital.app.data.local.HistorialSesion
 import com.cocinacapital.app.di.AppContainer
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -21,22 +22,33 @@ data class AuthUiState(
     val busy: Boolean = false,
     val error: String? = null,
     val notice: String? = null,
-    val user: LoginUser? = null
+    val user: LoginUser? = null,
+    /** Nunca hubo sesión en este teléfono: el Login da la bienvenida en vez de "volver a verte". */
+    val firstVisit: Boolean = false
 )
 
-class AuthViewModel(private val repository: LoginRepository) : ViewModel() {
+class AuthViewModel(
+    private val repository: LoginRepository,
+    private val history: HistorialSesion
+) : ViewModel() {
     companion object {
-        val Factory = viewModelFactory { initializer { AuthViewModel(AppContainer.authRepository) } }
+        val Factory = viewModelFactory {
+            initializer { AuthViewModel(AppContainer.authRepository, AppContainer.historialSesion) }
+        }
     }
-    private val state = MutableStateFlow(AuthUiState())
+    private val state = MutableStateFlow(AuthUiState(firstVisit = !history.huboSesion()))
     val uiState = state.asStateFlow()
 
     init {
         viewModelScope.launch {
             repository.sessions.collect { session ->
                 when (session) {
-                    is LoginSession.SignedIn -> state.update {
-                        it.copy(screen = AuthScreen.SESSION, restoring = false, user = session.user, error = null)
+                    is LoginSession.SignedIn -> {
+                        // Login, registro o sesión recuperada: desde ahora el Login dice "volver a verte".
+                        history.registrarSesion()
+                        state.update {
+                            it.copy(screen = AuthScreen.SESSION, restoring = false, user = session.user, error = null, firstVisit = false)
+                        }
                     }
                     LoginSession.SignedOut -> state.update {
                         it.copy(restoring = false, user = null, screen = if (it.screen == AuthScreen.SESSION) AuthScreen.LOGIN else it.screen)

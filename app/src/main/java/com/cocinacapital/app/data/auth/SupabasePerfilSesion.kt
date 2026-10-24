@@ -34,7 +34,8 @@ class SupabasePerfilSesion(client: SupabaseClient) : PerfilSesion {
 
 private fun UserInfo.aPerfil(): PerfilUsuario {
     val correo = email.orEmpty()
-    val guardado = userMetadata?.get("nombre")?.jsonPrimitive?.contentOrNull
+    // "full_name" lo usaron las primeras cuentas creadas con el registro; hoy se guarda en "nombre".
+    val guardado = (userMetadata?.get("nombre") ?: userMetadata?.get("full_name"))?.jsonPrimitive?.contentOrNull
     // Si aún no hay nombre guardado, usa la parte del correo antes de la @.
     val nombre = guardado ?: correo.substringBefore("@").replaceFirstChar { it.uppercase() }
     return PerfilUsuario(id = id, nombre = nombre, correo = correo)

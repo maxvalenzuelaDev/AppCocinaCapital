@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Carpetas que FileProvider puede compartir con la cámara (foto de perfil, T-23). -->
+<paths>
+    <files-path name="fotos_perfil" path="fotos_perfil/" />
+</paths>

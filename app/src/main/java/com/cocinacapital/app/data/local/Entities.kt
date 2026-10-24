@@ -13,7 +13,9 @@ data class PreferenciasEntity(
     val soloCategoriasFavoritas: Boolean = false,
     val consentimiento: Boolean = false,
     val consentimientoFecha: Long? = null,
-    val tema: String = "SISTEMA"
+    val tema: String = "SISTEMA",
+    /** Ruta absoluta de la foto de perfil dentro de la carpeta privada de la app. */
+    val fotoPerfilRuta: String? = null
 )
 
 /** Categorías gastronómicas elegidas por el usuario (relación muchos a muchos simple). */

@@ -35,7 +35,9 @@ data class PreferenciasUsuario(
     /** Consentimiento para registrar actividad y personalizar (Ley 21.719 / 19.628). */
     val consentimiento: Boolean = false,
     val consentimientoFecha: Long? = null,
-    val tema: TemaApp = TemaApp.SISTEMA
+    val tema: TemaApp = TemaApp.SISTEMA,
+    /** Foto elegida en el Perfil (archivo local); tiene prioridad sobre [PerfilUsuario.fotoUrl]. */
+    val fotoPerfilRuta: String? = null
 )
 
 enum class TipoFavorito { LOCAL, PROMOCION }

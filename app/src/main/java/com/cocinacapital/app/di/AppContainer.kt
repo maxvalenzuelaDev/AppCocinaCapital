@@ -7,10 +7,13 @@ import com.cocinacapital.app.data.auth.SupabaseAuthGateway
 import com.cocinacapital.app.data.auth.SupabasePerfilSesion
 import com.cocinacapital.app.data.local.CocinaDatabase
 import com.cocinacapital.app.data.remote.SupabaseProvider
+import com.cocinacapital.app.data.repository.DetalleLocalRepository
+import com.cocinacapital.app.data.repository.FakeDetalleLocalRepository
 import com.cocinacapital.app.data.repository.FakeHomeRepository
 import com.cocinacapital.app.data.repository.FavoritosRepository
 import com.cocinacapital.app.data.repository.HomeRepository
 import com.cocinacapital.app.data.repository.PreferenciasRepository
+import com.cocinacapital.app.data.repository.SupabaseDetalleLocalRepository
 import com.cocinacapital.app.data.repository.SupabaseHomeRepository
 
 /** Inyección de dependencias manual y simple (sin Hilt). Se inicializa en CocinaApp. */
@@ -38,6 +41,11 @@ object AppContainer {
     val homeRepository: HomeRepository by lazy {
         if (USE_FAKE_DATA) FakeHomeRepository()
         else SupabaseHomeRepository(SupabaseProvider.client)
+    }
+
+    val detalleLocalRepository: DetalleLocalRepository by lazy {
+        if (USE_FAKE_DATA) FakeDetalleLocalRepository()
+        else SupabaseDetalleLocalRepository(SupabaseProvider.client)
     }
 
     val preferenciasRepository: PreferenciasRepository by lazy {

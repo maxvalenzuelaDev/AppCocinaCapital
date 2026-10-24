@@ -85,7 +85,8 @@ fun MainScaffold() {
             ) { entry ->
                 DetalleLocalScreen(
                     localId = entry.arguments?.getString(RutasDetalle.ARG_ID).orEmpty(),
-                    onVolver = { navController.navigateUp() }
+                    onVolver = { navController.navigateUp() },
+                    onPromocionClick = { id -> navController.navigate(RutasDetalle.promocion(id)) }
                 )
             }
             composable(

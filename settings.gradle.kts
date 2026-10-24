@@ -20,5 +20,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "CocinaCapital_Home"
+rootProject.name = "CocinaCapital"
 include(":app")

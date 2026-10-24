@@ -40,6 +40,27 @@ captures/
 .idea/libraries
 .idea/appInsightsSettings.xml
 .idea/deploymentTargetSelector.xml
+.idea/caches
+.idea/deviceManager.xml
+.idea/navEditor.xml
+.idea/studiobot.xml
+.idea/other.xml
+.idea/.name
 
 # Memory dumps and heap profiles
 *.hprof
+
+# Kotlin
+.kotlin/
+
+# Native builds
+.externalNativeBuild/
+.cxx/
+
+# Keystores de firma (no se suben)
+*.jks
+*.keystore
+
+# Sistema operativo
+.DS_Store
+Thumbs.db

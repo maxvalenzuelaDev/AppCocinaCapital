@@ -1,5 +1,10 @@
 package com.cocinacapital.app.ui.home
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -84,15 +89,24 @@ fun HomeContent(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
 
-        when (uiState) {
-            HomeUiState.Loading -> LoadingContent()
-            is HomeUiState.Error -> ErrorContent(message = uiState.message, onReintentar = onReintentar)
-            is HomeUiState.Success -> SuccessContent(
-                state = uiState,
-                onCategoriaClick = onCategoriaClick,
-                onLocalClick = onLocalClick,
-                onPromocionClick = onPromocionClick
-            )
+        // Fundido al pasar de cargando a contenido o error (T-24). La clave es el tipo de estado:
+        // filtrar o buscar actualiza el Success sin repetir el fundido (eso lo anima animateItem).
+        AnimatedContent(
+            targetState = uiState,
+            contentKey = { it::class },
+            transitionSpec = { fadeIn(tween(300)) togetherWith fadeOut(tween(300)) },
+            label = "estadoHome"
+        ) { state ->
+            when (state) {
+                HomeUiState.Loading -> LoadingContent()
+                is HomeUiState.Error -> ErrorContent(message = state.message, onReintentar = onReintentar)
+                is HomeUiState.Success -> SuccessContent(
+                    state = state,
+                    onCategoriaClick = onCategoriaClick,
+                    onLocalClick = onLocalClick,
+                    onPromocionClick = onPromocionClick
+                )
+            }
         }
     }
 }
@@ -166,7 +180,12 @@ private fun SuccessContent(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(state.localesParaTi, key = { it.id }) { local ->
-                        LocalCard(local = local, onClick = { onLocalClick(local.id) })
+                        // animateItem: las tarjetas se desplazan y aparecen suavemente al filtrar.
+                        LocalCard(
+                            local = local,
+                            onClick = { onLocalClick(local.id) },
+                            modifier = Modifier.animateItem()
+                        )
                     }
                 }
             }
@@ -177,13 +196,17 @@ private fun SuccessContent(
             SectionHeader("Promociones vigentes", "Aprovecha las horas de baja demanda")
         }
         if (state.promociones.isEmpty()) {
-            item(key = "promos_vacio") { EmptyMessage("No hay promociones vigentes con ese criterio.") }
+            item(key = "promos_vacio") {
+                EmptyMessage("No hay promociones vigentes con ese criterio.", Modifier.animateItem())
+            }
         } else {
             items(state.promociones, key = { it.id }) { promo ->
                 PromocionCard(
                     promocion = promo,
                     onClick = { onPromocionClick(promo.id) },
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier
+                        .animateItem()
+                        .padding(horizontal = 16.dp)
                 )
             }
         }
@@ -203,10 +226,10 @@ private fun SectionHeader(titulo: String, subtitulo: String) {
 }
 
 @Composable
-private fun EmptyMessage(texto: String) {
+private fun EmptyMessage(texto: String, modifier: Modifier = Modifier) {
     Text(
         text = texto,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         style = MaterialTheme.typography.bodyMedium,

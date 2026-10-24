@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.android)        // quítalo si tu AGP ya incluye Kotlin integrado
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)  // necesario para @Serializable (modelos de Supabase)
+    alias(libs.plugins.ksp)                   // procesador de anotaciones de Room
 }
 
 // Lee las credenciales de Supabase desde local.properties (este archivo NO se sube a GitHub).
@@ -62,9 +63,18 @@ dependencies {
     implementation(platform(libs.supabase.bom))  // la BOM alinea las versiones de todos los módulos
     implementation(libs.supabase.postgrest)      // consultas a las tablas
     implementation(libs.supabase.storage)        // opcional: URLs/archivos de Storage
-    // implementation(libs.supabase.auth)        // Login/Registro (compañeros)
+    implementation(libs.supabase.auth)
+    implementation(libs.kotlinx.coroutines.android)
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlin.test.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     implementation(libs.ktor.client.okhttp)      // motor HTTP requerido por supabase-kt en Android
     implementation(libs.kotlinx.serialization.json)
+
+    // --- Room (SQLite local: preferencias y favoritos) ---
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 
     // --- Coil 3 (imágenes desde URL) ---
     implementation(libs.coil.compose)

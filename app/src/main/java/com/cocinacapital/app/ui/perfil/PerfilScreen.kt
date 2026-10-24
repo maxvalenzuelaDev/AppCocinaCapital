@@ -1,9 +1,15 @@
 package com.cocinacapital.app.ui.perfil
 
 import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -38,12 +44,14 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -54,6 +62,7 @@ import com.cocinacapital.app.data.model.RangoPrecio
 import com.cocinacapital.app.data.model.TemaApp
 import com.cocinacapital.app.ui.perfil.components.Avatar
 import com.cocinacapital.app.ui.perfil.components.Estadistica
+import com.cocinacapital.app.ui.perfil.components.FotoPerfilDialogos
 import com.cocinacapital.app.ui.perfil.components.SeccionCard
 import com.cocinacapital.app.ui.perfil.components.Separador
 import com.cocinacapital.app.ui.perfil.components.SwitchRow
@@ -67,6 +76,52 @@ fun PerfilScreen(
     viewModel: PerfilViewModel = viewModel(factory = PerfilViewModel.Factory)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val foto by viewModel.foto.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    // ---- Foto de perfil (T-23): la pantalla solo lanza lo que pide el ViewModel ----
+    val camara = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { exito ->
+        viewModel.onFotoTomada(exito)
+    }
+    val galeria = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        viewModel.onFotoElegida(uri?.toString())
+    }
+    val permisoCamara = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { concedido ->
+        viewModel.onResultadoPermisoCamara(concedido)
+    }
+
+    LaunchedEffect(foto.accion) {
+        when (val accion = foto.accion ?: return@LaunchedEffect) {
+            AccionFoto.PedirPermisoCamara -> permisoCamara.launch(Manifest.permission.CAMERA)
+            is AccionFoto.AbrirCamara -> camara.launch(Uri.parse(accion.uri))
+            AccionFoto.AbrirGaleria -> galeria.launch(
+                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+            )
+            AccionFoto.AbrirAjustes -> runCatching {
+                context.startActivity(
+                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null))
+                )
+            }
+        }
+        viewModel.onAccionFotoRealizada()
+    }
+
+    val alElegirCamara = {
+        val concedido = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+            PackageManager.PERMISSION_GRANTED
+        viewModel.onElegirCamara(concedido)
+    }
+
+    FotoPerfilDialogos(
+        dialogo = foto.dialogo,
+        tieneFoto = (uiState as? PerfilUiState.Success)?.preferencias?.fotoPerfilRuta != null,
+        onTomarFoto = alElegirCamara,
+        onElegirGaleria = viewModel::onElegirGaleria,
+        onQuitarFoto = viewModel::onQuitarFoto,
+        onAceptarExplicacion = viewModel::onAceptarExplicacionPermiso,
+        onAbrirAjustes = viewModel::onAbrirAjustes,
+        onCerrar = viewModel::onCerrarDialogoFoto
+    )
 
     // Android 13+ exige pedir el permiso de notificaciones en tiempo de ejecución.
     val permisoNotificaciones = rememberLauncherForActivityResult(
@@ -102,6 +157,7 @@ fun PerfilScreen(
 
         is PerfilUiState.Success -> PerfilContent(
             state = state,
+            alCambiarFoto = viewModel::onCambiarFoto,
             alGuardarNombre = viewModel::onGuardarNombre,
             alElegirCategoria = viewModel::onCategoriaClick,
             alElegirRango = viewModel::onRangoPrecio,
@@ -123,6 +179,7 @@ fun PerfilScreen(
 @Composable
 private fun PerfilContent(
     state: PerfilUiState.Success,
+    alCambiarFoto: () -> Unit,
     alGuardarNombre: (String) -> Unit,
     alElegirCategoria: (String) -> Unit,
     alElegirRango: (RangoPrecio) -> Unit,
@@ -154,7 +211,7 @@ private fun PerfilContent(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Avatar(usuario)
+                    Avatar(usuario, fotoRuta = prefs.fotoPerfilRuta, onClick = alCambiarFoto)
                     Spacer(Modifier.height(8.dp))
                     Text(usuario.nombre, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                     Text(

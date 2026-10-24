@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -37,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.cocinacapital.app.R
 
 /** El equipo conecta aquí su pantalla de registro, por ejemplo con navController.navigate. */
 @Composable fun LoginScreen(onRegisterClick: () -> Unit, model: AuthViewModel = viewModel(factory = AuthViewModel.Factory)) {
@@ -119,7 +121,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
     var password by remember { mutableStateOf("") }
     val focus = LocalFocusManager.current
     val submit = { focus.clearFocus(); model.login(email, password) }
-    Heading("TU LUGAR EN LA MESA", "Qué bueno\nvolver a verte.", "Inicia sesión y encuentra tu próxima\nexperiencia gastronómica.")
+    // Primer uso en este teléfono: bienvenida; si ya hubo sesión: "volver a verte".
+    val (title, subtitle) = if (state.firstVisit) R.string.login_titulo_bienvenida to R.string.login_subtitulo_bienvenida
+        else R.string.login_titulo_regreso to R.string.login_subtitulo_regreso
+    Heading("TU LUGAR EN LA MESA", stringResource(title), stringResource(subtitle))
     Field("Correo electrónico", "tu@correo.com", email, "email", !state.busy, KeyboardType.Email) {
         email = it; model.dismissError()
     }

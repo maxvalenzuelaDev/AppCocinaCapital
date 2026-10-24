@@ -16,6 +16,11 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -136,15 +141,21 @@ fun PerfilScreen(
         }
     }
 
+    // Perfil no tiene barra superior: sin este margen, el contenido queda bajo la barra de estado
+    // (hora, batería) y la cámara perforada de la pantalla, y se ve detrás de ellas al hacer scroll.
+    val contenidoModifier = modifier.windowInsetsPadding(
+        WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
+    )
+
     when (val state = uiState) {
         PerfilUiState.Loading -> Column(
-            modifier = modifier.fillMaxSize(),
+            modifier = contenidoModifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) { CircularProgressIndicator() }
 
         is PerfilUiState.Error -> Column(
-            modifier = modifier.fillMaxSize().padding(32.dp),
+            modifier = contenidoModifier.fillMaxSize().padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -170,7 +181,7 @@ fun PerfilScreen(
             alEliminarCuenta = viewModel::onEliminarCuenta,
             alElegirTema = viewModel::onTema,
             alCerrarSesion = viewModel::onCerrarSesion,
-            modifier = modifier
+            modifier = contenidoModifier
         )
     }
 }

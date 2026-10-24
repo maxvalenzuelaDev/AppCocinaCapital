@@ -8,6 +8,8 @@ import com.cocinacapital.app.data.auth.SupabasePerfilSesion
 import com.cocinacapital.app.data.local.AndroidFotoPerfilArchivos
 import com.cocinacapital.app.data.local.CocinaDatabase
 import com.cocinacapital.app.data.local.FotoPerfilArchivos
+import com.cocinacapital.app.data.local.HistorialSesion
+import com.cocinacapital.app.data.local.PreferenciasHistorialSesion
 import com.cocinacapital.app.data.remote.SupabaseProvider
 import com.cocinacapital.app.data.repository.DetalleLocalRepository
 import com.cocinacapital.app.data.repository.FakeDetalleLocalRepository
@@ -37,6 +39,9 @@ object AppContainer {
 
     // ---- Perfil: el usuario sale de la misma sesión de Supabase ----
     val perfilSesion: PerfilSesion by lazy { SupabasePerfilSesion(SupabaseProvider.client) }
+
+    /** Si alguna vez hubo sesión en este teléfono (saludo del Login). */
+    val historialSesion: HistorialSesion by lazy { PreferenciasHistorialSesion(appContext) }
 
     private val database: CocinaDatabase by lazy { CocinaDatabase.crear(appContext) }
 

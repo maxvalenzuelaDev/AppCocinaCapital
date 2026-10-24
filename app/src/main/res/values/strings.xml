@@ -2,6 +2,9 @@
 <resources>
     <string name="app_name">CocinaCapital</string>
 
+    <!-- Registro -->
+    <string name="registro_corregir_datos">¿Te equivocaste en algún dato? Corrígelo y vuelve a tocar Registrarse; el correo de confirmación se enviará a la nueva dirección.</string>
+
     <!-- Favoritos -->
     <string name="favorito_agregar">Agregar a favoritos</string>
     <string name="favorito_quitar">Quitar de favoritos</string>

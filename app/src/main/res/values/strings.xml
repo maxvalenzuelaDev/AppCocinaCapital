@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">CocinaCapital</string>
+
+    <!-- Pantallas de detalle -->
+    <string name="detalle_volver">Volver</string>
+    <string name="detalle_local_titulo">Detalle del local</string>
+    <string name="detalle_local_pendiente">El detalle del local %1$s estará disponible pronto.</string>
+    <string name="detalle_promocion_titulo">Detalle de la promoción</string>
+    <string name="detalle_promocion_pendiente">El detalle de la promoción %1$s estará disponible pronto.</string>
 </resources>

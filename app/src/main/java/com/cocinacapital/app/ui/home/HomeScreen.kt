@@ -41,8 +41,8 @@ import com.cocinacapital.app.ui.home.components.SearchField
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    onLocalClick: (String) -> Unit = {},      // se conectará a la pantalla de detalle (RF-05)
-    onPromocionClick: (String) -> Unit = {},  // se conectará al detalle de promoción (RF-09)
+    onLocalClick: (String) -> Unit = {},
+    onPromocionClick: (String) -> Unit = {},
     viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()

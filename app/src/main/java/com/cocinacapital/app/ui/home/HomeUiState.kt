@@ -9,16 +9,17 @@ sealed interface HomeUiState {
 
     data object Loading : HomeUiState
 
-    data class Error(val message: String) : HomeUiState
+    data class Error(@androidx.annotation.StringRes val messageRes: Int) : HomeUiState
 
     data class Success(
         val categorias: List<Categoria>,
         /** `null` = chip "Todos". */
         val categoriaSeleccionadaId: String?,
-        /** Sección "Para ti" (ya filtrada por búsqueda/categoría y ordenada por afinidad). */
+        /** Sección "Para ti" filtrada por categoría y ordenada por afinidad. */
         val localesParaTi: List<LocalGastronomico>,
-        /** Sección "Promociones vigentes" (ya filtrada). */
-        val promociones: List<Promocion>
+        /** Promociones filtradas por categoría, con distancia y orden por cercanía si hay GPS. */
+        val promociones: List<Promocion>,
+        val tieneUbicacion: Boolean = false
     ) : HomeUiState
 }
 

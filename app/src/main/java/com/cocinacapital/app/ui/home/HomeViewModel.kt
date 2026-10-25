@@ -17,7 +17,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -27,8 +26,8 @@ import kotlinx.coroutines.launch
  * ViewModel del Home.
  *
  * Idea clave: se descargan los datos UNA vez (estado "crudo" [DataState]) y luego
- * [uiState] se recalcula con `combine` cada vez que cambia la búsqueda, la categoría o la
- * ubicación. Así filtrar es instantáneo y no hace llamadas de red por cada letra.
+ * [uiState] se recalcula al cambiar la categoría o la ubicación compartida.
+ * La búsqueda completa y sus filtros se abren en Explorar.
  */
 class HomeViewModel(
     private val repository: HomeRepository,
@@ -43,24 +42,32 @@ class HomeViewModel(
             val locales: List<LocalGastronomico>,
             val promociones: List<Promocion>
         ) : DataState
-        data class Failed(val message: String) : DataState
+        data object Failed : DataState
     }
 
     private val dataState = MutableStateFlow<DataState>(DataState.Loading)
-    private val _searchQuery = MutableStateFlow("")
     private val categoriaSeleccionadaId = MutableStateFlow<String?>(null)
 
-    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery
+    fun onSearchQueryChange(texto: String) { _searchQuery.value = texto }
+
     val ubicacion = ubicaciones.posicion
 
     /** Estado único que observa la pantalla. */
     val uiState: StateFlow<HomeUiState> = combine(
-        dataState, _searchQuery, categoriaSeleccionadaId, ubicacion
-    ) { data, query, categoriaId, ubicacion ->
+        dataState, categoriaSeleccionadaId, ubicacion, _searchQuery
+    ) { data, categoriaId, ubicacion, query ->
         when (data) {
             DataState.Loading -> HomeUiState.Loading
-            is DataState.Failed -> HomeUiState.Error(data.message)
-            is DataState.Loaded -> construirSuccess(data, query, categoriaId, ubicacion)
+            DataState.Failed -> HomeUiState.Error(com.cocinacapital.app.R.string.home_error)
+            is DataState.Loaded -> construirSuccess(data, categoriaId, ubicacion).let { contenido ->
+                val texto = query.normalizado()
+                contenido.copy(
+                    localesParaTi = contenido.localesParaTi.filter { texto.isBlank() || listOf(it.nombre, it.categoriaNombre, it.comuna).any { dato -> dato.normalizado().contains(texto) } },
+                    promociones = contenido.promociones.filter { texto.isBlank() || listOf(it.titulo, it.localNombre, it.descripcion).any { dato -> dato.normalizado().contains(texto) } }
+                )
+            }
         }
     }.stateIn(
         scope = viewModelScope,
@@ -73,8 +80,6 @@ class HomeViewModel(
     }
 
     // ---------------- Acciones de la UI ----------------
-
-    fun onSearchQueryChange(texto: String) = _searchQuery.update { texto }
 
     /** Tocar el chip seleccionado lo deselecciona (vuelve a "Todos"). */
     fun onCategoriaClick(id: String?) =
@@ -98,7 +103,7 @@ class HomeViewModel(
             } catch (e: CancellationException) {
                 throw e // nunca tragarse la cancelación de corrutinas
             } catch (e: Exception) {
-                DataState.Failed("No pudimos cargar el contenido. Revisa tu conexión e inténtalo de nuevo.")
+                DataState.Failed
             }
         }
     }
@@ -112,10 +117,11 @@ class HomeViewModel(
         val nombreCategoria = categorias.associate { it.id to it.nombre }
         val localesOk = locales.map { it.copy(categoriaNombre = nombreCategoria[it.categoriaId].orEmpty()) }
         val localPorId = localesOk.associateBy { it.id }
-        val promosOk = promociones.map {
-            it.copy(
-                localNombre = localPorId[it.localId]?.nombre.orEmpty(),
-                localCategoriaId = localPorId[it.localId]?.categoriaId
+        val promosOk = promociones.mapNotNull { promo ->
+            val local = localPorId[promo.localId] ?: return@mapNotNull null
+            promo.copy(
+                localNombre = local.nombre,
+                localCategoriaId = local.categoriaId
             )
         }
         return DataState.Loaded(categorias, localesOk, promosOk)
@@ -125,37 +131,37 @@ class HomeViewModel(
 
     private fun construirSuccess(
         data: DataState.Loaded,
-        query: String,
         categoriaId: String?,
         ubicacion: UbicacionUsuario?
     ): HomeUiState.Success {
-        val q = query.normalizado()
+        val gps = ubicacion?.takeIf { it.latitud.isFinite() && it.longitud.isFinite() &&
+            it.latitud in -90.0..90.0 && it.longitud in -180.0..180.0 }
 
         // Distancia desde el usuario a cada local.
         val locales = data.locales.map { local ->
             val lat = local.latitud
             val lon = local.longitud
             local.copy(
-                distanciaKm = if (ubicacion != null && lat != null && lon != null)
-                    distanciaKm(ubicacion.latitud, ubicacion.longitud, lat, lon) else null
+                distanciaKm = if (gps != null && lat != null && lon != null && lat.isFinite() && lon.isFinite() &&
+                    lat in -90.0..90.0 && lon in -180.0..180.0)
+                    distanciaKm(gps.latitud, gps.longitud, lat, lon) else null
             )
         }
 
         val localesFiltrados = locales.filter { l ->
-            (categoriaId == null || l.categoriaId == categoriaId) &&
-                (q.isEmpty() || listOf(l.nombre, l.categoriaNombre, l.comuna).any { it.normalizado().contains(q) })
+            categoriaId == null || l.categoriaId == categoriaId
         }
 
-        val promosFiltradas = data.promociones.filter { p ->
-            (categoriaId == null || p.localCategoriaId == categoriaId) &&
-                (q.isEmpty() || listOf(p.localNombre, p.titulo, p.descripcion).any { it.normalizado().contains(q) })
-        }
+        val distancias = locales.associate { it.id to it.distanciaKm }
+        val promosFiltradas = data.promociones.filter { categoriaId == null || it.localCategoriaId == categoriaId }
+            .map { it.copy(distanciaKm = distancias[it.localId]) }
 
         return HomeUiState.Success(
             categorias = data.categorias,
             categoriaSeleccionadaId = categoriaId,
             localesParaTi = localesFiltrados.sortedByDescending(::afinidad),
-            promociones = promosFiltradas
+            promociones = if (gps != null) promosFiltradas.sortedBy { it.distanciaKm ?: Double.POSITIVE_INFINITY } else promosFiltradas,
+            tieneUbicacion = gps != null
         )
     }
 

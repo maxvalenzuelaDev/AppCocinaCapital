@@ -53,5 +53,25 @@
     <string name="login_subtitulo_bienvenida">Inicia sesión o crea tu cuenta y descubre\ntu próxima experiencia gastronómica.</string>
     <string name="login_titulo_regreso">Qué bueno\nvolver a verte.</string>
     <string name="login_subtitulo_regreso">Inicia sesión y encuentra tu próxima\nexperiencia gastronómica.</string>
+    <!-- Textos compartidos de Inicio y navegación -->
+    <string name="home_nombre">Cocina Capital</string>
+    <string name="home_cargando">Cargando locales y promociones…</string>
+    <string name="home_error">No pudimos cargar el contenido. Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="home_para_ti">Para ti</string>
+    <string name="home_locales_vacios">No encontramos locales con ese criterio.</string>
+    <string name="home_promociones_titulo">Promociones vigentes</string>
+    <string name="home_promociones_vacias">No hay promociones vigentes con ese criterio.</string>
+    <string name="home_categoria_comuna">%1$s · %2$s</string>
+    <string name="home_distancia">%1$s km</string>
+    <string name="home_distancia_pendiente">Distancia no disponible</string>
+    <string name="home_descuento">-%1$d%%</string>
+    <string name="home_vigencia_hasta">Hasta %1$s</string>
+    <string name="home_vigencia_pendiente">Vigencia por confirmar</string>
     <string name="acceso_sin_configuracion">El servicio de acceso todavía no está disponible.</string>
+    <string name="nav_inicio">Inicio</string>
+    <string name="nav_explorar">Explorar</string>
+    <string name="nav_billetera">Billetera</string>
+    <string name="nav_perfil">Perfil</string>
+    <string name="nav_billetera_pendiente">Billetera (mis beneficios)</string>
+    <string name="nav_proximamente">%1$s — próximamente</string>
 </resources>

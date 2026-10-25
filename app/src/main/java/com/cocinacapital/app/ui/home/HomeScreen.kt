@@ -107,7 +107,7 @@ fun HomeContent(
         ) { state ->
             when (state) {
                 HomeUiState.Loading -> LoadingContent()
-                is HomeUiState.Error -> ErrorContent(message = state.message, onReintentar = onReintentar)
+                is HomeUiState.Error -> ErrorContent(message = androidx.compose.ui.res.stringResource(state.messageRes), onReintentar = onReintentar)
                 is HomeUiState.Success -> SuccessContent(
                     state = state,
                     onCategoriaClick = onCategoriaClick,

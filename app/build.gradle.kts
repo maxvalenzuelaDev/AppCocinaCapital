@@ -70,6 +70,7 @@ dependencies {
     testImplementation(libs.kotlin.test.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     implementation(libs.ktor.client.okhttp)      // motor HTTP requerido por supabase-kt en Android
+    implementation(libs.conscrypt.android)     // TLS 1.3 para las rutas en Android 8–9
     implementation(libs.kotlinx.serialization.json)
 
     // --- Room (SQLite local: preferencias y favoritos) ---

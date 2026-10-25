@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ex_explorar_titulo">Explorar</string>
+    <string name="ex_buscar_locales">Buscar locales</string>
+    <string name="ex_distancias_rectas">Distancias en línea recta</string>
+    <string name="ex_km_decimal">%1$s km</string>
+    <string name="ex_volver_explorar">Volver a Explorar</string>
+</resources>

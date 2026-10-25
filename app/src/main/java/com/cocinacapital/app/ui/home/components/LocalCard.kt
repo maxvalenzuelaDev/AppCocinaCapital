@@ -1,5 +1,7 @@
 package com.cocinacapital.app.ui.home.components
 
+import androidx.compose.ui.res.stringResource
+import com.cocinacapital.app.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,7 +54,7 @@ fun LocalCard(
         Box {
             AsyncImage(
                 model = local.imagenUrl, // URL pública de Supabase Storage
-                contentDescription = "Foto de ${local.nombre}",
+                contentDescription = stringResource(R.string.detalle_local_foto, local.nombre),
                 contentScale = ContentScale.Crop,
                 placeholder = sinImagen,
                 error = sinImagen,
@@ -75,7 +77,7 @@ fun LocalCard(
                 ) {
                     Icon(
                         Icons.Filled.Star,
-                        contentDescription = "Valoración",
+                        contentDescription = stringResource(R.string.detalle_local_valoracion),
                         modifier = Modifier.size(14.dp),
                         tint = MaterialTheme.colorScheme.tertiary
                     )
@@ -101,7 +103,7 @@ fun LocalCard(
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = "${local.categoriaNombre} · ${local.comuna}",
+                text = stringResource(R.string.home_categoria_comuna, local.categoriaNombre, local.comuna),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
@@ -120,7 +122,7 @@ fun LocalCard(
                 Spacer(Modifier.width(2.dp))
                 Text(
                     text = local.distanciaKm
-                        ?.let { String.format(LocaleCL, "%.1f km", it) } ?: "Distancia no disponible",
+                        ?.let { stringResource(R.string.home_distancia, String.format(LocaleCL, "%.1f", it)) } ?: stringResource(R.string.home_distancia_pendiente),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary
                 )

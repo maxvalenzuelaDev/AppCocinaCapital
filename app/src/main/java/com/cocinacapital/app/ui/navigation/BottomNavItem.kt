@@ -10,20 +10,23 @@ import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.annotation.StringRes
+import com.cocinacapital.app.R
 
 /** Destinos de la barra de navegación inferior. */
 sealed class BottomNavItem(
     val route: String,
-    val label: String,
+    @StringRes val labelRes: Int,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector
 ) {
-    data object Home : BottomNavItem("home", "Inicio", Icons.Filled.Home, Icons.Outlined.Home)
-    data object Explorar : BottomNavItem("explorar", "Explorar", Icons.Filled.Explore, Icons.Outlined.Explore)
-    data object Billetera : BottomNavItem("billetera", "Billetera", Icons.Filled.AccountBalanceWallet, Icons.Outlined.AccountBalanceWallet)
-    data object Perfil : BottomNavItem("perfil", "Perfil", Icons.Filled.Person, Icons.Outlined.Person)
+    data object Home : BottomNavItem("home", R.string.nav_inicio, Icons.Filled.Home, Icons.Outlined.Home)
+    data object Explorar : BottomNavItem("explorar", R.string.nav_explorar, Icons.Filled.Explore, Icons.Outlined.Explore)
+    data object Billetera : BottomNavItem("billetera", R.string.nav_billetera, Icons.Filled.AccountBalanceWallet, Icons.Outlined.AccountBalanceWallet)
+    data object Perfil : BottomNavItem("perfil", R.string.nav_perfil, Icons.Filled.Person, Icons.Outlined.Person)
 
     companion object {
-        val items = listOf(Home, Explorar, Billetera, Perfil)
+        // Un destino puede consultarse antes de crear la barra inferior.
+        val items: List<BottomNavItem> by lazy { listOf(Home, Explorar, Billetera, Perfil) }
     }
 }

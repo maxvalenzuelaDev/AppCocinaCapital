@@ -1,7 +1,12 @@
 package com.cocinacapital.app.ui.navigation
 
+import androidx.compose.ui.res.stringResource
+import com.cocinacapital.app.R
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -9,6 +14,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -21,8 +27,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -58,7 +69,22 @@ fun MainScaffold() {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val rutaActual = backStackEntry?.destination?.route
+    var puenteBusqueda by rememberSaveable { mutableStateOf(false) }
+    var restaurandoHome by rememberSaveable { mutableStateOf(false) }
+    var categoriaBusqueda by rememberSaveable { mutableStateOf<String?>(null) }
+    fun cerrarPuenteBusqueda() {
+        runCatching { navController.getBackStackEntry(BottomNavItem.Explorar.route) }.getOrNull()
+            ?.savedStateHandle?.set(BUSQUEDA_ANCLADA, false)
+        puenteBusqueda = false
+    }
+    fun volverAHome() {
+        cerrarPuenteBusqueda(); restaurandoHome = true
+        if (rutaActual != BottomNavItem.Home.route) navController.navegarA(BottomNavItem.Home)
+    }
+    BackHandler(puenteBusqueda && rutaActual == BottomNavItem.Home.route, onBack = ::volverAHome)
     val esPestana = rutaActual == null || BottomNavItem.items.any { it.route == rutaActual }
+    val buscandoEnExplorar = rutaActual == BottomNavItem.Explorar.route && WindowInsets.ime.getBottom(LocalDensity.current) > 0
+    val mostrandoPuente = (puenteBusqueda || restaurandoHome) && (rutaActual == BottomNavItem.Home.route || rutaActual == BottomNavItem.Explorar.route)
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
@@ -66,7 +92,7 @@ fun MainScaffold() {
         bottomBar = {
             // expand/shrink (no slide) para que el contenido también se ajuste suavemente.
             AnimatedVisibility(
-                visible = esPestana,
+                visible = esPestana && !buscandoEnExplorar && !mostrandoPuente,
                 enter = expandVertically(tween(DURACION_MS)),
                 exit = shrinkVertically(tween(DURACION_MS))
             ) { NavigationBar {
@@ -74,14 +100,20 @@ fun MainScaffold() {
                     val seleccionado = rutaActual == item.route
                     NavigationBarItem(
                         selected = seleccionado,
-                        onClick = { navController.navegarA(item) },
+                        onClick = {
+                            if (item == BottomNavItem.Home && puenteBusqueda) volverAHome()
+                            else {
+                                if (item != BottomNavItem.Explorar) cerrarPuenteBusqueda()
+                                navController.navegarA(item)
+                            }
+                        },
                         icon = {
                             Icon(
                                 imageVector = if (seleccionado) item.selectedIcon else item.unselectedIcon,
-                                contentDescription = item.label
+                                contentDescription = stringResource(item.labelRes)
                             )
                         },
-                        label = { Text(item.label) }
+                        label = { Text(stringResource(item.labelRes)) }
                     )
                 }
             } }
@@ -93,22 +125,26 @@ fun MainScaffold() {
             modifier = Modifier.padding(innerPadding),
             // Hacia un detalle: desliza. Entre pestañas: fundido.
             enterTransition = {
-                if (targetState.destination.route.esDetalle()) slideIntoContainer(SlideDirection.Start, tween(DURACION_MS))
+                if ((puenteBusqueda || restaurandoHome) && enlaceBusqueda(initialState.destination.route, targetState.destination.route)) EnterTransition.None
+                else if (targetState.destination.route.esDetalle()) slideIntoContainer(SlideDirection.Start, tween(DURACION_MS))
                 else fadeIn(tween(DURACION_MS))
             },
             exitTransition = {
-                if (targetState.destination.route.esDetalle())
+                if ((puenteBusqueda || restaurandoHome) && enlaceBusqueda(initialState.destination.route, targetState.destination.route)) ExitTransition.None
+                else if (targetState.destination.route.esDetalle())
                     slideOutOfContainer(SlideDirection.Start, tween(DURACION_MS)) { it / 4 } + fadeOut(tween(DURACION_MS))
                 else fadeOut(tween(DURACION_MS))
             },
             // Al volver desde un detalle: el movimiento inverso.
             popEnterTransition = {
-                if (initialState.destination.route.esDetalle())
+                if ((puenteBusqueda || restaurandoHome) && enlaceBusqueda(initialState.destination.route, targetState.destination.route)) EnterTransition.None
+                else if (initialState.destination.route.esDetalle())
                     slideIntoContainer(SlideDirection.End, tween(DURACION_MS)) { it / 4 } + fadeIn(tween(DURACION_MS))
                 else fadeIn(tween(DURACION_MS))
             },
             popExitTransition = {
-                if (initialState.destination.route.esDetalle()) slideOutOfContainer(SlideDirection.End, tween(DURACION_MS))
+                if ((puenteBusqueda || restaurandoHome) && enlaceBusqueda(initialState.destination.route, targetState.destination.route)) ExitTransition.None
+                else if (initialState.destination.route.esDetalle()) slideOutOfContainer(SlideDirection.End, tween(DURACION_MS))
                 else fadeOut(tween(DURACION_MS))
             }
         ) {
@@ -117,11 +153,43 @@ fun MainScaffold() {
                     onLocationClick = ubicacion.solicitar,
                     obteniendoUbicacion = ubicacion.cargando,
                     onLocalClick = { id -> navController.navigate(RutasDetalle.local(id)) },
-                    onPromocionClick = { id -> navController.navigate(RutasDetalle.promocion(id)) }
+                    onPromocionClick = { id -> navController.navigate(RutasDetalle.promocion(id)) },
+                    onSearchClick = { categoria ->
+                        categoriaBusqueda = categoria; puenteBusqueda = true
+                    },
+                    elevandoBusqueda = puenteBusqueda,
+                    restaurandoBusqueda = restaurandoHome,
+                    onBusquedaRestaurada = { restaurandoHome = false },
+                    onBusquedaElevada = {
+                        navController.navegarA(BottomNavItem.Explorar)
+                        navController.currentBackStackEntry?.savedStateHandle?.apply {
+                            set(CATEGORIA_DESDE_HOME, categoriaBusqueda)
+                            set(BUSQUEDA_ANCLADA, true)
+                            set(BUSQUEDA_DESDE_HOME, true)
+                        }
+                    }
                 )
             }
-            composable(BottomNavItem.Explorar.route) { PantallaPendiente("Explorar (locales y mapa)") }
-            composable(BottomNavItem.Billetera.route) { PantallaPendiente("Billetera (mis beneficios)") }
+            composable(BottomNavItem.Explorar.route) { entry ->
+                val solicitarBusqueda by entry.savedStateHandle.getStateFlow(BUSQUEDA_DESDE_HOME, false).collectAsStateWithLifecycle()
+                val barraAnclada by entry.savedStateHandle.getStateFlow(BUSQUEDA_ANCLADA, false).collectAsStateWithLifecycle()
+                com.cocinacapital.app.ui.explore.ExploreScreen(
+                    onLocation = ubicacion.solicitar,
+                    ubicacionEnCurso = ubicacion.cargando,
+                    snackbar = snackbar,
+                    onLocalDetail = { id -> navController.navigate(RutasDetalle.local(id)) },
+                    onPreferences = { cerrarPuenteBusqueda(); navController.navegarA(BottomNavItem.Perfil) },
+                    solicitarBusqueda = solicitarBusqueda,
+                    barraAnclada = barraAnclada,
+                    onCerrarBusqueda = ::cerrarPuenteBusqueda,
+                    categoriaDesdeHome = entry.savedStateHandle[CATEGORIA_DESDE_HOME],
+                    onBusquedaConsumida = {
+                        entry.savedStateHandle[BUSQUEDA_DESDE_HOME] = false
+                        entry.savedStateHandle.remove<String>(CATEGORIA_DESDE_HOME)
+                    }
+                )
+            }
+            composable(BottomNavItem.Billetera.route) { PantallaPendiente(stringResource(R.string.nav_billetera_pendiente)) }
             composable(BottomNavItem.Perfil.route) { PerfilScreen() }
 
             composable(
@@ -148,6 +216,13 @@ fun MainScaffold() {
 }
 
 private const val DURACION_MS = 300
+private const val BUSQUEDA_DESDE_HOME = "home_abrir_busqueda"
+private const val CATEGORIA_DESDE_HOME = "home_categoria_busqueda"
+private const val BUSQUEDA_ANCLADA = "home_busqueda_anclada"
+
+private fun enlaceBusqueda(desde: String?, hasta: String?) =
+    (desde == BottomNavItem.Home.route && hasta == BottomNavItem.Explorar.route) ||
+        (desde == BottomNavItem.Explorar.route && hasta == BottomNavItem.Home.route)
 
 private fun String?.esDetalle() = this == RutasDetalle.LOCAL || this == RutasDetalle.PROMOCION
 
@@ -174,6 +249,6 @@ private fun NavHostController.navegarA(item: BottomNavItem) {
 @Composable
 private fun PantallaPendiente(titulo: String) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("$titulo — próximamente")
+        Text(stringResource(R.string.nav_proximamente, titulo))
     }
 }

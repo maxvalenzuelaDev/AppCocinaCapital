@@ -53,4 +53,5 @@
     <string name="login_subtitulo_bienvenida">Inicia sesión o crea tu cuenta y descubre\ntu próxima experiencia gastronómica.</string>
     <string name="login_titulo_regreso">Qué bueno\nvolver a verte.</string>
     <string name="login_subtitulo_regreso">Inicia sesión y encuentra tu próxima\nexperiencia gastronómica.</string>
+    <string name="acceso_sin_configuracion">El servicio de acceso todavía no está disponible.</string>
 </resources>

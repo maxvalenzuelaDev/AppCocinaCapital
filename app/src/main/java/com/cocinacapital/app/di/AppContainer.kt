@@ -1,6 +1,12 @@
 package com.cocinacapital.app.di
 
 import android.content.Context
+import android.os.SystemClock
+import com.cocinacapital.app.data.location.UbicacionRepository
+import com.cocinacapital.app.data.location.AndroidUbicacionRepository
+import com.cocinacapital.app.data.location.identidadesUbicacion
+import com.cocinacapital.location.AndroidLocationSource
+import kotlinx.coroutines.*
 import com.cocinacapital.app.data.auth.LoginRepository
 import com.cocinacapital.app.data.auth.PerfilSesion
 import com.cocinacapital.app.data.auth.SupabaseAuthGateway
@@ -28,8 +34,18 @@ object AppContainer {
 
     private lateinit var appContext: Context
 
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     fun init(context: Context) {
         appContext = context.applicationContext
+        if (SupabaseProvider.isConfigured) applicationScope.launch {
+            authRepository.sessions.identidadesUbicacion().collect {
+                ubicacionRepository.limpiar()
+            }
+        }
+    }
+
+    val ubicacionRepository: UbicacionRepository by lazy {
+        AndroidUbicacionRepository(AndroidLocationSource(appContext), SystemClock::elapsedRealtime)
     }
 
     // ---- Login (Nevan): usa el cliente compartido de Supabase ----

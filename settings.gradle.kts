@@ -22,3 +22,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "CocinaCapital"
 include(":app")
+
+include(":location")

@@ -20,6 +20,11 @@ import kotlinx.coroutines.flow.map
  * El tema elegido en Perfil se guarda en Room y se aplica a toda la app.
  */
 class MainActivity : ComponentActivity() {
+    override fun onResume() {
+        super.onResume()
+        AppContainer.ubicacionRepository.validarDisponibilidad()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

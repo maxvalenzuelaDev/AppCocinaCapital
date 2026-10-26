@@ -2,6 +2,7 @@ package com.cocinacapital.app.ui.home
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -14,6 +15,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -26,11 +29,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.cocinacapital.app.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cocinacapital.app.ui.home.components.CategoryChips
@@ -50,22 +59,29 @@ fun HomeScreen(
     obteniendoUbicacion: Boolean = false,
     onLocalClick: (String) -> Unit = {},
     onPromocionClick: (String) -> Unit = {},
+    onSearchClick: (String?) -> Unit = {},
+    elevandoBusqueda: Boolean = false,
+    restaurandoBusqueda: Boolean = false,
+    onBusquedaElevada: () -> Unit = {},
+    onBusquedaRestaurada: () -> Unit = {},
     viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val query by viewModel.searchQuery.collectAsStateWithLifecycle()
     val ubicacion by viewModel.ubicacion.collectAsStateWithLifecycle(initialValue = null)
 
     HomeContent(
         uiState = uiState,
-        query = query,
         ubicacion = androidx.compose.ui.res.stringResource(when {
             obteniendoUbicacion -> com.cocinacapital.app.R.string.gps_buscando
             ubicacion == null -> com.cocinacapital.app.R.string.gps_obtener
             else -> com.cocinacapital.app.R.string.gps_titulo
         }),
         onLocationClick = onLocationClick,
-        onQueryChange = viewModel::onSearchQueryChange,
+        onSearchClick = { onSearchClick((uiState as? HomeUiState.Success)?.categoriaSeleccionadaId) },
+        elevandoBusqueda = elevandoBusqueda,
+        restaurandoBusqueda = restaurandoBusqueda,
+        onBusquedaElevada = onBusquedaElevada,
+        onBusquedaRestaurada = onBusquedaRestaurada,
         onCategoriaClick = viewModel::onCategoriaClick,
         onReintentar = viewModel::onReintentar,
         onLocalClick = onLocalClick,
@@ -78,28 +94,41 @@ fun HomeScreen(
 @Composable
 fun HomeContent(
     uiState: HomeUiState,
-    query: String,
     ubicacion: String,
     onLocationClick: () -> Unit = {},
-    onQueryChange: (String) -> Unit,
+    onSearchClick: () -> Unit,
     onCategoriaClick: (String?) -> Unit,
     onReintentar: () -> Unit,
     onLocalClick: (String) -> Unit,
     onPromocionClick: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    elevandoBusqueda: Boolean = false,
+    restaurandoBusqueda: Boolean = false,
+    onBusquedaElevada: () -> Unit = {},
+    onBusquedaRestaurada: () -> Unit = {}
 ) {
-    Column(modifier = modifier.fillMaxSize()) {
-        // El encabezado y la búsqueda se muestran SIEMPRE, sea cual sea el estado.
-        HomeTopBar(ubicacion = ubicacion, onLocationClick = onLocationClick)
+    val avance = remember { Animatable(if (restaurandoBusqueda) 1f else 0f) }
+    LaunchedEffect(elevandoBusqueda, restaurandoBusqueda) {
+        if (elevandoBusqueda) {
+            avance.animateTo(1f, tween(320)); onBusquedaElevada()
+        } else if (restaurandoBusqueda) {
+            avance.animateTo(0f, tween(320)); onBusquedaRestaurada()
+        }
+    }
+    Column(modifier = modifier.fillMaxSize().statusBarsPadding()) {
+        Box(Modifier.height(64.dp * (1f - avance.value)).clipToBounds().graphicsLayer { alpha = 1f - avance.value }) {
+            HomeTopBar(ubicacion = ubicacion, onLocationClick = onLocationClick, modifier = Modifier.height(64.dp))
+        }
         SearchField(
-            query = query,
-            onQueryChange = onQueryChange,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            onSearchClick = { if (!elevandoBusqueda && !restaurandoBusqueda) onSearchClick() },
+            modifier = Modifier.padding(horizontal = 16.dp + 4.dp * avance.value, vertical = 8.dp),
+            elevada = avance.value > .5f
         )
 
         // Fundido al pasar de cargando a contenido o error (T-24). La clave es el tipo de estado:
         // filtrar o buscar actualiza el Success sin repetir el fundido (eso lo anima animateItem).
         AnimatedContent(
+            modifier = Modifier.graphicsLayer { alpha = 1f - avance.value },
             targetState = uiState,
             contentKey = { it::class },
             transitionSpec = { fadeIn(tween(300)) togetherWith fadeOut(tween(300)) },
@@ -107,7 +136,7 @@ fun HomeContent(
         ) { state ->
             when (state) {
                 HomeUiState.Loading -> LoadingContent()
-                is HomeUiState.Error -> ErrorContent(message = androidx.compose.ui.res.stringResource(state.messageRes), onReintentar = onReintentar)
+                is HomeUiState.Error -> ErrorContent(message = stringResource(state.messageRes), onReintentar = onReintentar)
                 is HomeUiState.Success -> SuccessContent(
                     state = state,
                     onCategoriaClick = onCategoriaClick,
@@ -128,7 +157,7 @@ private fun LoadingContent() {
     ) {
         CircularProgressIndicator()
         Spacer(Modifier.height(12.dp))
-        Text("Cargando locales y promociones…", style = MaterialTheme.typography.bodyMedium)
+        Text(stringResource(R.string.home_cargando), style = MaterialTheme.typography.bodyMedium)
     }
 }
 
@@ -150,7 +179,7 @@ private fun ErrorContent(message: String, onReintentar: () -> Unit) {
         Spacer(Modifier.height(12.dp))
         Text(message, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
         Spacer(Modifier.height(16.dp))
-        Button(onClick = onReintentar) { Text("Reintentar") }
+        Button(onClick = onReintentar) { Text(stringResource(R.string.detalle_reintentar)) }
     }
 }
 
@@ -177,11 +206,11 @@ private fun SuccessContent(
 
         // ---- Para ti ----
         item(key = "para_ti_titulo") {
-            SectionHeader("Para ti", "Locales recomendados según tu perfil y cercanía")
+            SectionHeader(stringResource(R.string.home_para_ti), stringResource(if (state.tieneUbicacion) R.string.home_destacados_gps else R.string.home_destacados_general))
         }
         item(key = "para_ti") {
             if (state.localesParaTi.isEmpty()) {
-                EmptyMessage("No encontramos locales con ese criterio.")
+                EmptyMessage(stringResource(R.string.home_locales_vacios))
             } else {
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp),
@@ -201,11 +230,11 @@ private fun SuccessContent(
 
         // ---- Promociones vigentes ----
         item(key = "promos_titulo") {
-            SectionHeader("Promociones vigentes", "Aprovecha las horas de baja demanda")
+            SectionHeader(stringResource(R.string.home_promociones_titulo), stringResource(if (state.tieneUbicacion) R.string.home_promociones_cercania else R.string.home_promociones_general))
         }
         if (state.promociones.isEmpty()) {
             item(key = "promos_vacio") {
-                EmptyMessage("No hay promociones vigentes con ese criterio.", Modifier.animateItem())
+                EmptyMessage(stringResource(R.string.home_promociones_vacias), Modifier.animateItem())
             }
         } else {
             items(state.promociones, key = { it.id }) { promo ->

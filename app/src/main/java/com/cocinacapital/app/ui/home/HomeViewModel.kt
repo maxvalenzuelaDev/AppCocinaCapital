@@ -10,7 +10,6 @@ import com.cocinacapital.app.data.model.Promocion
 import com.cocinacapital.app.data.repository.HomeRepository
 import com.cocinacapital.app.di.AppContainer
 import com.cocinacapital.app.util.distanciaKm
-import com.cocinacapital.app.util.normalizado
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -48,26 +47,16 @@ class HomeViewModel(
     private val dataState = MutableStateFlow<DataState>(DataState.Loading)
     private val categoriaSeleccionadaId = MutableStateFlow<String?>(null)
 
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery
-    fun onSearchQueryChange(texto: String) { _searchQuery.value = texto }
-
     val ubicacion = ubicaciones.posicion
 
     /** Estado único que observa la pantalla. */
     val uiState: StateFlow<HomeUiState> = combine(
-        dataState, categoriaSeleccionadaId, ubicacion, _searchQuery
-    ) { data, categoriaId, ubicacion, query ->
+        dataState, categoriaSeleccionadaId, ubicacion
+    ) { data, categoriaId, ubicacion ->
         when (data) {
             DataState.Loading -> HomeUiState.Loading
             DataState.Failed -> HomeUiState.Error(com.cocinacapital.app.R.string.home_error)
-            is DataState.Loaded -> construirSuccess(data, categoriaId, ubicacion).let { contenido ->
-                val texto = query.normalizado()
-                contenido.copy(
-                    localesParaTi = contenido.localesParaTi.filter { texto.isBlank() || listOf(it.nombre, it.categoriaNombre, it.comuna).any { dato -> dato.normalizado().contains(texto) } },
-                    promociones = contenido.promociones.filter { texto.isBlank() || listOf(it.titulo, it.localNombre, it.descripcion).any { dato -> dato.normalizado().contains(texto) } }
-                )
-            }
+            is DataState.Loaded -> construirSuccess(data, categoriaId, ubicacion)
         }
     }.stateIn(
         scope = viewModelScope,

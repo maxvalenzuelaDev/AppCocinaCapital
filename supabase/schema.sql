@@ -17,7 +17,8 @@ create table if not exists locales (
   activo boolean not null default true,
   descripcion text not null default '',
   direccion text,
-  horario text                            -- texto libre, ej: 'Lun a Jue 12:00–22:00 · Vie y Sáb 12:00–00:00'
+  horario text,                           -- texto libre, ej: 'Lun a Jue 12:00–22:00 · Vie y Sáb 12:00–00:00'
+  ticket_promedio_persona bigint check (ticket_promedio_persona > 0) -- CLP por persona, declarado por el comercio; null si no está informado
 );
 
 create table if not exists platos (

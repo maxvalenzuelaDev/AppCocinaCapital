@@ -1,5 +1,7 @@
 package com.cocinacapital.app.ui.auth
 
+import androidx.compose.ui.res.stringResource
+import com.cocinacapital.app.R
 import android.app.Activity
 import android.content.Context
 import androidx.compose.foundation.layout.Box
@@ -33,7 +35,7 @@ const val REGISTER_ACTION = "com.cocinacapital.action.OPEN_REGISTER"
 fun AppEntry(onRegisterRequested: (() -> Unit)? = null) {
     if (!SupabaseProvider.isConfigured) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("El servicio de acceso todavía no está disponible.")
+            Text(stringResource(R.string.acceso_sin_configuracion))
         }
         return
     }
@@ -49,7 +51,7 @@ fun AppEntry(onRegisterRequested: (() -> Unit)? = null) {
         mostrarRegistro = false
     }
     val view = LocalView.current
-    val lightBars = !isSystemInDarkTheme()
+    val lightBars = !com.cocinacapital.app.ui.theme.LocalDarkTheme.current
     SideEffect {
         context.hostActivity()?.window?.let { window ->
             WindowCompat.getInsetsController(window, view).apply {
@@ -74,7 +76,7 @@ fun AppEntry(onRegisterRequested: (() -> Unit)? = null) {
     // Muestra el login, el registro o la pantalla principal.
     when {
         state.screen == AuthScreen.SESSION -> {
-            MainScaffold()
+            androidx.compose.runtime.key(state.user?.id) { MainScaffold() }
         }
 
         mostrarRegistro -> {

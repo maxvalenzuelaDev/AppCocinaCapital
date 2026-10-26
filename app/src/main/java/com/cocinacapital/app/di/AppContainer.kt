@@ -1,6 +1,12 @@
 package com.cocinacapital.app.di
 
 import android.content.Context
+import android.os.SystemClock
+import com.cocinacapital.app.data.location.UbicacionRepository
+import com.cocinacapital.app.data.location.AndroidUbicacionRepository
+import com.cocinacapital.app.data.location.identidadesUbicacion
+import com.cocinacapital.location.AndroidLocationSource
+import kotlinx.coroutines.*
 import com.cocinacapital.app.data.auth.LoginRepository
 import com.cocinacapital.app.data.auth.PerfilSesion
 import com.cocinacapital.app.data.auth.SupabaseAuthGateway
@@ -19,6 +25,12 @@ import com.cocinacapital.app.data.repository.HomeRepository
 import com.cocinacapital.app.data.repository.PreferenciasRepository
 import com.cocinacapital.app.data.repository.SupabaseDetalleLocalRepository
 import com.cocinacapital.app.data.repository.SupabaseHomeRepository
+import com.cocinacapital.app.data.repository.RutaRepository
+import com.cocinacapital.app.data.repository.OsrmRutaRepository
+import com.cocinacapital.app.data.remote.crearClienteRutas
+import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.statement.bodyAsText
 
 /** Inyección de dependencias manual y simple (sin Hilt). Se inicializa en CocinaApp. */
 object AppContainer {
@@ -28,8 +40,39 @@ object AppContainer {
 
     private lateinit var appContext: Context
 
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     fun init(context: Context) {
         appContext = context.applicationContext
+        if (SupabaseProvider.isConfigured) applicationScope.launch {
+            authRepository.sessions.identidadesUbicacion().collect {
+                ubicacionRepository.limpiar()
+                rutaRepository.limpiar()
+            }
+        }
+    }
+
+    val ubicacionRepository: UbicacionRepository by lazy {
+        AndroidUbicacionRepository(AndroidLocationSource(appContext), SystemClock::elapsedRealtime)
+    }
+
+    val rutaRepository: RutaRepository by lazy {
+        // Cliente sin sesión ni cabeceras de Supabase: solo envía origen y destino al calcular una ruta.
+        val rutas by lazy { crearClienteRutas() }
+        OsrmRutaRepository(descargar = { url ->
+            try {
+                val response = rutas.get(url) {
+                    header("User-Agent", "AppCocinaCapital/1.0 (+https://github.com/maxvalenzuelaDev/AppCocinaCapital)")
+                }
+                response.bodyAsText().also { body ->
+                    if (com.cocinacapital.app.BuildConfig.DEBUG) android.util.Log.d("CocinaRutas",
+                        "HTTP ${response.status.value}; bytes=${body.length}; json=${body.trimStart().startsWith('{')}")
+                }
+            } catch (error: Exception) {
+                if (com.cocinacapital.app.BuildConfig.DEBUG) android.util.Log.w("CocinaRutas",
+                    "HTTP ${error.javaClass.simpleName}; causa=${error.cause?.javaClass?.simpleName}")
+                throw error
+            }
+        })
     }
 
     // ---- Login (Nevan): usa el cliente compartido de Supabase ----

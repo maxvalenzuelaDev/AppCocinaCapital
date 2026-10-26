@@ -20,11 +20,12 @@ data class Promocion(
     @SerialName("vigente_hasta") val vigenteHasta: String,
     val activa: Boolean = true,
     @Transient val localNombre: String = "",
-    @Transient val localCategoriaId: String? = null
+    @Transient val localCategoriaId: String? = null,
+    @Transient val distanciaKm: Double? = null
 )
 
 /** Texto de vigencia para la tarjeta, ej: "Hasta lun 12 oct, 18:00". */
-fun Promocion.vigenciaTexto(): String = runCatching {
+fun Promocion.fechaFinTexto(): String? = runCatching {
     val fin = OffsetDateTime.parse(vigenteHasta).atZoneSameInstant(ZoneId.systemDefault())
-    "Hasta " + fin.format(DateTimeFormatter.ofPattern("EEE d MMM, HH:mm", LocaleCL))
-}.getOrDefault("Vigencia por confirmar")
+    fin.format(DateTimeFormatter.ofPattern("EEE d MMM, HH:mm", LocaleCL))
+}.getOrNull()

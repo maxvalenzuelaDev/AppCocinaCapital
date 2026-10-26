@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es" data-theme="INITIAL_MAP_THEME"><head><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<style>/*LEAFLET_CSS*/</style>
+<link rel="stylesheet" href="https://cocinacapital.local/assets/maplibre-5.24.0.css">
+<style>
+:root{color-scheme:light;--canvas:#f2f2f2;--panel:#fff;--ink:#111;--muted:#656565;--line:#d5d5d5;--shadow:0 2px 8px #0002}
+:root[data-theme="dark"]{color-scheme:dark;--canvas:#181a1c;--panel:#242629;--ink:#f5f5f5;--muted:#bbb;--line:#52565a;--shadow:0 2px 8px #0006}
+html,body,#map{height:600px;margin:0;font-family:system-ui;background:var(--canvas)}
+body{position:relative}#map{color:var(--ink)}
+/* Cada tema usa su propio estilo cartográfico; no se invierten colores ni etiquetas. */
+.leaflet-gl-layer{pointer-events:none}
+#status{position:absolute;top:210px;left:50px;right:8px;z-index:800;background:var(--panel);color:var(--ink);border:1px solid var(--line);padding:8px 10px;border-radius:10px;font-size:11px;pointer-events:none;box-shadow:var(--shadow)}
+#status[hidden]{display:none}
+#controls{position:absolute;top:var(--controls-top,178px);height:38px;left:10px;z-index:800;display:flex;gap:7px}
+button{border:1px solid var(--line);background:var(--panel);color:var(--ink);min-height:36px;padding:8px 11px;border-radius:10px;box-shadow:var(--shadow);font:600 12px system-ui}
+button:disabled{color:var(--muted);box-shadow:none}button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.leaflet-top{top:var(--controls-top,178px)}.leaflet-bottom{bottom:var(--bottom-inset,158px)}
+.leaflet-bar{border:1px solid var(--line)!important;box-shadow:var(--shadow);border-radius:10px;overflow:hidden}
+.leaflet-bar a,.leaflet-bar a:hover{background:var(--panel);color:var(--ink);border-color:var(--line)}
+.leaflet-bar a.leaflet-disabled{background:var(--panel);color:var(--muted)}
+.leaflet-tooltip{font:600 12px system-ui;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 10px;box-shadow:var(--shadow)}
+.leaflet-tooltip-top:before{border-top-color:var(--line)}
+.leaflet-control-attribution{font-size:9px;max-width:calc(100vw - 20px);white-space:normal;background:var(--panel)!important;color:var(--muted)}
+.leaflet-control-attribution a{color:var(--ink)}
+</style></head>
+<body><div id="map" role="img" aria-label="INITIAL_ARIA_LABEL"></div><div id="status">INITIAL_LOADING_TEXT</div>
+<div id="controls"><button onclick="fitLocals()"></button><button id="me" disabled onclick="if(userPoint)map.setView(userPoint,14)"></button></div>
+<script>/*LEAFLET_JS*/</script>
+<script src="https://cocinacapital.local/assets/maplibre-5.24.0.js"></script>
+<script src="https://cocinacapital.local/assets/maplibre-leaflet-0.1.4.js"></script>
+<script>
+const labels = /*INITIAL_LABELS*/;
+const map=L.map('map',{zoomControl:false,minZoom:3,maxZoom:18}).setView([-33.02,-71.58],12);
+L.control.zoom({position:'topright',zoomInTitle:labels.zoomIn,zoomOutTitle:labels.zoomOut}).addTo(map);
+const status=document.getElementById('status');
+if(map.attributionControl)map.attributionControl.setPrefix(false);
+document.querySelector('#controls button').textContent=labels.locals;
+document.getElementById('me').textContent=labels.position;
+let failed=false,baseReady=false,vectorLayer=null,vectorMap=null,rasterLayer=null,lastData=null;
+let mapTheme=document.documentElement.dataset.theme==='dark'?'dark':'light';
+const styles={light:'https://tiles.openfreemap.org/styles/positron',dark:'https://tiles.openfreemap.org/styles/dark'};
+const osmCredit='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+const routeCredit='<a href="https://routing.openstreetmap.de/about.html">Rutas OSRM/FOSSGIS</a>';
+function refreshStatus(){
+ if(failed){status.hidden=false;status.textContent=labels.error}
+ else if(lastData&&!lastData.locals.length){status.hidden=false;status.textContent=lastData.position?labels.empty:labels.origin}
+ else {status.hidden=baseReady;status.textContent=labels.loading}
+}
+function markReady(){baseReady=true;failed=false;refreshStatus()}
+function markFailed(){failed=true;refreshStatus()}
+function useRasterFallback(){
+ if(rasterLayer)return;
+ if(vectorLayer){
+  try{map.removeLayer(vectorLayer)}catch(_){const container=vectorLayer.getContainer();if(container&&container.parentNode)container.parentNode.removeChild(container)}
+  vectorLayer=null;vectorMap=null;
+ }
+ baseReady=false;failed=false;
+ rasterLayer=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+  maxZoom:19,maxNativeZoom:18,detectRetina:true,keepBuffer:1,attribution:osmCredit+' · '+routeCredit
+ }).addTo(map);
+ rasterLayer.on('tileerror',markFailed);rasterLayer.on('load',markReady);
+ refreshStatus();
+}
+function setMapTheme(dark){
+ const next=dark?'dark':'light';document.documentElement.dataset.theme=next;
+ if(next===mapTheme)return;
+ mapTheme=next;
+ if(vectorMap){baseReady=false;failed=false;vectorMap.setStyle(styles[next]);refreshStatus()}
+}
+function applyDarkContrast(){
+ if(!vectorMap||mapTheme!=='dark')return;
+ vectorMap.getStyle().layers.forEach(layer=>{
+  const id=layer.id,source=layer['source-layer'];
+  const paint=(property,value)=>vectorMap.setPaintProperty(id,property,value);
+  if(layer.type==='background')paint('background-color','#1c1f23');
+  if(layer.type==='fill'){
+   if(source==='water')paint('fill-color','#11181e');
+   else if(source==='building')paint('fill-color','#343940');
+   else if(id.indexOf('park')>=0||id.indexOf('wood')>=0)paint('fill-color','#222d29');
+   else if(source==='landuse')paint('fill-color','#25292e');
+  }
+  if(layer.type==='line'&&source==='transportation'){
+   paint('line-color',id.indexOf('casing')>=0?'#20252a':id.indexOf('minor')>=0||id.indexOf('path')>=0||id.indexOf('railway')>=0?'#3b444d':'#59636e');
+  }
+  if(layer.type==='symbol'&&layer.layout&&layer.layout['text-field']){
+   paint('text-color',source==='place'?'#e0e4e8':source==='water_name'?'#9bb6ca':'#c5cbd2');
+   paint('text-halo-color','#1c1f23');paint('text-halo-width',1.2);
+  }
+ });
+}
+try{
+ if(typeof maplibregl==='undefined'||typeof L.maplibreGL!=='function')throw new Error('Vector renderer unavailable');
+ maplibregl.setWorkerCount(2);
+ vectorLayer=L.maplibreGL({style:styles[mapTheme],pixelRatio:Math.min(window.devicePixelRatio||1,2),
+  interactive:false,maxPitch:0,renderWorldCopies:false,padding:.05,
+  attributionControl:{customAttribution:'© <a href="https://www.openmaptiles.org/">OpenMapTiles</a> · '+osmCredit+' · '+routeCredit}
+ });
+ vectorLayer.addTo(map);vectorMap=vectorLayer.getMaplibreMap();
+ const activeVector=vectorMap;
+ vectorMap.on('style.load',applyDarkContrast);
+ vectorMap.on('idle',()=>{if(vectorMap===activeVector)markReady()});
+ vectorMap.on('error',()=>{if(vectorMap===activeVector)markFailed()});
+ vectorMap.getCanvas().addEventListener('webglcontextlost',useRasterFallback);
+}catch(_){useRasterFallback()}
+setTimeout(()=>{if(!baseReady&&(!lastData||lastData.locals.length)){status.hidden=false;status.textContent=labels.slow}},12000);
+setTimeout(()=>{if(!baseReady)useRasterFallback()},20000);
+// Permite verificar el renderizado real desde las herramientas de desarrollo del APK debug.
+window.exploreMapQuality=function(){return {renderer:vectorMap?'vector':'raster',theme:mapTheme,ready:baseReady,
+ pixelRatio:vectorMap?vectorMap.getPixelRatio():null,canvasWidth:vectorMap?vectorMap.getCanvas().width:null,
+ displayWidth:vectorMap?vectorMap.getCanvas().clientWidth:null}};
+const markers=L.layerGroup().addTo(map), routeLines=L.layerGroup().addTo(map);let bounds=[], userPoint=null, signature=null, topInset=190, bottomInset=158;
+function fitLocals(){
+ if(bounds.length){
+  const height=map.getSize().y;
+  const top=Math.min(topInset,Math.max(0,height-100));
+  const bottom=Math.min(bottomInset+15,Math.max(0,height-top-100));
+  map.fitBounds(bounds,{paddingTopLeft:[35,top],paddingBottomRight:[35,bottom],maxZoom:14,animate:false});
+ }else if(userPoint)map.setView(userPoint,13,{animate:false})
+}
+window.setExploreViewport=function(width,height){
+ if(!width||!height)return;
+ document.documentElement.style.height=height+'px';document.body.style.height=height+'px';document.getElementById('map').style.height=height+'px';
+ map.invalidateSize({pan:false});if(signature!==null)fitLocals();
+};
+map.on('click',()=>{window.location.href='cc-clear://selection'});
+window.updateExplore=function(data){
+ lastData=data;setMapTheme(data.dark);
+ topInset=data.topInset||190;bottomInset=data.bottomInset||158;
+ document.documentElement.style.setProperty('--bottom-inset',bottomInset+'px');
+ document.documentElement.style.setProperty('--controls-top',data.compact?'118px':'178px');
+ const ink=data.dark?'#f5f5f5':'#111111';
+ const halo=data.dark?'#181a1c':'#ffffff';
+ markers.clearLayers();routeLines.clearLayers();bounds=[];
+ const route=Array.isArray(data.route)?data.route:[];
+ document.querySelector('#controls button').textContent=route.length>1?labels.route:labels.locals;
+ // Cambiar la altura de la ficha no debe mover ni acercar el mapa que está explorando el usuario.
+ const next=data.locals.map(l=>l.id).join('|')+':'+(data.position?data.position.lat+','+data.position.lon:'none')+':'+(data.selected||'')+':'+(data.routeId||'');
+ if(route.length>1){
+  L.polyline(route,{color:halo,weight:9,opacity:.95,interactive:false}).addTo(routeLines);
+  L.polyline(route,{color:ink,weight:5,opacity:1,interactive:false}).addTo(routeLines);
+ }
+ data.locals.forEach(local=>{
+  const point=[local.lat,local.lon];bounds.push(point);
+  const selected=local.id===data.selected;
+  const marker=L.circleMarker(point,{bubblingMouseEvents:false,radius:selected?12:9,color:selected?ink:halo,weight:selected?4:2,fillColor:selected?halo:ink,fillOpacity:1}).addTo(markers);
+  const label=document.createElement('span');label.textContent=local.name;
+  marker.bindTooltip(label,{direction:'top'});
+  marker.on('click',()=>{marker.openTooltip();window.location.href='cc-select://local/'+encodeURIComponent(local.id)});
+  if(local.id===data.selected)marker.openTooltip();
+ });
+ userPoint=data.position?[data.position.lat,data.position.lon]:null;
+ document.getElementById('me').disabled=!userPoint;
+ if(userPoint){const marker=L.circleMarker(userPoint,{bubblingMouseEvents:false,radius:8,color:halo,weight:3,fillColor:data.dark?'#83b7ff':'#276ef1',fillOpacity:1}).addTo(markers);marker.bindTooltip(data.positionLabel||labels.position)}
+ if(route.length>1)bounds=route.slice();
+ else if(data.selected){const local=data.locals.find(l=>l.id===data.selected);if(local)bounds=[[local.lat,local.lon]]}
+ if(userPoint)bounds.push(userPoint);
+ if(signature!==next){signature=next;fitLocals()}
+ refreshStatus();
+ setTimeout(()=>map.invalidateSize(),50);
+};
+</script></body></html>

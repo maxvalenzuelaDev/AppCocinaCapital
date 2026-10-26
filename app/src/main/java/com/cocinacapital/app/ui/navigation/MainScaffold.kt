@@ -15,9 +15,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -31,6 +34,7 @@ import androidx.navigation.navArgument
 import com.cocinacapital.app.ui.detalle.DetalleLocalScreen
 import com.cocinacapital.app.ui.detalle.DetallePromocionScreen
 import com.cocinacapital.app.ui.home.HomeScreen
+import com.cocinacapital.app.ui.location.rememberUbicacionAction
 import com.cocinacapital.app.ui.perfil.PerfilScreen
 
 /**
@@ -49,12 +53,15 @@ import com.cocinacapital.app.ui.perfil.PerfilScreen
  */
 @Composable
 fun MainScaffold() {
+    val snackbar = remember { SnackbarHostState() }
+    val ubicacion = rememberUbicacionAction(snackbar)
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val rutaActual = backStackEntry?.destination?.route
     val esPestana = rutaActual == null || BottomNavItem.items.any { it.route == rutaActual }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbar) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             // expand/shrink (no slide) para que el contenido también se ajuste suavemente.
@@ -107,6 +114,8 @@ fun MainScaffold() {
         ) {
             composable(BottomNavItem.Home.route) {
                 HomeScreen(
+                    onLocationClick = ubicacion.solicitar,
+                    obteniendoUbicacion = ubicacion.cargando,
                     onLocalClick = { id -> navController.navigate(RutasDetalle.local(id)) },
                     onPromocionClick = { id -> navController.navigate(RutasDetalle.promocion(id)) }
                 )

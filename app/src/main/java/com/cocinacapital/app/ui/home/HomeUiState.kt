@@ -22,7 +22,7 @@ sealed interface HomeUiState {
     ) : HomeUiState
 }
 
-/** Ubicación actual del usuario. Por ahora es un valor por defecto (ver HomeViewModel). */
+/** Posición del usuario; la ausencia de ubicación se representa con null. */
 data class UbicacionUsuario(
     val comuna: String,
     val latitud: Double,

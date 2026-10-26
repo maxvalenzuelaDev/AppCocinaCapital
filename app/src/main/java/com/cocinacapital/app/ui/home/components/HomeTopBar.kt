@@ -1,5 +1,6 @@
 package com.cocinacapital.app.ui.home.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Column
@@ -36,6 +37,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun HomeTopBar(
     ubicacion: String,
+    onLocationClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     TopAppBar(
@@ -47,7 +49,7 @@ fun HomeTopBar(
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(modifier = Modifier.clickable(onClick = onLocationClick), verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Filled.LocationOn,
                         contentDescription = null, // decorativo: el texto ya dice la ubicación

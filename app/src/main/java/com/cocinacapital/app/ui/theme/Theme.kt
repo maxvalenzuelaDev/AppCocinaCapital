@@ -12,6 +12,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.cocinacapital.app.data.model.TemaApp
 
+val LocalDarkTheme = androidx.compose.runtime.staticCompositionLocalOf { false }
+
 // Paleta base (terracota + dorado). Si el equipo ya tiene un tema, usen el suyo y borren este archivo.
 private val LightColors = lightColorScheme(
     primary = Color(0xFFB5451B),
@@ -43,5 +45,7 @@ fun CocinaCapitalTheme(
         darkTheme -> DarkColors
         else -> LightColors
     }
-    MaterialTheme(colorScheme = colors, content = content)
+    androidx.compose.runtime.CompositionLocalProvider(LocalDarkTheme provides darkTheme) {
+        MaterialTheme(colorScheme = colors, content = content)
+    }
 }

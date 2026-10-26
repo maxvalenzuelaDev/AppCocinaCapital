@@ -31,7 +31,8 @@ import kotlinx.coroutines.launch
  * ubicación. Así filtrar es instantáneo y no hace llamadas de red por cada letra.
  */
 class HomeViewModel(
-    private val repository: HomeRepository
+    private val repository: HomeRepository,
+    private val ubicaciones: com.cocinacapital.app.data.location.UbicacionRepository
 ) : ViewModel() {
 
     // ---- Estado crudo de la carga remota (privado) ----
@@ -49,16 +50,12 @@ class HomeViewModel(
     private val _searchQuery = MutableStateFlow("")
     private val categoriaSeleccionadaId = MutableStateFlow<String?>(null)
 
-    // TODO(RF-12): reemplazar por la ubicación real (FusedLocationProvider) cuando se implemente
-    //  el permiso de ubicación. Mientras tanto se usa el centro de Valparaíso.
-    private val _ubicacion = MutableStateFlow(UbicacionUsuario("Valparaíso", -33.0472, -71.6127))
-
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
-    val ubicacion: StateFlow<UbicacionUsuario> = _ubicacion.asStateFlow()
+    val ubicacion = ubicaciones.posicion
 
     /** Estado único que observa la pantalla. */
     val uiState: StateFlow<HomeUiState> = combine(
-        dataState, _searchQuery, categoriaSeleccionadaId, _ubicacion
+        dataState, _searchQuery, categoriaSeleccionadaId, ubicacion
     ) { data, query, categoriaId, ubicacion ->
         when (data) {
             DataState.Loading -> HomeUiState.Loading
@@ -84,9 +81,6 @@ class HomeViewModel(
         categoriaSeleccionadaId.update { actual -> if (id == actual) null else id }
 
     fun onReintentar() = cargarHome()
-
-    /** Para cuando exista la geolocalización real (RF-12). */
-    fun onUbicacionActualizada(ubicacion: UbicacionUsuario) = _ubicacion.update { ubicacion }
 
     // ---------------- Carga de datos ----------------
 
@@ -133,7 +127,7 @@ class HomeViewModel(
         data: DataState.Loaded,
         query: String,
         categoriaId: String?,
-        ubicacion: UbicacionUsuario
+        ubicacion: UbicacionUsuario?
     ): HomeUiState.Success {
         val q = query.normalizado()
 
@@ -142,7 +136,7 @@ class HomeViewModel(
             val lat = local.latitud
             val lon = local.longitud
             local.copy(
-                distanciaKm = if (lat != null && lon != null)
+                distanciaKm = if (ubicacion != null && lat != null && lon != null)
                     distanciaKm(ubicacion.latitud, ubicacion.longitud, lat, lon) else null
             )
         }
@@ -179,7 +173,7 @@ class HomeViewModel(
         private const val MAX_KM = 20.0
 
         val Factory = viewModelFactory {
-            initializer { HomeViewModel(AppContainer.homeRepository) }
+            initializer { HomeViewModel(AppContainer.homeRepository, AppContainer.ubicacionRepository) }
         }
     }
 }

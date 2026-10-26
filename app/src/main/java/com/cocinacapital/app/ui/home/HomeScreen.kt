@@ -46,18 +46,25 @@ import com.cocinacapital.app.ui.home.components.SearchField
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
+    onLocationClick: () -> Unit = {},
+    obteniendoUbicacion: Boolean = false,
     onLocalClick: (String) -> Unit = {},
     onPromocionClick: (String) -> Unit = {},
     viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val query by viewModel.searchQuery.collectAsStateWithLifecycle()
-    val ubicacion by viewModel.ubicacion.collectAsStateWithLifecycle()
+    val ubicacion by viewModel.ubicacion.collectAsStateWithLifecycle(initialValue = null)
 
     HomeContent(
         uiState = uiState,
         query = query,
-        ubicacion = ubicacion.comuna,
+        ubicacion = androidx.compose.ui.res.stringResource(when {
+            obteniendoUbicacion -> com.cocinacapital.app.R.string.gps_buscando
+            ubicacion == null -> com.cocinacapital.app.R.string.gps_obtener
+            else -> com.cocinacapital.app.R.string.gps_titulo
+        }),
+        onLocationClick = onLocationClick,
         onQueryChange = viewModel::onSearchQueryChange,
         onCategoriaClick = viewModel::onCategoriaClick,
         onReintentar = viewModel::onReintentar,
@@ -73,6 +80,7 @@ fun HomeContent(
     uiState: HomeUiState,
     query: String,
     ubicacion: String,
+    onLocationClick: () -> Unit = {},
     onQueryChange: (String) -> Unit,
     onCategoriaClick: (String?) -> Unit,
     onReintentar: () -> Unit,
@@ -82,7 +90,7 @@ fun HomeContent(
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         // El encabezado y la búsqueda se muestran SIEMPRE, sea cual sea el estado.
-        HomeTopBar(ubicacion = ubicacion)
+        HomeTopBar(ubicacion = ubicacion, onLocationClick = onLocationClick)
         SearchField(
             query = query,
             onQueryChange = onQueryChange,

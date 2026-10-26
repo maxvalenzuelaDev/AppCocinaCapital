@@ -287,7 +287,8 @@ private fun Ubicacion(local: LocalGastronomico) {
         if (lat != null && lon != null) {
             OutlinedButton(
                 // Si no hay app de mapas ni navegador, el botón simplemente no hace nada.
-                onClick = { runCatching { uriHandler.openUri("https://www.google.com/maps/search/?api=1&query=$lat,$lon") } },
+                onClick = { runCatching { uriHandler.openUri(com.cocinacapital.app.util.urlDirecciones(
+                    com.cocinacapital.app.data.model.PuntoRuta(lat, lon))) } },
                 modifier = Modifier.padding(start = 32.dp)
             ) {
                 Icon(Icons.Outlined.Directions, contentDescription = null, modifier = Modifier.size(18.dp))

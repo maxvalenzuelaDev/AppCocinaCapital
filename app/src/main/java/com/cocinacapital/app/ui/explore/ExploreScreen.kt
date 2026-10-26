@@ -38,17 +38,20 @@ fun ExploreScreen(onLocation: () -> Unit, onLocalDetail: (String) -> Unit, onPre
     model: ExplorarViewModel = viewModel(factory = ExplorarViewModel.Factory)) {
     val state by model.uiState.collectAsStateWithLifecycle()
     val filtros by model.filtrosBusqueda.collectAsStateWithLifecycle()
+    var mapOpen by rememberSaveable { mutableStateOf(false) }
+    var resumeMap by rememberSaveable { mutableStateOf(false) }
     var enfocarBuscador by rememberSaveable { mutableStateOf(false) }
     val lista = rememberLazyListState()
     val tecladoAbierto = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     val foco = LocalFocusManager.current
     val teclado = LocalSoftwareKeyboardController.current
     val cerrarBusqueda = { foco.clearFocus(); teclado?.hide(); onCerrarBusqueda() }
-    BackHandler(barraAnclada, onBack = cerrarBusqueda)
+    BackHandler(barraAnclada && !mapOpen, onBack = cerrarBusqueda)
+    LaunchedEffect(Unit) { if (resumeMap) { mapOpen = true; resumeMap = false } }
     LaunchedEffect(solicitarBusqueda) {
         if (solicitarBusqueda) {
             model.iniciarBusquedaDesdeHome(categoriaDesdeHome)
-            enfocarBuscador = true
+            mapOpen = false; resumeMap = false; enfocarBuscador = true
             onBusquedaConsumida()
         }
     }
@@ -79,6 +82,7 @@ fun ExploreScreen(onLocation: () -> Unit, onLocalDetail: (String) -> Unit, onPre
                                 }
                             }
                         }
+                        MapLauncher { model.seleccionar(null); mapOpen = true }
                     }
                 }
                 Box(Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
@@ -121,7 +125,7 @@ fun ExploreScreen(onLocation: () -> Unit, onLocalDetail: (String) -> Unit, onPre
                     if (!s.filtros.zonaManual) TextButton(onClick = model::elegirVina) { Text(stringResource(R.string.ex_elegir_vina)) }
                 } }
                 else items(s.locales, key = { it.id }) { local -> Box(Modifier.padding(horizontal = 20.dp)) {
-                    LocalRow(local, compacto = true) { onLocalDetail(local.id) }
+                    LocalRow(local, compacto = true) { model.seleccionar(local.id); mapOpen = true }
                 } }
                 if (s.locales.isNotEmpty()) item { Text(stringResource(R.string.ex_distancias_rectas),
                     Modifier.padding(horizontal = 20.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
@@ -129,4 +133,7 @@ fun ExploreScreen(onLocation: () -> Unit, onLocalDetail: (String) -> Unit, onPre
                     }
                 }
             }
+            if (mapOpen && state is ExplorarUiState.Success) ExploreFullMap(s, model, snackbar, ubicacionEnCurso, onClose = { mapOpen = false }, onLocation = locate,
+                onDetail = { id -> resumeMap = true; mapOpen = false; onLocalDetail(id) },
+                onPreferences = { resumeMap = true; mapOpen = false; onPreferences() })
 }

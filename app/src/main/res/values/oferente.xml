@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- HU-04: navegación y opciones de las cuentas con rol oferente -->
+    <string name="oferente_nav_local">Mi local</string>
+    <string name="oferente_nav_promociones">Promociones</string>
+    <string name="oferente_nav_cuenta">Cuenta</string>
+    <string name="oferente_rol">Cuenta de oferente</string>
+    <string name="oferente_cerrar_sesion">Cerrar sesión</string>
+    <string name="oferente_local_pendiente">Pronto podrás editar la información y el catálogo de tu local desde aquí.</string>
+    <string name="oferente_promociones_pendiente">Pronto podrás crear, pausar y finalizar las promociones de tu local desde aquí.</string>
+</resources>

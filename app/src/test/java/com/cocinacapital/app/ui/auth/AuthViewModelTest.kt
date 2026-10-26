@@ -4,6 +4,7 @@ import com.cocinacapital.app.data.auth.AuthGateway
 import com.cocinacapital.app.data.auth.LoginRepository
 import com.cocinacapital.app.data.auth.LoginSession
 import com.cocinacapital.app.data.auth.LoginUser
+import com.cocinacapital.app.data.auth.Rol
 import com.cocinacapital.app.data.local.HistorialSesion
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -15,10 +16,10 @@ import kotlin.test.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AuthViewModelTest {
-    private class FakeGateway : AuthGateway {
+    private class FakeGateway(val rol: Rol = Rol.CONSUMIDOR) : AuthGateway {
         override val sessions = MutableStateFlow<LoginSession>(LoginSession.SignedOut)
         override suspend fun signIn(email: String, password: String) =
-            LoginUser("user-1", email).also { sessions.value = LoginSession.SignedIn(it) }
+            LoginUser("user-1", email, rol).also { sessions.value = LoginSession.SignedIn(it) }
         override suspend fun restoreSession() = sessions.value
         override suspend fun signOut() { sessions.value = LoginSession.SignedOut }
     }
@@ -47,5 +48,21 @@ class AuthViewModelTest {
         gateway.sessions.value = LoginSession.SignedOut
         assertEquals(AuthScreen.LOGIN, model.uiState.value.screen)
         assertFalse(model.uiState.value.firstVisit)
+    }
+    @Test fun `una cuenta comun inicia sesion como consumidor`() {
+        val model = AuthViewModel(LoginRepository(gateway), FakeHistory())
+        model.login("a@b.cl", "abc")
+        assertEquals(Rol.CONSUMIDOR, model.uiState.value.user?.rol)
+    }
+    @Test fun `el login distingue al oferente y lo conserva al recuperar la sesion`() {
+        val oferente = FakeGateway(Rol.OFERENTE)
+        val model = AuthViewModel(LoginRepository(oferente), FakeHistory())
+        model.login("local@b.cl", "abc")
+        assertEquals(AuthScreen.SESSION, model.uiState.value.screen)
+        assertEquals(Rol.OFERENTE, model.uiState.value.user?.rol)
+        model.logout()
+        assertNull(model.uiState.value.user)
+        oferente.sessions.value = LoginSession.SignedIn(LoginUser("user-1", "local@b.cl", Rol.OFERENTE))
+        assertEquals(Rol.OFERENTE, model.uiState.value.user?.rol)
     }
 }

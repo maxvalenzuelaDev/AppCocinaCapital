@@ -1,5 +1,7 @@
 package com.cocinacapital.app.ui.home.components
 
+import androidx.compose.ui.res.stringResource
+import com.cocinacapital.app.R
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyRow
@@ -30,7 +32,7 @@ fun CategoryChips(
             FilterChip(
                 selected = seleccionadaId == null,
                 onClick = { onCategoriaClick(null) },
-                label = { Text("Todos") }
+                label = { Text(stringResource(R.string.ex_todos)) }
             )
         }
         items(categorias, key = { it.id }) { categoria ->

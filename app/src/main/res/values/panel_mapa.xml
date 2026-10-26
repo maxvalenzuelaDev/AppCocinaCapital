@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ex_panel_minimo">Ficha minimizada</string>
+    <string name="ex_panel_medio">Ficha a media pantalla</string>
+    <string name="ex_panel_amplio">Ficha ampliada</string>
+    <string name="ex_panel_minimizar">Minimizar ficha</string>
+    <string name="ex_panel_media_pantalla">Mostrar ficha a media pantalla</string>
+    <string name="ex_panel_ampliar">Ampliar ficha</string>
+</resources>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- T-09: color de marca, el mismo `primary` del tema claro (ui/theme/Theme.kt) y del logo del Login. -->
+    <color name="marca_terracota">#B5451B</color>
+</resources>

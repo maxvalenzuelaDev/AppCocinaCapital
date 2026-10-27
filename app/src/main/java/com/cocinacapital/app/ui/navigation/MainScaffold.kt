@@ -175,6 +175,7 @@ fun MainScaffold() {
                 val solicitarBusqueda by entry.savedStateHandle.getStateFlow(BUSQUEDA_DESDE_HOME, false).collectAsStateWithLifecycle()
                 val barraAnclada by entry.savedStateHandle.getStateFlow(BUSQUEDA_ANCLADA, false).collectAsStateWithLifecycle()
                 com.cocinacapital.app.ui.explore.ExploreScreen(
+                    onExperiencias = { navController.navigate(RutasDetalle.EXPERIENCIAS) },
                     onLocation = ubicacion.solicitar,
                     ubicacionEnCurso = ubicacion.cargando,
                     snackbar = snackbar,
@@ -188,6 +189,20 @@ fun MainScaffold() {
                         entry.savedStateHandle[BUSQUEDA_DESDE_HOME] = false
                         entry.savedStateHandle.remove<String>(CATEGORIA_DESDE_HOME)
                     }
+                )
+            }
+            composable(RutasDetalle.EXPERIENCIAS) {
+                com.cocinacapital.app.ui.experiencias.ExperienciasScreen(
+                    onVolver = { navController.navigateUp() },
+                    onDetalle = { id -> navController.navigate(RutasDetalle.experiencia(id)) }
+                )
+            }
+            composable(RutasDetalle.EXPERIENCIA,
+                arguments = listOf(navArgument(RutasDetalle.ARG_ID) { type = NavType.StringType })) { entry ->
+                com.cocinacapital.app.ui.experiencias.DetalleExperienciaScreen(
+                    id = entry.arguments?.getString(RutasDetalle.ARG_ID).orEmpty(),
+                    onVolver = { navController.navigateUp() },
+                    onLocal = { id -> navController.navigate(RutasDetalle.local(id)) { launchSingleTop = true } }
                 )
             }
             composable(BottomNavItem.Billetera.route) { PantallaPendiente(stringResource(R.string.nav_billetera_pendiente)) }
@@ -209,7 +224,16 @@ fun MainScaffold() {
             ) { entry ->
                 DetallePromocionScreen(
                     promocionId = entry.arguments?.getString(RutasDetalle.ARG_ID).orEmpty(),
-                    onVolver = { navController.navigateUp() }
+                    onVolver = { navController.navigateUp() },
+                    onLocalClick = { id ->
+                        val anterior = navController.previousBackStackEntry
+                        if (anterior?.destination?.route == RutasDetalle.LOCAL &&
+                            anterior.arguments?.getString(RutasDetalle.ARG_ID) == id) {
+                            navController.navigateUp()
+                        } else {
+                            navController.navigate(RutasDetalle.local(id)) { launchSingleTop = true }
+                        }
+                    }
                 )
             }
         }
@@ -225,10 +249,14 @@ private fun enlaceBusqueda(desde: String?, hasta: String?) =
     (desde == BottomNavItem.Home.route && hasta == BottomNavItem.Explorar.route) ||
         (desde == BottomNavItem.Explorar.route && hasta == BottomNavItem.Home.route)
 
-private fun String?.esDetalle() = this == RutasDetalle.LOCAL || this == RutasDetalle.PROMOCION
+private fun String?.esDetalle() = this == RutasDetalle.LOCAL || this == RutasDetalle.PROMOCION ||
+    this == RutasDetalle.EXPERIENCIAS || this == RutasDetalle.EXPERIENCIA
 
 /** Rutas con argumento que no pertenecen a la barra inferior. */
 private object RutasDetalle {
+    const val EXPERIENCIAS = "experiencias"
+    const val EXPERIENCIA = "experiencia/{id}"
+    fun experiencia(id: String) = "experiencia/$id"
     const val ARG_ID = "id"
     const val LOCAL = "local/{$ARG_ID}"
     const val PROMOCION = "promocion/{$ARG_ID}"

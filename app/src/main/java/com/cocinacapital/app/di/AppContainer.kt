@@ -17,12 +17,18 @@ import com.cocinacapital.app.data.local.FotoPerfilArchivos
 import com.cocinacapital.app.data.local.HistorialSesion
 import com.cocinacapital.app.data.local.PreferenciasHistorialSesion
 import com.cocinacapital.app.data.remote.SupabaseProvider
+import com.cocinacapital.app.data.repository.ExperienciasRepository
+import com.cocinacapital.app.data.repository.FakeExperienciasRepository
+import com.cocinacapital.app.data.repository.SupabaseExperienciasRepository
 import com.cocinacapital.app.data.local.AndroidPreparadorFoto
 import com.cocinacapital.app.data.local.PreparadorFoto
 import com.cocinacapital.app.data.repository.CatalogoRepository
 import com.cocinacapital.app.data.repository.FotosLocalRepository
 import com.cocinacapital.app.data.repository.SupabaseFotosLocalRepository
 import com.cocinacapital.app.data.repository.DetalleLocalRepository
+import com.cocinacapital.app.data.repository.DetallePromocionRepository
+import com.cocinacapital.app.data.repository.FakeDetallePromocionRepository
+import com.cocinacapital.app.data.repository.SupabaseDetallePromocionRepository
 import com.cocinacapital.app.data.repository.SupabaseCatalogoRepository
 import com.cocinacapital.app.data.repository.PromocionesOferenteRepository
 import com.cocinacapital.app.data.repository.SupabasePromocionesOferenteRepository
@@ -53,7 +59,22 @@ object AppContainer {
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     fun init(context: Context) {
         appContext = context.applicationContext
-        if (SupabaseProvider.isConfigured) applicationScope.launch {
+    }
+
+    /** Construye SDK y almacenamiento fuera del hilo que dibuja la primera pantalla. */
+    fun prepararInicio() {
+        if (!SupabaseProvider.isConfigured) return
+        authRepository
+        preferenciasRepository
+        historialSesion
+        ubicacionRepository
+        rutaRepository
+    }
+
+    private var sesionJob: Job? = null
+    fun observarSesion() {
+        if (sesionJob != null || !SupabaseProvider.isConfigured) return
+        sesionJob = applicationScope.launch {
             authRepository.sessions.identidadesUbicacion().collect {
                 ubicacionRepository.limpiar()
                 rutaRepository.limpiar()
@@ -103,6 +124,11 @@ object AppContainer {
         else SupabaseHomeRepository(SupabaseProvider.client)
     }
 
+    val experienciasRepository: ExperienciasRepository by lazy {
+        if (USE_FAKE_DATA) FakeExperienciasRepository()
+        else SupabaseExperienciasRepository(SupabaseProvider.client)
+    }
+
     val detalleLocalRepository: DetalleLocalRepository by lazy {
         if (USE_FAKE_DATA) FakeDetalleLocalRepository()
         else SupabaseDetalleLocalRepository(SupabaseProvider.client)
@@ -113,6 +139,11 @@ object AppContainer {
     }
 
     val fotoPerfilArchivos: FotoPerfilArchivos by lazy { AndroidFotoPerfilArchivos(appContext) }
+
+    val detallePromocionRepository: DetallePromocionRepository by lazy {
+        if (USE_FAKE_DATA) FakeDetallePromocionRepository()
+        else SupabaseDetallePromocionRepository(SupabaseProvider.client, detalleLocalRepository)
+    }
 
     // ---- Oferente (HU-25 a HU-27): sus locales, protegidos por las políticas de la migración T-04 ----
     val misLocalesRepository: MisLocalesRepository by lazy { SupabaseMisLocalesRepository(SupabaseProvider.client) }

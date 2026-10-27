@@ -44,7 +44,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.cocinacapital.app.R
 
@@ -62,8 +61,8 @@ enum class OferenteTab(
 
 /**
  * Estructura principal para cuentas con rol oferente (HU-04). AppEntry la muestra en lugar de
- * MainScaffold. Mi local es el perfil del local (HU-25) y Catálogo sus platos (HU-26); Promociones
- * queda pendiente hasta HU-27 y HU-28.
+ * MainScaffold. Mi local es el perfil del local (HU-25), Catálogo sus platos (HU-26) y Promociones
+ * las que publica (HU-27).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,24 +100,10 @@ fun OferenteScaffold(
             when (actual) {
                 OferenteTab.MI_LOCAL -> MiLocalScreen(snackbar, usuarioId)
                 OferenteTab.CATALOGO -> CatalogoScreen(snackbar, usuarioId, onIrAMiLocal = { tab = OferenteTab.MI_LOCAL })
-                OferenteTab.PROMOCIONES -> SeccionPendiente(Icons.Outlined.LocalOffer, R.string.oferente_promociones_pendiente)
+                OferenteTab.PROMOCIONES -> PromocionesScreen(snackbar, usuarioId, onIrAMiLocal = { tab = OferenteTab.MI_LOCAL })
                 OferenteTab.CUENTA -> CuentaOferente(correo, cerrandoSesion, onCerrarSesion)
             }
         }
-    }
-}
-
-/** Marcador de las secciones del oferente que se desarrollan en otras historias. */
-@Composable
-private fun SeccionPendiente(icono: ImageVector, @StringRes mensajeRes: Int) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(icono, contentDescription = null, Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
-        Spacer(Modifier.height(12.dp))
-        Text(stringResource(mensajeRes), textAlign = TextAlign.Center)
     }
 }
 

@@ -20,6 +20,8 @@ import com.cocinacapital.app.data.remote.SupabaseProvider
 import com.cocinacapital.app.data.repository.CatalogoRepository
 import com.cocinacapital.app.data.repository.DetalleLocalRepository
 import com.cocinacapital.app.data.repository.SupabaseCatalogoRepository
+import com.cocinacapital.app.data.repository.PromocionesOferenteRepository
+import com.cocinacapital.app.data.repository.SupabasePromocionesOferenteRepository
 import com.cocinacapital.app.data.repository.FakeDetalleLocalRepository
 import com.cocinacapital.app.data.repository.FakeHomeRepository
 import com.cocinacapital.app.data.repository.FavoritosRepository
@@ -111,6 +113,9 @@ object AppContainer {
     // ---- Oferente (HU-25): su local, protegido por las políticas de la migración T-04 ----
     val miLocalRepository: MiLocalRepository by lazy { SupabaseMiLocalRepository(SupabaseProvider.client) }
     val catalogoRepository: CatalogoRepository by lazy { SupabaseCatalogoRepository(SupabaseProvider.client) }
+    val promocionesOferenteRepository: PromocionesOferenteRepository by lazy {
+        SupabasePromocionesOferenteRepository(SupabaseProvider.client)
+    }
 
     val favoritosRepository: FavoritosRepository by lazy {
         FavoritosRepository(database.favoritosDao(), perfilSesion)

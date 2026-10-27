@@ -6,7 +6,6 @@
     <string name="oferente_nav_cuenta">Cuenta</string>
     <string name="oferente_rol">Cuenta de oferente</string>
     <string name="oferente_cerrar_sesion">Cerrar sesión</string>
-    <string name="oferente_promociones_pendiente">Pronto podrás crear, pausar y finalizar las promociones de tu local desde aquí.</string>
 
     <!-- HU-25: perfil del local -->
     <string name="mi_local_titulo_nuevo">Registra tu local</string>
@@ -69,4 +68,49 @@
     <string name="catalogo_error_guardar">No se pudo guardar el plato. Inténtalo nuevamente.</string>
     <string name="catalogo_error_eliminar">No se pudo eliminar el plato. Inténtalo nuevamente.</string>
     <string name="catalogo_error_precio">Ingresa un precio en pesos, por ejemplo 12.900.</string>
+
+    <!-- HU-27: promociones del oferente -->
+    <string name="promo_ayuda">Las promociones activas aparecen en el Inicio de los consumidores mientras estén vigentes.</string>
+    <string name="promo_vacio">Todavía no tienes promociones. Crea la primera para atraer clientes en tus horarios de menos movimiento.</string>
+    <string name="promo_sin_local">Primero registra tu local para poder crear promociones.</string>
+    <string name="promo_nueva">Nueva promoción</string>
+    <string name="promo_titulo">Título</string>
+    <string name="promo_titulo_ayuda">Ej.: 2x1 en café de 15:00 a 18:00</string>
+    <string name="promo_descuento">Descuento (%)</string>
+    <string name="promo_descuento_ayuda">Entre 1 y 100. Ej.: 50 para un 2x1.</string>
+    <string name="promo_descripcion">Descripción (opcional)</string>
+    <string name="promo_condiciones">Condiciones (opcional)</string>
+    <string name="promo_condiciones_ayuda">Ej.: No acumulable. Válido solo para consumo en el local.</string>
+    <string name="promo_vigencia_titulo">Vigencia</string>
+    <string name="promo_desde">Desde %1$s</string>
+    <string name="promo_hasta">Hasta %1$s</string>
+    <string name="promo_dias_titulo">Días y horario</string>
+    <string name="promo_dias_ayuda">Elige los días en que aplica. Si no eliges ninguno, aplica todos los días.</string>
+    <string name="promo_con_horario">Solo en una franja horaria</string>
+    <string name="promo_hora_inicio">Desde %1$s</string>
+    <string name="promo_hora_fin">Hasta %1$s</string>
+    <string name="promo_cupos">Cupos (opcional)</string>
+    <string name="promo_cupos_ayuda">Cuántas personas pueden usarla. Vacío = sin límite.</string>
+    <string name="promo_publicar">Publicar promoción</string>
+    <string name="promo_aceptar">Aceptar</string>
+    <string name="promo_vigencia">Del %1$s al %2$s</string>
+    <string name="promo_todos_los_dias">Todos los días</string>
+    <string name="promo_sin_limite">Sin límite de cupos</string>
+    <string name="promo_cupos_disponibles">%1$d de %2$d cupos disponibles</string>
+    <string name="promo_estado_vigente">Vigente</string>
+    <string name="promo_estado_programada">Programada</string>
+    <string name="promo_estado_agotada">Sin cupos</string>
+    <string name="promo_estado_vencida">Vencida</string>
+    <string name="promo_estado_inactiva">Inactiva</string>
+    <string name="promo_creada">Promoción publicada.</string>
+    <string name="promo_revisa_campos">Revisa los campos marcados.</string>
+    <string name="promo_error_cargar">No pudimos cargar tus promociones. Revisa tu conexión e inténtalo nuevamente.</string>
+    <string name="promo_error_guardar">No se pudo publicar la promoción. Inténtalo nuevamente.</string>
+    <string name="promo_error_descuento">Ingresa un porcentaje entre 1 y 100.</string>
+    <string name="promo_error_fechas">Elige la fecha de inicio y de término.</string>
+    <string name="promo_error_desde_pasado">La fecha de inicio no puede ser anterior a hoy.</string>
+    <string name="promo_error_hasta_antes">La fecha de término debe ser igual o posterior a la de inicio.</string>
+    <string name="promo_error_horas">Elige la hora de inicio y de término.</string>
+    <string name="promo_error_horario">La hora de término debe ser posterior a la de inicio.</string>
+    <string name="promo_error_cupos">Ingresa un número de cupos entre 1 y 10.000.</string>
 </resources>

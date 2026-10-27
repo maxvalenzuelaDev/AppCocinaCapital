@@ -82,7 +82,8 @@
     <string name="detalle_promocion_descuento">%1$d%% de descuento</string>
     <string name="detalle_promocion_descripcion_pendiente">Descripción no informada.</string>
     <string name="detalle_promocion_condiciones">Condiciones de uso</string>
-    <string name="detalle_promocion_condiciones_pendientes">El comercio aún no informa las condiciones de esta promoción.</string>
+    <string name="detalle_promocion_condiciones_pendientes">Condiciones no informadas.</string>
+    <string name="detalle_promocion_cuando">Cuándo usarla</string>
     <string name="detalle_promocion_vigencia">Vigencia</string>
     <string name="detalle_promocion_desde">Desde: %1$s</string>
     <string name="detalle_promocion_hasta">Hasta: %1$s</string>

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,7 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CloudOff
-import androidx.compose.material.icons.outlined.ConfirmationNumber
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.LocalOffer
 import androidx.compose.material.icons.outlined.Refresh
@@ -30,8 +30,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -106,6 +106,20 @@ fun DetallePromocionContent(
 ) {
     Scaffold(
         modifier = modifier,
+        bottomBar = {
+            val local = (state as? DetallePromocionUiState.Success)?.local
+            if (local != null) {
+                Surface(tonalElevation = 2.dp) {
+                    Button(
+                        onClick = { onLocalClick(local.id) },
+                        modifier = Modifier.navigationBarsPadding().padding(horizontal = 20.dp, vertical = 12.dp)
+                            .fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.detalle_promocion_ver_local))
+                    }
+                }
+            }
+        },
         topBar = {
             DetalleTopBar(
                 titulo = stringResource(R.string.detalle_promocion_barra_titulo),
@@ -136,7 +150,7 @@ fun DetallePromocionContent(
                 R.string.detalle_promocion_no_encontrada, Icons.Outlined.LocalOffer, contenido
             )
             is DetallePromocionUiState.Success -> PromocionContent(
-                state, onLocalClick, onReintentar, contenido
+                state, onReintentar, contenido
             )
         }
     }
@@ -167,7 +181,6 @@ private fun MensajePromocion(
 @Composable
 private fun PromocionContent(
     state: DetallePromocionUiState.Success,
-    onLocalClick: (String) -> Unit,
     onReintentar: () -> Unit,
     modifier: Modifier
 ) {
@@ -178,31 +191,14 @@ private fun PromocionContent(
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 32.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        local?.imagenUrl?.takeIf { it.isNotBlank() }?.let { url ->
-            item(key = "imagen") {
-                val fondo = ColorPainter(MaterialTheme.colorScheme.surfaceContainerHighest)
-                Card(shape = RoundedCornerShape(20.dp)) {
-                    AsyncImage(
-                        model = url,
-                        contentDescription = stringResource(R.string.detalle_local_foto, local.nombre),
-                        contentScale = ContentScale.Crop,
-                        placeholder = fondo,
-                        error = fondo,
-                        modifier = Modifier.fillMaxWidth().height(180.dp)
-                    )
-                }
-            }
-        }
         item(key = "cabecera") {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.secondaryContainer
-                ) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                local?.let {
                     Text(
-                        stringResource(estadoTexto(state.vigencia.estado)),
-                        Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                        style = MaterialTheme.typography.labelLarge
+                        it.nombre,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
                 Text(
@@ -216,38 +212,51 @@ private fun PromocionContent(
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(
-                            stringResource(R.string.detalle_promocion_descuento, promocion.descuentoPorcentaje),
-                            Modifier.padding(16.dp),
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(
+                                stringResource(R.string.detalle_promocion_descuento, promocion.descuentoPorcentaje),
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            Text(stringResource(estadoTexto(state.vigencia.estado)),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        }
                     }
+                } else {
+                    Text(stringResource(estadoTexto(state.vigencia.estado)),
+                        style = MaterialTheme.typography.labelLarge)
                 }
-                Text(
-                    promocion.descripcion.takeIf { it.isNotBlank() }
-                        ?: stringResource(R.string.detalle_promocion_descripcion_pendiente),
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                Text(cuposTexto(promocion, state.cuposConfigurados),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                promocion.descripcion.takeIf { it.isNotBlank() }?.let {
+                    Text(it, style = MaterialTheme.typography.bodyLarge)
+                }
             }
         }
         item(key = "condiciones") {
-            SeccionPromocion(R.string.detalle_promocion_condiciones, Icons.Outlined.Description) {
-                Text(promocion.condiciones.takeIf { it.isNotBlank() }
-                    ?: stringResource(R.string.detalle_promocion_condiciones_pendientes))
+            if (promocion.condiciones.isNotBlank()) {
+                SeccionPromocion(R.string.detalle_promocion_condiciones, Icons.Outlined.Description) {
+                    Text(promocion.condiciones)
+                }
+            } else {
+                Text(stringResource(R.string.detalle_promocion_condiciones_pendientes),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         item(key = "vigencia") {
-            SeccionPromocion(R.string.detalle_promocion_vigencia, Icons.Outlined.Schedule) {
-                Text(stringResource(R.string.detalle_promocion_desde, fechaTexto(state.vigencia.desde)))
-                Text(stringResource(R.string.detalle_promocion_hasta, fechaTexto(state.vigencia.hasta)))
-                Text(stringResource(R.string.detalle_promocion_zona_horaria),
-                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
-        item(key = "horario") {
-            SeccionPromocion(R.string.detalle_promocion_horario, Icons.Outlined.Schedule) {
-                Text(diasTexto(promocion, state.horarioConfigurado))
+            SeccionPromocion(R.string.detalle_promocion_cuando, Icons.Outlined.Schedule) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(stringResource(R.string.detalle_promocion_desde, fechaTexto(state.vigencia.desde)),
+                        style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.detalle_promocion_hasta, fechaTexto(state.vigencia.hasta)),
+                        style = MaterialTheme.typography.bodyMedium)
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Text(diasTexto(promocion, state.horarioConfigurado),
+                    style = MaterialTheme.typography.bodyMedium)
                 val franja = promocion.franjaValida()
                 Text(when {
                     franja != null -> stringResource(R.string.detalle_promocion_franja,
@@ -255,36 +264,33 @@ private fun PromocionContent(
                     state.horarioConfigurado && promocion.horaInicio == null && promocion.horaFin == null ->
                         stringResource(R.string.detalle_promocion_horario_del_local)
                     else -> stringResource(R.string.detalle_promocion_horario_pendiente)
-                })
-            }
-        }
-        item(key = "cupos") {
-            SeccionPromocion(R.string.detalle_promocion_cupos, Icons.Outlined.ConfirmationNumber) {
-                Text(when (val cupos = promocion.cuposParaDetalle(state.cuposConfigurados)) {
-                    CuposPromocion.SinInformar -> stringResource(R.string.detalle_promocion_cupos_pendientes)
-                    CuposPromocion.SinLimite -> stringResource(R.string.detalle_promocion_cupos_sin_limite)
-                    is CuposPromocion.Disponibles -> if (cupos.cantidad == 0) {
-                        stringResource(R.string.detalle_promocion_sin_cupos)
-                    } else {
-                        pluralStringResource(R.plurals.detalle_promocion_cantidad_cupos, cupos.cantidad,
-                            String.format(LocaleCL, "%,d", cupos.cantidad))
-                    }
-                })
+                }, style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.detalle_promocion_zona_horaria),
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         item(key = "local") {
             SeccionPromocion(R.string.detalle_promocion_local, Icons.Outlined.Storefront) {
                 if (local != null) {
+                    local.imagenUrl?.takeIf { it.isNotBlank() }?.let { url ->
+                        val fondo = ColorPainter(MaterialTheme.colorScheme.surfaceContainerHighest)
+                        AsyncImage(
+                            model = url,
+                            contentDescription = stringResource(R.string.detalle_local_foto, local.nombre),
+                            contentScale = ContentScale.Crop,
+                            placeholder = fondo,
+                            error = fondo,
+                            modifier = Modifier.fillMaxWidth().height(140.dp)
+                        )
+                    }
                     Text(local.nombre, style = MaterialTheme.typography.titleMedium)
-                    Text(stringResource(R.string.home_categoria_comuna, local.categoriaNombre, local.comuna))
+                    Text(stringResource(R.string.home_categoria_comuna, local.categoriaNombre, local.comuna),
+                        style = MaterialTheme.typography.bodyMedium)
                     Text(local.direccion?.takeIf { it.isNotBlank() }
                         ?: stringResource(R.string.detalle_promocion_direccion_pendiente))
                     local.horario?.takeIf { it.isNotBlank() }?.let {
                         Text(stringResource(R.string.detalle_promocion_horario_local, it),
                             style = MaterialTheme.typography.bodySmall)
-                    }
-                    OutlinedButton(onClick = { onLocalClick(local.id) }, modifier = Modifier.fillMaxWidth()) {
-                        Text(stringResource(R.string.detalle_promocion_ver_local))
                     }
                 } else {
                     Text(stringResource(if (state.errorLocal) R.string.detalle_promocion_error_local
@@ -297,6 +303,19 @@ private fun PromocionContent(
         }
     }
 }
+
+@Composable
+private fun cuposTexto(promocion: Promocion, camposPresentes: Boolean): String =
+    when (val cupos = promocion.cuposParaDetalle(camposPresentes)) {
+        CuposPromocion.SinInformar -> stringResource(R.string.detalle_promocion_cupos_pendientes)
+        CuposPromocion.SinLimite -> stringResource(R.string.detalle_promocion_cupos_sin_limite)
+        is CuposPromocion.Disponibles -> if (cupos.cantidad == 0) {
+            stringResource(R.string.detalle_promocion_sin_cupos)
+        } else {
+            pluralStringResource(R.plurals.detalle_promocion_cantidad_cupos, cupos.cantidad,
+                String.format(LocaleCL, "%,d", cupos.cantidad))
+        }
+    }
 
 @Composable
 private fun SeccionPromocion(

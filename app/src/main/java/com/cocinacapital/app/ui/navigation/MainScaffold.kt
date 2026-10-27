@@ -1,5 +1,6 @@
 package com.cocinacapital.app.ui.navigation
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.res.stringResource
 import com.cocinacapital.app.R
 import androidx.activity.compose.BackHandler
@@ -113,7 +114,7 @@ fun MainScaffold() {
                                 contentDescription = stringResource(item.labelRes)
                             )
                         },
-                        label = { Text(stringResource(item.labelRes)) }
+                        label = { Text(stringResource(item.labelRes), maxLines = 1, overflow = TextOverflow.Ellipsis) }
                     )
                 }
             } }

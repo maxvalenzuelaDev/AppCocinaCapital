@@ -1,5 +1,7 @@
 package com.cocinacapital.app.ui.registro
 
+import androidx.annotation.StringRes
+
 /**
  * Estado de la pantalla de registro (HU-01 / RF-01).
  *
@@ -13,14 +15,14 @@ data class RegistroUiState(
     val correo: String = "",
     val contrasena: String = "",
 
-    // ---- Errores de validación ----
-    val errorNombre: String? = null,
-    val errorCorreo: String? = null,
-    val errorContrasena: String? = null,
+    // ---- Errores de validación (textos en res/values/acceso.xml) ----
+    @StringRes val errorNombre: Int? = null,
+    @StringRes val errorCorreo: Int? = null,
+    @StringRes val errorContrasena: Int? = null,
 
     // ---- Estado del formulario y registro ----
     val formularioValido: Boolean = false,
-    val mensaje: String? = null,
+    @StringRes val mensaje: Int? = null,
 
     // Indica si se está procesando el registro en Supabase.
     // Se utiliza para mostrar el indicador de carga y desactivar el botón.

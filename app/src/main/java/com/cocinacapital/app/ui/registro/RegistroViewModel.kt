@@ -3,6 +3,7 @@ package com.cocinacapital.app.ui.registro
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.cocinacapital.app.R
 import com.cocinacapital.app.data.repository.AuthRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -88,27 +89,27 @@ class RegistroViewModel(
         val datos = _uiState.value
 
         val errorNombre = if (datos.nombre.isBlank()) {
-            "Debes ingresar tu nombre"
+            R.string.registro_error_nombre
         } else null
 
         val errorCorreo = when {
             datos.correo.isBlank() ->
-                "Debes ingresar tu correo"
+                R.string.registro_error_correo_vacio
 
             !Patterns.EMAIL_ADDRESS.matcher(
                 datos.correo.trim()
             ).matches() ->
-                "Ingresa un correo electrónico válido"
+                R.string.registro_error_correo_invalido
 
             else -> null
         }
 
         val errorContrasena = when {
             datos.contrasena.isBlank() ->
-                "Debes ingresar una contraseña"
+                R.string.registro_error_contrasena_vacia
 
             datos.contrasena.length < 8 ->
-                "La contraseña debe tener al menos 8 caracteres"
+                R.string.registro_error_contrasena_corta
 
             else -> null
         }
@@ -151,9 +152,7 @@ class RegistroViewModel(
                         cargando = false,
                         registroExitoso = true,
                         contrasena = "",
-                        mensaje = "Solicitud de registro recibida. " +
-                                "Revisa tu correo electrónico " +
-                                "para confirmar tu cuenta."
+                        mensaje = R.string.registro_exitoso
                     )
                 }
 
@@ -174,16 +173,16 @@ class RegistroViewModel(
                 // Identifica el tipo de error devuelto por Supabase.
                 val mensajeError = when {
                     e.message?.contains("over_email_send_rate_limit", ignoreCase = true) == true ->
-                        "Se alcanzó el límite de envío de correos. Inténtalo más tarde."
+                        R.string.registro_error_limite_correos
 
                     e.message?.contains("email_address_invalid", ignoreCase = true) == true ->
-                        "El correo electrónico fue rechazado. Prueba con otra dirección válida."
+                        R.string.registro_error_correo_rechazado
 
                     e.message?.contains("user_already_exists", ignoreCase = true) == true ->
-                        "Ya existe una cuenta registrada con este correo electrónico."
+                        R.string.registro_error_ya_existe
 
                     else ->
-                        "No se pudo completar el registro. Inténtalo nuevamente."
+                        R.string.registro_error_desconocido
                 }
 
                 // Actualiza el estado para mostrar el mensaje correspondiente.

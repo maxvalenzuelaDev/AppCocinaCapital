@@ -1,5 +1,8 @@
 package com.cocinacapital.app.data.model
 
+import androidx.annotation.StringRes
+import com.cocinacapital.app.R
+
 /** Usuario autenticado (lo entrega el módulo de Login/Registro de los compañeros). */
 data class PerfilUsuario(
     val id: String,
@@ -13,16 +16,16 @@ data class PerfilUsuario(
             .joinToString("") { it.first().uppercase() }.ifEmpty { "?" }
 }
 
-enum class RangoPrecio(val simbolo: String, val etiqueta: String) {
-    ECONOMICO("\$", "Económico"),
-    MEDIO("\$\$", "Medio"),
-    PREMIUM("\$\$\$", "Premium")
+enum class RangoPrecio(val simbolo: String, @StringRes val etiquetaRes: Int) {
+    ECONOMICO("\$", R.string.rango_economico),
+    MEDIO("\$\$", R.string.rango_medio),
+    PREMIUM("\$\$\$", R.string.rango_premium)
 }
 
-enum class TemaApp(val etiqueta: String) {
-    SISTEMA("Del sistema"),
-    CLARO("Claro"),
-    OSCURO("Oscuro")
+enum class TemaApp(@StringRes val etiquetaRes: Int) {
+    SISTEMA(R.string.tema_sistema),
+    CLARO(R.string.tema_claro),
+    OSCURO(R.string.tema_oscuro)
 }
 
 /** Preferencias del usuario (guardadas localmente con Room). Todo es opt-in por defecto (privacidad por defecto). */

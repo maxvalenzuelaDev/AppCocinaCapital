@@ -7,7 +7,7 @@ import com.cocinacapital.app.data.model.PreferenciasUsuario
 
 sealed interface PerfilUiState {
     data object Loading : PerfilUiState
-    data class Error(val message: String) : PerfilUiState
+    data class Error(@androidx.annotation.StringRes val mensajeRes: Int) : PerfilUiState
     data class Success(
         /** `null` = no hay sesión (la app debería volver al Login). */
         val usuario: PerfilUsuario?,

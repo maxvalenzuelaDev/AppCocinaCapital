@@ -1,5 +1,7 @@
 package com.cocinacapital.app.ui.home
 
+import androidx.compose.ui.layout.layout
+import kotlin.math.roundToInt
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.Animatable
@@ -116,8 +118,17 @@ fun HomeContent(
         }
     }
     Column(modifier = modifier.fillMaxSize().statusBarsPadding()) {
-        Box(Modifier.height(64.dp * (1f - avance.value)).clipToBounds().graphicsLayer { alpha = 1f - avance.value }) {
-            HomeTopBar(ubicacion = ubicacion, onLocationClick = onLocationClick, modifier = Modifier.height(64.dp))
+        // Se pliega al abrir la búsqueda según su alto real, que crece con la fuente del sistema (T-18).
+        Box(
+            Modifier
+                .clipToBounds()
+                .layout { medible, restricciones ->
+                    val encabezado = medible.measure(restricciones)
+                    layout(encabezado.width, (encabezado.height * (1f - avance.value)).roundToInt()) { encabezado.place(0, 0) }
+                }
+                .graphicsLayer { alpha = 1f - avance.value }
+        ) {
+            HomeTopBar(ubicacion = ubicacion, onLocationClick = onLocationClick)
         }
         SearchField(
             onSearchClick = { if (!elevandoBusqueda && !restaurandoBusqueda) onSearchClick() },

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- HU-04: navegación y opciones de las cuentas con rol oferente -->
+    <string name="oferente_nav_locales">Mis locales</string>
+    <string name="oferente_nav_promociones">Promociones</string>
+    <string name="oferente_nav_cuenta">Cuenta</string>
+    <string name="oferente_rol">Cuenta de oferente</string>
+    <string name="oferente_cerrar_sesion">Cerrar sesión</string>
+
+    <!-- HU-25: perfil del local (un oferente puede tener varios) -->
+    <string name="mis_locales_ayuda">Toca un local para editar sus datos. Catálogo y Promociones se gestionan por local.</string>
+    <string name="mis_locales_vacio">Aún no registras locales. Crea el primero para que los consumidores te encuentren.</string>
+    <string name="mis_locales_nuevo">Nuevo local</string>
+    <string name="mis_locales_sin_ubicacion">Sin ubicación en el mapa</string>
+    <string name="mis_locales_editar">Editar %1$s</string>
+    <string name="mis_locales_volver">Volver a Mis locales</string>
+    <string name="selector_local_etiqueta">Local</string>
+    <string name="mi_local_titulo_nuevo">Registra tu local</string>
+    <string name="mi_local_titulo_editar">Datos de tu local</string>
+    <string name="mi_local_ayuda">Esta información la ven los consumidores en el listado y en el detalle de tu local.</string>
+    <string name="mi_local_nombre">Nombre del local</string>
+    <string name="mi_local_categoria">Categoría</string>
+    <string name="mi_local_comuna">Comuna</string>
+    <string name="mi_local_direccion">Dirección</string>
+    <string name="mi_local_horario">Horario (opcional)</string>
+    <string name="mi_local_horario_ayuda">Ej.: Lun a Jue 12:00–22:00 · Vie y Sáb 12:00–00:00</string>
+    <string name="mi_local_descripcion">Descripción (opcional)</string>
+    <string name="mi_local_ticket">Consumo promedio por persona (opcional)</string>
+    <string name="mi_local_ticket_ayuda">En pesos, ej.: 12.000. Se usa en el filtro de presupuesto.</string>
+    <string name="mi_local_ubicacion_titulo">Ubicación en el mapa</string>
+    <string name="mi_local_ubicacion_coordenadas">Coordenadas: %1$s, %2$s</string>
+    <string name="mi_local_ubicacion_precision">Precisión aproximada: ±%1$d m</string>
+    <string name="mi_local_ubicacion_sin">Sin ubicación: tu local no aparecerá en Explorar ni en el mapa.</string>
+    <string name="mi_local_ubicacion_ayuda">Pulsa el botón estando en tu local y luego guarda los cambios.</string>
+    <string name="mi_local_ubicacion_usar">Usar mi ubicación actual</string>
+    <string name="mi_local_crear">Registrar local</string>
+    <string name="mi_local_guardar">Guardar cambios</string>
+    <string name="mi_local_reintentar">Reintentar</string>
+    <string name="mi_local_creado">Local registrado.</string>
+    <string name="mi_local_guardado">Cambios guardados.</string>
+    <string name="mi_local_error_cargar">No pudimos cargar tu local. Revisa tu conexión e inténtalo nuevamente.</string>
+    <string name="mi_local_error_guardar">No se pudieron guardar los cambios. Inténtalo nuevamente.</string>
+    <string name="mi_local_error_obligatorio">Este campo es obligatorio.</string>
+    <string name="mi_local_error_largo">El texto es demasiado largo.</string>
+    <string name="mi_local_error_categoria">Elige una categoría.</string>
+    <string name="mi_local_error_ticket">Ingresa un monto en pesos, por ejemplo 12.000.</string>
+
+    <!-- HU-26: catálogo del oferente -->
+    <string name="oferente_nav_catalogo">Catálogo</string>
+    <string name="catalogo_ayuda">Los platos destacados aparecen en \"Menú destacado\" cuando un consumidor abre tu local.</string>
+    <string name="catalogo_vacio">Todavía no tienes platos. Agrega el primero con el botón de abajo.</string>
+    <string name="catalogo_sin_local">Primero registra un local para poder publicar su catálogo.</string>
+    <string name="catalogo_ir_mi_local">Ir a Mis locales</string>
+    <string name="catalogo_agregar">Agregar plato</string>
+    <string name="catalogo_nuevo">Nuevo plato</string>
+    <string name="catalogo_editar">Editar plato</string>
+    <string name="catalogo_editar_plato">Editar %1$s</string>
+    <string name="catalogo_eliminar_plato">Eliminar %1$s</string>
+    <string name="catalogo_nombre">Nombre</string>
+    <string name="catalogo_precio">Precio</string>
+    <string name="catalogo_precio_ayuda">En pesos, ej.: 12.900</string>
+    <string name="catalogo_descripcion">Descripción (opcional)</string>
+    <string name="catalogo_destacado">Destacado</string>
+    <string name="catalogo_destacar">Destacar plato</string>
+    <string name="catalogo_destacar_ayuda">Se muestra a los consumidores en el detalle del local.</string>
+    <string name="catalogo_guardar">Guardar</string>
+    <string name="catalogo_cancelar">Cancelar</string>
+    <string name="catalogo_eliminar">Eliminar</string>
+    <string name="catalogo_eliminar_titulo">¿Eliminar plato?</string>
+    <string name="catalogo_eliminar_texto">\"%1$s\" dejará de aparecer en tu catálogo. Esta acción no se puede deshacer.</string>
+    <string name="catalogo_creado">Plato agregado.</string>
+    <string name="catalogo_guardado">Plato actualizado.</string>
+    <string name="catalogo_eliminado">Plato eliminado.</string>
+    <string name="catalogo_error_cargar">No pudimos cargar tu catálogo. Revisa tu conexión e inténtalo nuevamente.</string>
+    <string name="catalogo_error_guardar">No se pudo guardar el plato. Inténtalo nuevamente.</string>
+    <string name="catalogo_error_eliminar">No se pudo eliminar el plato. Inténtalo nuevamente.</string>
+    <string name="catalogo_error_precio">Ingresa un precio en pesos, por ejemplo 12.900.</string>
+
+    <!-- HU-27: promociones del oferente -->
+    <string name="promo_ayuda">Las promociones activas aparecen en el Inicio de los consumidores mientras estén vigentes.</string>
+    <string name="promo_vacio">Todavía no tienes promociones. Crea la primera para atraer clientes en tus horarios de menos movimiento.</string>
+    <string name="promo_sin_local">Primero registra un local para poder crear sus promociones.</string>
+    <string name="promo_nueva">Nueva promoción</string>
+    <string name="promo_titulo">Título</string>
+    <string name="promo_titulo_ayuda">Ej.: 2x1 en café de 15:00 a 18:00</string>
+    <string name="promo_descuento">Descuento (%)</string>
+    <string name="promo_descuento_ayuda">Entre 1 y 100. Ej.: 50 para un 2x1.</string>
+    <string name="promo_descripcion">Descripción (opcional)</string>
+    <string name="promo_condiciones">Condiciones (opcional)</string>
+    <string name="promo_condiciones_ayuda">Ej.: No acumulable. Válido solo para consumo en el local.</string>
+    <string name="promo_vigencia_titulo">Vigencia</string>
+    <string name="promo_desde">Desde %1$s</string>
+    <string name="promo_hasta">Hasta %1$s</string>
+    <string name="promo_dias_titulo">Días y horario</string>
+    <string name="promo_dias_ayuda">Elige los días en que aplica. Si no eliges ninguno, aplica todos los días.</string>
+    <string name="promo_con_horario">Solo en una franja horaria</string>
+    <string name="promo_hora_inicio">Desde %1$s</string>
+    <string name="promo_hora_fin">Hasta %1$s</string>
+    <string name="promo_cupos">Cupos (opcional)</string>
+    <string name="promo_cupos_ayuda">Cuántas personas pueden usarla. Vacío = sin límite.</string>
+    <string name="promo_publicar">Publicar promoción</string>
+    <string name="promo_aceptar">Aceptar</string>
+    <string name="promo_vigencia">Del %1$s al %2$s</string>
+    <string name="promo_todos_los_dias">Todos los días</string>
+    <string name="promo_sin_limite">Sin límite de cupos</string>
+    <string name="promo_cupos_disponibles">%1$d de %2$d cupos disponibles</string>
+    <string name="promo_estado_vigente">Vigente</string>
+    <string name="promo_estado_programada">Programada</string>
+    <string name="promo_estado_agotada">Sin cupos</string>
+    <string name="promo_estado_vencida">Vencida</string>
+    <string name="promo_estado_inactiva">Pausada</string>
+    <string name="promo_creada">Promoción publicada.</string>
+    <string name="promo_revisa_campos">Revisa los campos marcados.</string>
+    <string name="promo_error_cargar">No pudimos cargar tus promociones. Revisa tu conexión e inténtalo nuevamente.</string>
+    <string name="promo_error_guardar">No se pudo publicar la promoción. Inténtalo nuevamente.</string>
+    <string name="promo_error_descuento">Ingresa un porcentaje entre 1 y 100.</string>
+    <string name="promo_error_fechas">Elige la fecha de inicio y de término.</string>
+    <string name="promo_error_desde_pasado">La fecha de inicio no puede ser anterior a hoy.</string>
+    <string name="promo_error_hasta_antes">La fecha de término debe ser igual o posterior a la de inicio.</string>
+    <string name="promo_error_horas">Elige la hora de inicio y de término.</string>
+    <string name="promo_error_horario">La hora de término debe ser posterior a la de inicio.</string>
+    <string name="promo_error_cupos">Ingresa un número de cupos entre 1 y 10.000.</string>
+
+    <!-- HU-28: editar, pausar o finalizar promociones -->
+    <string name="promo_acciones">Acciones de %1$s</string>
+    <string name="promo_editar">Editar</string>
+    <string name="promo_editar_titulo">Editar promoción</string>
+    <string name="promo_pausar">Pausar</string>
+    <string name="promo_reanudar">Reanudar</string>
+    <string name="promo_finalizar">Finalizar</string>
+    <string name="promo_finalizar_titulo">¿Finalizar promoción?</string>
+    <string name="promo_finalizar_texto">"%1$s" dejará de mostrarse a los consumidores desde ahora. Si solo quieres detenerla un tiempo, usa Pausar.</string>
+    <string name="promo_guardar_cambios">Guardar cambios</string>
+    <string name="promo_cupos_fijos">Los cupos se fijan al publicar y no se pueden cambiar.</string>
+    <string name="promo_editada">Promoción actualizada.</string>
+    <string name="promo_pausada">Promoción pausada: los consumidores ya no la ven.</string>
+    <string name="promo_reanudada">Promoción reanudada.</string>
+    <string name="promo_finalizada">Promoción finalizada.</string>
+    <string name="promo_error_cambiar">No se pudo actualizar la promoción. Inténtalo nuevamente.</string>
+    <string name="promo_error_hasta_pasado">La fecha de término no puede ser anterior a hoy.</string>
+</resources>

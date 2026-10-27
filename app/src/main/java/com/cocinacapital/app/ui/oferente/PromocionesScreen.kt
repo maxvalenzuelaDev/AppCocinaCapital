@@ -24,6 +24,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.PauseCircle
+import androidx.compose.material.icons.outlined.PlayCircle
+import androidx.compose.material.icons.outlined.StopCircle
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.LocalOffer
@@ -83,7 +90,10 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 
-/** Pestaña "Promociones" del oferente (HU-27): lista de sus promociones y formulario para crear una. */
+/**
+ * Pestaña "Promociones" del oferente: lista de sus promociones, formulario para crear una (HU-27) y
+ * acciones para editarla, pausarla, reanudarla o finalizarla (HU-28).
+ */
 @Composable
 fun PromocionesScreen(
     snackbar: SnackbarHostState,
@@ -115,7 +125,33 @@ fun PromocionesScreen(
         is PromocionesUiState.Success -> {
             val formulario = state.formulario
             if (formulario == null) {
-                ListaPromociones(state.promociones, viewModel.ahora, viewModel::onNueva)
+                ListaPromociones(
+                    promociones = state.promociones,
+                    ahora = viewModel.ahora,
+                    procesandoId = state.procesandoId,
+                    onNueva = viewModel::onNueva,
+                    acciones = AccionesPromocion(
+                        editar = viewModel::onEditar,
+                        pausar = viewModel::onPausar,
+                        reanudar = viewModel::onReanudar,
+                        finalizar = viewModel::onPedirFinalizar
+                    )
+                )
+                state.porFinalizar?.let { promo ->
+                    AlertDialog(
+                        onDismissRequest = viewModel::onCancelarFinalizar,
+                        title = { Text(stringResource(R.string.promo_finalizar_titulo)) },
+                        text = { Text(stringResource(R.string.promo_finalizar_texto, promo.titulo)) },
+                        confirmButton = {
+                            TextButton(onClick = viewModel::onConfirmarFinalizar) {
+                                Text(stringResource(R.string.promo_finalizar), color = MaterialTheme.colorScheme.error)
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = viewModel::onCancelarFinalizar) { Text(stringResource(R.string.catalogo_cancelar)) }
+                        }
+                    )
+                }
             } else {
                 BackHandler(onBack = viewModel::onCerrarFormulario)
                 FormularioPromocionView(
@@ -133,8 +169,22 @@ fun PromocionesScreen(
 
 // ---------------- Lista ----------------
 
+/** Acciones de HU-28 sobre una promoción de la lista. */
+private class AccionesPromocion(
+    val editar: (Promocion) -> Unit,
+    val pausar: (Promocion) -> Unit,
+    val reanudar: (Promocion) -> Unit,
+    val finalizar: (Promocion) -> Unit
+)
+
 @Composable
-private fun ListaPromociones(promociones: List<Promocion>, ahora: Instant, onNueva: () -> Unit) {
+private fun ListaPromociones(
+    promociones: List<Promocion>,
+    ahora: Instant,
+    procesandoId: String?,
+    onNueva: () -> Unit,
+    acciones: AccionesPromocion
+) {
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -158,7 +208,9 @@ private fun ListaPromociones(promociones: List<Promocion>, ahora: Instant, onNue
                     }
                 }
             }
-            items(promociones, key = { it.id }) { promo -> PromocionItem(promo, promo.estado(ahora)) }
+            items(promociones, key = { it.id }) { promo ->
+                PromocionItem(promo, promo.estado(ahora), procesando = promo.id == procesandoId, acciones = acciones)
+            }
         }
         ExtendedFloatingActionButton(
             onClick = onNueva,
@@ -170,8 +222,8 @@ private fun ListaPromociones(promociones: List<Promocion>, ahora: Instant, onNue
 }
 
 @Composable
-private fun PromocionItem(promo: Promocion, estado: EstadoPromocion) {
-    ElevatedCard(Modifier.fillMaxWidth()) {
+private fun PromocionItem(promo: Promocion, estado: EstadoPromocion, procesando: Boolean, acciones: AccionesPromocion) {
+    ElevatedCard(onClick = { acciones.editar(promo) }, enabled = !procesando, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -186,11 +238,16 @@ private fun PromocionItem(promo: Promocion, estado: EstadoPromocion) {
                     color = MaterialTheme.colorScheme.primary
                 )
             }
-            AssistChip(
-                onClick = {},
-                enabled = false,
-                label = { Text(stringResource(estado.etiquetaRes)) }
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                AssistChip(
+                    onClick = {},
+                    enabled = false,
+                    label = { Text(stringResource(estado.etiquetaRes)) }
+                )
+                Spacer(Modifier.weight(1f))
+                if (procesando) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                else MenuPromocion(promo, estado, acciones)
+            }
             Text(vigenciaTexto(promo), style = MaterialTheme.typography.bodySmall)
             Text(
                 horarioTexto(promo.diasSemana, promo.horaInicio, promo.horaFin),
@@ -205,6 +262,45 @@ private fun PromocionItem(promo: Promocion, estado: EstadoPromocion) {
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+        }
+    }
+}
+
+/** Editar siempre; pausar o reanudar y finalizar solo mientras la promoción no haya terminado. */
+@Composable
+private fun MenuPromocion(promo: Promocion, estado: EstadoPromocion, acciones: AccionesPromocion) {
+    var abierto by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { abierto = true }) {
+            Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.promo_acciones, promo.titulo))
+        }
+        DropdownMenu(expanded = abierto, onDismissRequest = { abierto = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.promo_editar)) },
+                leadingIcon = { Icon(Icons.Outlined.Edit, null) },
+                onClick = { abierto = false; acciones.editar(promo) }
+            )
+            if (estado.enCurso) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.promo_pausar)) },
+                    leadingIcon = { Icon(Icons.Outlined.PauseCircle, null) },
+                    onClick = { abierto = false; acciones.pausar(promo) }
+                )
+            }
+            if (estado == EstadoPromocion.INACTIVA) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.promo_reanudar)) },
+                    leadingIcon = { Icon(Icons.Outlined.PlayCircle, null) },
+                    onClick = { abierto = false; acciones.reanudar(promo) }
+                )
+            }
+            if (estado.enCurso || estado == EstadoPromocion.INACTIVA) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.promo_finalizar), color = MaterialTheme.colorScheme.error) },
+                    leadingIcon = { Icon(Icons.Outlined.StopCircle, null, tint = MaterialTheme.colorScheme.error) },
+                    onClick = { abierto = false; acciones.finalizar(promo) }
+                )
+            }
         }
     }
 }
@@ -254,7 +350,10 @@ private fun FormularioPromocionView(
             IconButton(onClick = onCerrar, enabled = !guardando) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.catalogo_cancelar))
             }
-            Text(stringResource(R.string.promo_nueva), style = MaterialTheme.typography.titleMedium)
+            Text(
+                stringResource(if (formulario.promocionId == null) R.string.promo_nueva else R.string.promo_editar_titulo),
+                style = MaterialTheme.typography.titleMedium
+            )
         }
 
         CampoPromo(formulario.titulo, { v -> onCambio { copy(titulo = v) } }, R.string.promo_titulo, errores.titulo, R.string.promo_titulo_ayuda)
@@ -321,21 +420,24 @@ private fun FormularioPromocionView(
             }
         }
 
+        // Los cupos se fijan al publicar: después los descuenta el canje de la billetera.
+        val editando = formulario.promocionId != null
         CampoPromo(
             formulario.cupos, { v -> onCambio { copy(cupos = v) } }, R.string.promo_cupos, errores.cupos,
-            R.string.promo_cupos_ayuda, teclado = KeyboardType.Number
+            if (editando) R.string.promo_cupos_fijos else R.string.promo_cupos_ayuda,
+            teclado = KeyboardType.Number, habilitado = !editando
         )
 
         Button(onClick = onGuardar, enabled = !guardando, modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
             if (guardando) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
-            else Text(stringResource(R.string.promo_publicar))
+            else Text(stringResource(if (formulario.promocionId == null) R.string.promo_publicar else R.string.promo_guardar_cambios))
         }
     }
 
     eligiendoFecha?.let { extremo ->
         SelectorFecha(
             inicial = if (extremo == Extremo.INICIO) formulario.desde else formulario.hasta ?: formulario.desde,
-            minimo = if (extremo == Extremo.FIN) formulario.desde else null,
+            minimo = if (extremo == Extremo.FIN) maxOf(formulario.desde ?: LocalDate.now(), LocalDate.now()) else null,
             onElegir = { dia ->
                 onCambio {
                     if (extremo == Extremo.INICIO) copy(desde = dia, hasta = hasta?.takeIf { !it.isBefore(dia) } ?: dia)
@@ -389,11 +491,13 @@ private fun CampoPromo(
     @StringRes errorRes: Int?,
     @StringRes ayudaRes: Int?,
     lineas: Int = 1,
-    teclado: KeyboardType = KeyboardType.Text
+    teclado: KeyboardType = KeyboardType.Text,
+    habilitado: Boolean = true
 ) {
     OutlinedTextField(
         value = valor,
         onValueChange = onValor,
+        enabled = habilitado,
         label = { Text(stringResource(etiquetaRes)) },
         isError = errorRes != null,
         singleLine = lineas == 1,

@@ -28,9 +28,12 @@ class PromocionesViewModelTest {
     private val reloj = Clock.fixed(hoy.atTime(12, 0).atZone(zona).toInstant(), zona)
     private val local = LocalGastronomico(id = "local-1", nombre = "Café Cerro Alegre", categoriaId = "cat-1", comuna = "Valparaíso")
 
-    private class FakePromos(var falla: Boolean = false) : PromocionesOferenteRepository {
+    private class FakePromos(var falla: Boolean = false, guardadas: List<Promocion> = emptyList()) : PromocionesOferenteRepository {
         val creadas = mutableListOf<DatosPromocion>()
-        override suspend fun listar(localId: String) = emptyList<Promocion>()
+        val guardadas = guardadas.toMutableList()
+        val editadas = mutableListOf<Pair<String, DatosPromocion>>()
+        val vigencias = mutableListOf<Pair<String?, String>>()
+        override suspend fun listar(localId: String) = guardadas.filter { it.localId == localId }
         override suspend fun crear(localId: String, datos: DatosPromocion): Promocion {
             if (falla) error("rechazado")
             creadas += datos
@@ -40,7 +43,31 @@ class PromocionesViewModelTest {
                 vigenteHasta = datos.vigenteHasta, cuposTotal = datos.cuposTotal, cuposDisponibles = datos.cuposTotal
             )
         }
+        private fun cambiar(id: String, cambio: (Promocion) -> Promocion): Promocion {
+            if (falla) error("rechazado")
+            val i = guardadas.indexOfFirst { it.id == id }
+            return cambio(guardadas[i]).also { guardadas[i] = it }
+        }
+        override suspend fun actualizar(promocionId: String, datos: DatosPromocion) = cambiar(promocionId) {
+            editadas += promocionId to datos
+            it.copy(titulo = datos.titulo, descuentoPorcentaje = datos.descuentoPorcentaje,
+                vigenteDesde = datos.vigenteDesde, vigenteHasta = datos.vigenteHasta)
+        }
+        override suspend fun cambiarActiva(promocionId: String, activa: Boolean) = cambiar(promocionId) { it.copy(activa = activa) }
+        override suspend fun cambiarVigencia(promocionId: String, vigenteDesde: String?, vigenteHasta: String) =
+            cambiar(promocionId) {
+                vigencias += vigenteDesde to vigenteHasta
+                it.copy(vigenteDesde = vigenteDesde ?: it.vigenteDesde, vigenteHasta = vigenteHasta)
+            }
     }
+
+    /** Vigente desde el 20 de octubre (ya empezó) hasta el 10 de noviembre, de lunes a viernes de 15:00 a 18:00. */
+    private val vigente = Promocion(
+        id = "p-1", localId = "local-1", titulo = "2x1 en café", descuentoPorcentaje = 50,
+        vigenteDesde = "2026-10-20T00:00:00-03:00", vigenteHasta = "2026-11-10T23:59:59-03:00",
+        diasSemana = listOf(1, 2, 3, 4, 5), horaInicio = "15:00:00", horaFin = "18:00:00", cuposTotal = 30, cuposDisponibles = 12
+    )
+    private val programada = vigente.copy(id = "p-2", vigenteDesde = "2026-11-01T00:00:00-03:00")
 
     @BeforeTest fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
     @AfterTest fun tearDown() = Dispatchers.resetMain()
@@ -168,5 +195,96 @@ class PromocionesViewModelTest {
         assertEquals(EstadoPromocion.VENCIDA, promo("2026-09-01T00:00:00Z", "2026-10-01T00:00:00Z").estado(ahora))
         assertEquals(EstadoPromocion.INACTIVA, promo("2026-10-01T00:00:00Z", "2026-11-30T00:00:00Z", activa = false).estado(ahora))
         assertEquals(EstadoPromocion.AGOTADA, promo("2026-10-01T00:00:00Z", "2026-11-30T00:00:00Z", disponibles = 0).estado(ahora))
+    }
+
+    // ---------------- HU-28 ----------------
+
+    @Test fun `editar carga los datos guardados en el formulario`() {
+        val model = modelo(FakePromos(guardadas = listOf(vigente)))
+        model.onEditar(vigente)
+        val f = model.success().formulario!!
+        assertEquals("p-1", f.promocionId)
+        assertEquals(LocalDate.of(2026, 10, 20), f.desde)
+        assertEquals(LocalDate.of(2026, 10, 20), f.desdeOriginal)
+        assertEquals(LocalDate.of(2026, 11, 10), f.hasta)
+        assertEquals(setOf(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY), f.dias)
+        assertTrue(f.conHorario)
+        assertEquals(LocalTime.of(15, 0), f.horaInicio)
+        assertEquals("30", f.cupos)
+    }
+
+    @Test fun `edita una promocion que ya empezo conservando su inicio`() = runTest {
+        val promos = FakePromos(guardadas = listOf(vigente))
+        val model = modelo(promos)
+        model.onEditar(vigente)
+        model.onCambio { copy(titulo = "3x2 en café", hasta = hoy.plusDays(30)) }
+        model.onGuardar()
+        val (id, datos) = promos.editadas.single()
+        assertEquals("p-1", id)
+        assertEquals(LocalDate.of(2026, 10, 20).atStartOfDay(), hora(datos.vigenteDesde))
+        assertNull(model.success().formulario)
+        assertEquals("3x2 en café", model.success().promociones.single().titulo)
+        assertEquals(R.string.promo_editada, model.mensajes.first())
+    }
+
+    @Test fun `al editar no se puede mover el inicio a otro dia pasado ni terminar antes de hoy`() {
+        val base = vigente.aFormulario(zona)
+        fun errores(f: FormularioPromocion) = validarPromocion(f, hoy, zona).second
+        assertFalse(errores(base).hayErrores)
+        assertEquals(R.string.promo_error_desde_pasado, errores(base.copy(desde = LocalDate.of(2026, 10, 21))).vigencia)
+        assertEquals(R.string.promo_error_hasta_pasado, errores(base.copy(hasta = hoy.minusDays(1))).vigencia)
+    }
+
+    @Test fun `pausar y reanudar cambian si el consumidor la ve`() = runTest {
+        val promos = FakePromos(guardadas = listOf(vigente))
+        val model = modelo(promos)
+        model.onPausar(vigente)
+        assertFalse(model.success().promociones.single().activa)
+        assertEquals(EstadoPromocion.INACTIVA, model.success().promociones.single().estado(model.ahora))
+        assertNull(model.success().procesandoId)
+        assertEquals(R.string.promo_pausada, model.mensajes.first())
+        model.onReanudar(model.success().promociones.single())
+        assertTrue(model.success().promociones.single().activa)
+        assertEquals(R.string.promo_reanudada, model.mensajes.first())
+    }
+
+    @Test fun `finalizar una vigente termina su vigencia ahora tras confirmar`() = runTest {
+        val promos = FakePromos(guardadas = listOf(vigente))
+        val model = modelo(promos)
+        model.onPedirFinalizar(vigente)
+        assertEquals(vigente, model.success().porFinalizar)
+        model.onConfirmarFinalizar()
+        val (desde, hasta) = promos.vigencias.single()
+        assertNull(desde)
+        assertEquals(hoy.atTime(12, 0), hora(hasta))
+        assertNull(model.success().porFinalizar)
+        assertEquals(EstadoPromocion.VENCIDA, model.success().promociones.single().estado(model.ahora.plusSeconds(1)))
+        assertEquals(R.string.promo_finalizada, model.mensajes.first())
+    }
+
+    @Test fun `finalizar una programada adelanta tambien su inicio`() {
+        val promos = FakePromos(guardadas = listOf(programada))
+        val model = modelo(promos)
+        model.onPedirFinalizar(programada)
+        model.onConfirmarFinalizar()
+        val (desde, hasta) = promos.vigencias.single()
+        assertTrue(hora(desde!!).isBefore(hora(hasta)))
+    }
+
+    @Test fun `cancelar finalizar no cambia nada`() {
+        val promos = FakePromos(guardadas = listOf(vigente))
+        val model = modelo(promos)
+        model.onPedirFinalizar(vigente)
+        model.onCancelarFinalizar()
+        assertNull(model.success().porFinalizar)
+        assertTrue(promos.vigencias.isEmpty())
+    }
+
+    @Test fun `si falla pausar la promocion queda igual y avisa`() = runTest {
+        val model = modelo(FakePromos(falla = true, guardadas = listOf(vigente)))
+        model.onPausar(vigente)
+        assertTrue(model.success().promociones.single().activa)
+        assertNull(model.success().procesandoId)
+        assertEquals(R.string.promo_error_cambiar, model.mensajes.first())
     }
 }

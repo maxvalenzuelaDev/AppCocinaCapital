@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.cocinacapital.app.R
+import com.cocinacapital.app.data.model.Promocion
 import com.cocinacapital.app.data.repository.PromocionesOferenteRepository
 import com.cocinacapital.app.di.AppContainer
 import kotlinx.coroutines.CancellationException
@@ -20,11 +21,12 @@ import kotlinx.coroutines.launch
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
+import java.time.OffsetDateTime
 
 /**
- * ViewModel de las promociones del oferente (HU-27): lista las de su local y crea nuevas con
- * vigencia, días, franja horaria y cupos. Una promoción activa y vigente aparece sola en el Inicio
- * del consumidor, que ya filtra por `activa` y por fechas.
+ * ViewModel de las promociones del oferente: lista las de su local, crea nuevas con vigencia, días,
+ * franja horaria y cupos (HU-27) y permite editarlas, pausarlas, reanudarlas o finalizarlas (HU-28).
+ * El Inicio del consumidor solo muestra las activas y vigentes, así que pausar o finalizar la oculta.
  */
 class PromocionesViewModel(
     private val promociones: PromocionesOferenteRepository,
@@ -59,6 +61,65 @@ class PromocionesViewModel(
         it.copy(formulario = FormularioPromocion(desde = hoy, hasta = hoy.plusDays(7)), errores = ErroresPromocion())
     }
 
+    /** Abre el formulario con los datos de la promoción (HU-28). */
+    fun onEditar(promocion: Promocion) = actualizar {
+        it.copy(formulario = promocion.aFormulario(reloj.zone), errores = ErroresPromocion())
+    }
+
+    /** Pausada, el consumidor deja de verla (Supabase solo le muestra las activas). */
+    fun onPausar(promocion: Promocion) = procesar(promocion, R.string.promo_pausada) {
+        promociones.cambiarActiva(promocion.id, false)
+    }
+
+    fun onReanudar(promocion: Promocion) = procesar(promocion, R.string.promo_reanudada) {
+        promociones.cambiarActiva(promocion.id, true)
+    }
+
+    fun onPedirFinalizar(promocion: Promocion) = actualizar { it.copy(porFinalizar = promocion) }
+
+    fun onCancelarFinalizar() = actualizar { it.copy(porFinalizar = null) }
+
+    /**
+     * Termina la vigencia ahora: deja de mostrarse al consumidor y queda como vencida. Si aún no
+     * empezaba, también se adelanta su inicio para que la vigencia siga siendo válida.
+     */
+    fun onConfirmarFinalizar() {
+        val promocion = (_uiState.value as? PromocionesUiState.Success)?.porFinalizar ?: return
+        actualizar { it.copy(porFinalizar = null) }
+        val fin = OffsetDateTime.ofInstant(ahora, reloj.zone)
+        val noEmpezaba = promocion.estado(ahora) == EstadoPromocion.PROGRAMADA
+        procesar(promocion, R.string.promo_finalizada) {
+            promociones.cambiarVigencia(
+                promocion.id,
+                vigenteDesde = if (noEmpezaba) fin.minusMinutes(1).toString() else null,
+                vigenteHasta = fin.toString()
+            )
+        }
+    }
+
+    private fun procesar(promocion: Promocion, @StringRes exito: Int, accion: suspend () -> Promocion) {
+        val actual = _uiState.value as? PromocionesUiState.Success ?: return
+        if (actual.procesandoId != null) return
+        actualizar { it.copy(procesandoId = promocion.id) }
+        viewModelScope.launch {
+            try {
+                val actualizada = accion()
+                actualizar { estado ->
+                    estado.copy(
+                        promociones = estado.promociones.map { if (it.id == actualizada.id) actualizada else it },
+                        procesandoId = null
+                    )
+                }
+                avisar(exito)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                actualizar { it.copy(procesandoId = null) }
+                avisar(R.string.promo_error_cambiar)
+            }
+        }
+    }
+
     fun onCambio(cambio: FormularioPromocion.() -> FormularioPromocion) = actualizar { estado ->
         // Al corregir un campo se ocultan los errores; vuelven a validarse al guardar.
         estado.copy(formulario = estado.formulario?.cambio(), errores = ErroresPromocion())
@@ -77,13 +138,26 @@ class PromocionesViewModel(
             return
         }
         actualizar { it.copy(guardando = true) }
+        val editandoId = formulario.promocionId
         viewModelScope.launch {
             try {
-                val creada = promociones.crear(actual.localId, datos)
-                actualizar {
-                    it.copy(promociones = listOf(creada) + it.promociones, formulario = null, guardando = false)
+                if (editandoId == null) {
+                    val creada = promociones.crear(actual.localId, datos)
+                    actualizar {
+                        it.copy(promociones = listOf(creada) + it.promociones, formulario = null, guardando = false)
+                    }
+                    avisar(R.string.promo_creada)
+                } else {
+                    val editada = promociones.actualizar(editandoId, datos)
+                    actualizar { estado ->
+                        estado.copy(
+                            promociones = estado.promociones.map { if (it.id == editada.id) editada else it },
+                            formulario = null,
+                            guardando = false
+                        )
+                    }
+                    avisar(R.string.promo_editada)
                 }
-                avisar(R.string.promo_creada)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {

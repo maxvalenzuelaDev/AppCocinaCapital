@@ -26,4 +26,12 @@ data class DatosPromocion(
 interface PromocionesOferenteRepository {
     suspend fun listar(localId: String): List<Promocion>
     suspend fun crear(localId: String, datos: DatosPromocion): Promocion
+
+    // ---- HU-28: cada una devuelve la promoción actualizada ----
+    /** Cambia los datos de la promoción; los cupos no se tocan (los maneja el canje). */
+    suspend fun actualizar(promocionId: String, datos: DatosPromocion): Promocion
+    /** Pausar (`false`) o reanudar (`true`): una promoción inactiva no la ve el consumidor. */
+    suspend fun cambiarActiva(promocionId: String, activa: Boolean): Promocion
+    /** Cambia la vigencia; se usa para finalizarla ahora. [vigenteDesde] `null` = no cambia. */
+    suspend fun cambiarVigencia(promocionId: String, vigenteDesde: String?, vigenteHasta: String): Promocion
 }

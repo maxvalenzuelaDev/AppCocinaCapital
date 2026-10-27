@@ -108,7 +108,7 @@
     <string name="promo_estado_programada">Programada</string>
     <string name="promo_estado_agotada">Sin cupos</string>
     <string name="promo_estado_vencida">Vencida</string>
-    <string name="promo_estado_inactiva">Inactiva</string>
+    <string name="promo_estado_inactiva">Pausada</string>
     <string name="promo_creada">Promoción publicada.</string>
     <string name="promo_revisa_campos">Revisa los campos marcados.</string>
     <string name="promo_error_cargar">No pudimos cargar tus promociones. Revisa tu conexión e inténtalo nuevamente.</string>
@@ -120,4 +120,22 @@
     <string name="promo_error_horas">Elige la hora de inicio y de término.</string>
     <string name="promo_error_horario">La hora de término debe ser posterior a la de inicio.</string>
     <string name="promo_error_cupos">Ingresa un número de cupos entre 1 y 10.000.</string>
+
+    <!-- HU-28: editar, pausar o finalizar promociones -->
+    <string name="promo_acciones">Acciones de %1$s</string>
+    <string name="promo_editar">Editar</string>
+    <string name="promo_editar_titulo">Editar promoción</string>
+    <string name="promo_pausar">Pausar</string>
+    <string name="promo_reanudar">Reanudar</string>
+    <string name="promo_finalizar">Finalizar</string>
+    <string name="promo_finalizar_titulo">¿Finalizar promoción?</string>
+    <string name="promo_finalizar_texto">"%1$s" dejará de mostrarse a los consumidores desde ahora. Si solo quieres detenerla un tiempo, usa Pausar.</string>
+    <string name="promo_guardar_cambios">Guardar cambios</string>
+    <string name="promo_cupos_fijos">Los cupos se fijan al publicar y no se pueden cambiar.</string>
+    <string name="promo_editada">Promoción actualizada.</string>
+    <string name="promo_pausada">Promoción pausada: los consumidores ya no la ven.</string>
+    <string name="promo_reanudada">Promoción reanudada.</string>
+    <string name="promo_finalizada">Promoción finalizada.</string>
+    <string name="promo_error_cambiar">No se pudo actualizar la promoción. Inténtalo nuevamente.</string>
+    <string name="promo_error_hasta_pasado">La fecha de término no puede ser anterior a hoy.</string>
 </resources>

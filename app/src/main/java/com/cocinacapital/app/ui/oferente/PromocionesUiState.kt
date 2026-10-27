@@ -12,7 +12,7 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-/** Estado de la pestaña "Promociones" del oferente (HU-27). */
+/** Estado de la pestaña "Promociones" del oferente (HU-27 crear, HU-28 editar, pausar y finalizar). */
 sealed interface PromocionesUiState {
     data object Loading : PromocionesUiState
     data class Error(@StringRes val mensajeRes: Int) : PromocionesUiState
@@ -24,12 +24,20 @@ sealed interface PromocionesUiState {
         /** Formulario de una promoción nueva; `null` = se muestra la lista. */
         val formulario: FormularioPromocion? = null,
         val errores: ErroresPromocion = ErroresPromocion(),
-        val guardando: Boolean = false
+        val guardando: Boolean = false,
+        /** Promoción que espera confirmación para finalizarse. */
+        val porFinalizar: Promocion? = null,
+        /** Promoción que se está pausando, reanudando o finalizando (sus botones se desactivan). */
+        val procesandoId: String? = null
     ) : PromocionesUiState
 }
 
 /** Lo que el oferente va completando; se valida y convierte al guardar. */
 data class FormularioPromocion(
+    /** `null` = promoción nueva; si no, la que se está editando (HU-28). */
+    val promocionId: String? = null,
+    /** Inicio guardado de la promoción que se edita: puede quedar en el pasado si ya empezó. */
+    val desdeOriginal: LocalDate? = null,
     val titulo: String = "",
     val descripcion: String = "",
     val condiciones: String = "",
@@ -72,6 +80,8 @@ fun validarPromocion(
     hoy: LocalDate,
     zona: ZoneId
 ): Pair<DatosPromocion?, ErroresPromocion> {
+    // Al editar una promoción que ya empezó se conserva su inicio; uno nuevo no puede ser pasado.
+    val inicioPermitido = formulario.desde != null && formulario.desde == formulario.desdeOriginal
     val titulo = formulario.titulo.trim()
     val descripcion = formulario.descripcion.trim()
     val condiciones = formulario.condiciones.trim()
@@ -89,8 +99,9 @@ fun validarPromocion(
         descuento = R.string.promo_error_descuento.takeIf { descuento == null || descuento !in 1..100 },
         vigencia = when {
             desde == null || hasta == null -> R.string.promo_error_fechas
-            desde.isBefore(hoy) -> R.string.promo_error_desde_pasado
+            desde.isBefore(hoy) && !inicioPermitido -> R.string.promo_error_desde_pasado
             hasta.isBefore(desde) -> R.string.promo_error_hasta_antes
+            hasta.isBefore(hoy) -> R.string.promo_error_hasta_pasado
             else -> null
         },
         horario = when {
@@ -123,7 +134,10 @@ enum class EstadoPromocion(@StringRes val etiquetaRes: Int) {
     PROGRAMADA(R.string.promo_estado_programada),
     AGOTADA(R.string.promo_estado_agotada),
     VENCIDA(R.string.promo_estado_vencida),
-    INACTIVA(R.string.promo_estado_inactiva)
+    INACTIVA(R.string.promo_estado_inactiva);
+
+    /** Se puede pausar o finalizar mientras no haya terminado. */
+    val enCurso: Boolean get() = this == VIGENTE || this == PROGRAMADA || this == AGOTADA
 }
 
 fun Promocion.estado(ahora: Instant): EstadoPromocion {
@@ -136,4 +150,28 @@ fun Promocion.estado(ahora: Instant): EstadoPromocion {
         cuposDisponibles == 0 -> EstadoPromocion.AGOTADA
         else -> EstadoPromocion.VIGENTE
     }
+}
+
+/** Formulario con los datos de una promoción guardada, para editarla (HU-28). */
+fun Promocion.aFormulario(zona: ZoneId): FormularioPromocion {
+    fun dia(iso: String?) = iso?.let { runCatching { OffsetDateTime.parse(it).atZoneSameInstant(zona).toLocalDate() }.getOrNull() }
+    fun hora(texto: String?) = texto?.let { runCatching { LocalTime.parse(it) }.getOrNull() }
+    val desde = dia(vigenteDesde)
+    val inicio = hora(horaInicio)
+    val fin = hora(horaFin)
+    return FormularioPromocion(
+        promocionId = id,
+        desdeOriginal = desde,
+        titulo = titulo,
+        descripcion = descripcion,
+        condiciones = condiciones,
+        descuento = descuentoPorcentaje.toString(),
+        desde = desde,
+        hasta = dia(vigenteHasta),
+        dias = diasSemana.orEmpty().mapNotNull { runCatching { DayOfWeek.of(it) }.getOrNull() }.toSet(),
+        conHorario = inicio != null && fin != null,
+        horaInicio = inicio,
+        horaFin = fin,
+        cupos = cuposTotal?.toString().orEmpty()
+    )
 }

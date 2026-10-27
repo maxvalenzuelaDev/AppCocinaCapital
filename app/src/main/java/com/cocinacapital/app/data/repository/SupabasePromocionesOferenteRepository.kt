@@ -6,6 +6,8 @@ import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 /** Implementación real sobre `promociones`; las políticas de T-04 y HU-27 validan el dueño y las columnas. */
 class SupabasePromocionesOferenteRepository(
@@ -24,6 +26,46 @@ class SupabasePromocionesOferenteRepository(
         supabase.from("promociones")
             .insert(NuevaPromocion(localId, datos)) { select() }
             .decodeSingle<Promocion>()
+
+    override suspend fun actualizar(promocionId: String, datos: DatosPromocion): Promocion =
+        cambiar(promocionId, CambiosPromocion(datos))
+
+    override suspend fun cambiarActiva(promocionId: String, activa: Boolean): Promocion =
+        cambiar(promocionId, buildJsonObject { put("activa", activa) })
+
+    override suspend fun cambiarVigencia(promocionId: String, vigenteDesde: String?, vigenteHasta: String): Promocion =
+        cambiar(promocionId, buildJsonObject {
+            vigenteDesde?.let { put("vigente_desde", it) }
+            put("vigente_hasta", vigenteHasta)
+        })
+
+    /** Si RLS no lo permite no se actualiza ninguna fila y `decodeSingle` falla: la app lo informa como error. */
+    private suspend inline fun <reified T : Any> cambiar(promocionId: String, valores: T): Promocion =
+        supabase.from("promociones")
+            .update(valores) {
+                select()
+                filter { eq("id", promocionId) }
+            }
+            .decodeSingle<Promocion>()
+}
+
+/** Columnas que el oferente puede editar (las mismas que permite la migración HU-27; sin cupos). */
+@Serializable
+private data class CambiosPromocion(
+    val titulo: String,
+    val descripcion: String,
+    val condiciones: String,
+    @SerialName("descuento_porcentaje") val descuentoPorcentaje: Int,
+    @SerialName("vigente_desde") val vigenteDesde: String,
+    @SerialName("vigente_hasta") val vigenteHasta: String,
+    @SerialName("dias_semana") val diasSemana: List<Int>?,
+    @SerialName("hora_inicio") val horaInicio: String?,
+    @SerialName("hora_fin") val horaFin: String?
+) {
+    constructor(d: DatosPromocion) : this(
+        d.titulo, d.descripcion, d.condiciones, d.descuentoPorcentaje, d.vigenteDesde, d.vigenteHasta,
+        d.diasSemana, d.horaInicio, d.horaFin
+    )
 }
 
 /** Fila nueva: los datos del formulario más el local; nace activa. */

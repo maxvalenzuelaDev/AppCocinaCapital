@@ -88,13 +88,15 @@ import java.time.format.TextStyle
 fun PromocionesScreen(
     snackbar: SnackbarHostState,
     usuarioId: String,
-    onIrAMiLocal: () -> Unit,
+    /** Local elegido en Mis locales; `null` si el oferente aún no tiene ninguno. */
+    localId: String?,
+    onIrAMisLocales: () -> Unit,
     // Una instancia por cuenta, igual que Mi local y Catálogo.
     viewModel: PromocionesViewModel = viewModel(key = "promociones_$usuarioId", factory = PromocionesViewModel.Factory)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    LaunchedEffect(viewModel) { viewModel.onMostrar() }
+    LaunchedEffect(viewModel, localId) { viewModel.mostrarLocal(localId) }
     LaunchedEffect(viewModel, snackbar) {
         viewModel.mensajes.collect { snackbar.showSnackbar(context.getString(it)) }
     }
@@ -108,7 +110,7 @@ fun PromocionesScreen(
             MensajePromociones(Icons.Outlined.CloudOff, state.mensajeRes, R.string.mi_local_reintentar, viewModel::onReintentar)
 
         PromocionesUiState.SinLocal ->
-            MensajePromociones(Icons.Outlined.Storefront, R.string.promo_sin_local, R.string.catalogo_ir_mi_local, onIrAMiLocal)
+            MensajePromociones(Icons.Outlined.Storefront, R.string.promo_sin_local, R.string.catalogo_ir_mi_local, onIrAMisLocales)
 
         is PromocionesUiState.Success -> {
             val formulario = state.formulario

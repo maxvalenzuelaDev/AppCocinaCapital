@@ -1,13 +1,10 @@
 package com.cocinacapital.app.ui.oferente
 
 import com.cocinacapital.app.R
-import com.cocinacapital.app.data.model.Categoria
 import com.cocinacapital.app.data.model.LocalGastronomico
 import com.cocinacapital.app.data.model.Plato
 import com.cocinacapital.app.data.repository.CatalogoRepository
-import com.cocinacapital.app.data.repository.DatosLocal
 import com.cocinacapital.app.data.repository.DatosPlato
-import com.cocinacapital.app.data.repository.MiLocalRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -20,12 +17,6 @@ import kotlin.test.*
 @OptIn(ExperimentalCoroutinesApi::class)
 class CatalogoViewModelTest {
     private val local = LocalGastronomico(id = "local-1", nombre = "Sushi Muelle", categoriaId = "cat-1", comuna = "Valparaíso")
-
-    private class FakeMiLocal(var local: LocalGastronomico?) : MiLocalRepository {
-        override suspend fun obtenerMiLocal() = local
-        override suspend fun getCategorias() = emptyList<Categoria>()
-        override suspend fun guardar(localId: String?, datos: DatosLocal) = error("no se usa")
-    }
 
     private class FakeCatalogo(var falla: Boolean = false) : CatalogoRepository {
         val platos = mutableListOf(
@@ -55,23 +46,33 @@ class CatalogoViewModelTest {
 
     private fun CatalogoViewModel.success() = uiState.value as CatalogoUiState.Success
 
-    @Test fun `sin local pide registrarlo y al volver a la pestana lo carga`() {
-        val miLocal = FakeMiLocal(null)
-        val model = CatalogoViewModel(miLocal, FakeCatalogo())
+    /** Como lo usa la pantalla: el ViewModel recibe el local elegido en Mis locales. */
+    private fun modelo(catalogo: FakeCatalogo = FakeCatalogo(), localId: String? = local.id) =
+        CatalogoViewModel(catalogo).also { it.mostrarLocal(localId) }
+
+    @Test fun `sin locales pide registrar uno y al crearlo carga su catalogo`() {
+        val model = modelo(localId = null)
         assertEquals(CatalogoUiState.SinLocal, model.uiState.value)
-        miLocal.local = local
-        model.onMostrar()
+        model.mostrarLocal(local.id)
         assertEquals(2, model.success().platos.size)
     }
 
+    @Test fun `al elegir otro local muestra los platos de ese local`() {
+        val catalogo = FakeCatalogo().apply { platos += Plato("p-9", "local-2", "Café", "", 2500) }
+        val model = modelo(catalogo)
+        model.mostrarLocal("local-2")
+        assertEquals("local-2", model.success().localId)
+        assertEquals(listOf("Café"), model.success().platos.map { it.nombre })
+    }
+
     @Test fun `lista los platos del local`() {
-        val model = CatalogoViewModel(FakeMiLocal(local), FakeCatalogo())
+        val model = modelo(FakeCatalogo())
         assertEquals(listOf("Handroll de salmón", "Tabla Muelle"), model.success().platos.map { it.nombre })
     }
 
     @Test fun `agrega un plato con precio en formato chileno`() = runTest {
         val catalogo = FakeCatalogo()
-        val model = CatalogoViewModel(FakeMiLocal(local), catalogo)
+        val model = modelo(catalogo)
         model.onAgregar()
         model.onCambio { copy(nombre = " Gyozas ", precio = "$5.900", destacado = true) }
         model.onGuardar()
@@ -86,7 +87,7 @@ class CatalogoViewModelTest {
 
     @Test fun `no guarda un plato sin nombre ni precio`() {
         val catalogo = FakeCatalogo()
-        val model = CatalogoViewModel(FakeMiLocal(local), catalogo)
+        val model = modelo(catalogo)
         model.onAgregar()
         model.onGuardar()
         val editor = model.success().editor!!
@@ -100,7 +101,7 @@ class CatalogoViewModelTest {
 
     @Test fun `edita un plato existente`() = runTest {
         val catalogo = FakeCatalogo()
-        val model = CatalogoViewModel(FakeMiLocal(local), catalogo)
+        val model = modelo(catalogo)
         model.onEditar(model.success().platos.first { it.id == "p-1" })
         assertEquals("4500", model.success().editor!!.precio)
         model.onCambio { copy(precio = "4.900", destacado = true) }
@@ -113,7 +114,7 @@ class CatalogoViewModelTest {
 
     @Test fun `elimina un plato despues de confirmar`() = runTest {
         val catalogo = FakeCatalogo()
-        val model = CatalogoViewModel(FakeMiLocal(local), catalogo)
+        val model = modelo(catalogo)
         val plato = model.success().platos.first()
         model.onPedirEliminar(plato)
         assertEquals(plato, model.success().porEliminar)
@@ -124,7 +125,7 @@ class CatalogoViewModelTest {
     }
 
     @Test fun `si falla el guardado el dialogo sigue abierto con lo escrito`() = runTest {
-        val model = CatalogoViewModel(FakeMiLocal(local), FakeCatalogo(falla = true))
+        val model = modelo(FakeCatalogo(falla = true))
         model.onAgregar()
         model.onCambio { copy(nombre = "Gyozas", precio = "5900") }
         model.onGuardar()
@@ -134,7 +135,7 @@ class CatalogoViewModelTest {
     }
 
     @Test fun `si falla el borrado el plato sigue en la lista`() = runTest {
-        val model = CatalogoViewModel(FakeMiLocal(local), FakeCatalogo(falla = true))
+        val model = modelo(FakeCatalogo(falla = true))
         model.onPedirEliminar(model.success().platos.first())
         model.onConfirmarEliminar()
         assertEquals(2, model.success().platos.size)

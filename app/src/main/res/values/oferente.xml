@@ -1,13 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- HU-04: navegación y opciones de las cuentas con rol oferente -->
-    <string name="oferente_nav_local">Mi local</string>
+    <string name="oferente_nav_locales">Mis locales</string>
     <string name="oferente_nav_promociones">Promociones</string>
     <string name="oferente_nav_cuenta">Cuenta</string>
     <string name="oferente_rol">Cuenta de oferente</string>
     <string name="oferente_cerrar_sesion">Cerrar sesión</string>
 
-    <!-- HU-25: perfil del local -->
+    <!-- HU-25: perfil del local (un oferente puede tener varios) -->
+    <string name="mis_locales_ayuda">Toca un local para editar sus datos. Catálogo y Promociones se gestionan por local.</string>
+    <string name="mis_locales_vacio">Aún no registras locales. Crea el primero para que los consumidores te encuentren.</string>
+    <string name="mis_locales_nuevo">Nuevo local</string>
+    <string name="mis_locales_sin_ubicacion">Sin ubicación en el mapa</string>
+    <string name="mis_locales_editar">Editar %1$s</string>
+    <string name="mis_locales_volver">Volver a Mis locales</string>
+    <string name="selector_local_etiqueta">Local</string>
     <string name="mi_local_titulo_nuevo">Registra tu local</string>
     <string name="mi_local_titulo_editar">Datos de tu local</string>
     <string name="mi_local_ayuda">Esta información la ven los consumidores en el listado y en el detalle de tu local.</string>
@@ -29,7 +36,7 @@
     <string name="mi_local_crear">Registrar local</string>
     <string name="mi_local_guardar">Guardar cambios</string>
     <string name="mi_local_reintentar">Reintentar</string>
-    <string name="mi_local_creado">Tu local quedó registrado.</string>
+    <string name="mi_local_creado">Local registrado.</string>
     <string name="mi_local_guardado">Cambios guardados.</string>
     <string name="mi_local_error_cargar">No pudimos cargar tu local. Revisa tu conexión e inténtalo nuevamente.</string>
     <string name="mi_local_error_guardar">No se pudieron guardar los cambios. Inténtalo nuevamente.</string>
@@ -42,8 +49,8 @@
     <string name="oferente_nav_catalogo">Catálogo</string>
     <string name="catalogo_ayuda">Los platos destacados aparecen en \"Menú destacado\" cuando un consumidor abre tu local.</string>
     <string name="catalogo_vacio">Todavía no tienes platos. Agrega el primero con el botón de abajo.</string>
-    <string name="catalogo_sin_local">Primero registra tu local para poder publicar tu catálogo.</string>
-    <string name="catalogo_ir_mi_local">Ir a Mi local</string>
+    <string name="catalogo_sin_local">Primero registra un local para poder publicar su catálogo.</string>
+    <string name="catalogo_ir_mi_local">Ir a Mis locales</string>
     <string name="catalogo_agregar">Agregar plato</string>
     <string name="catalogo_nuevo">Nuevo plato</string>
     <string name="catalogo_editar">Editar plato</string>
@@ -72,7 +79,7 @@
     <!-- HU-27: promociones del oferente -->
     <string name="promo_ayuda">Las promociones activas aparecen en el Inicio de los consumidores mientras estén vigentes.</string>
     <string name="promo_vacio">Todavía no tienes promociones. Crea la primera para atraer clientes en tus horarios de menos movimiento.</string>
-    <string name="promo_sin_local">Primero registra tu local para poder crear promociones.</string>
+    <string name="promo_sin_local">Primero registra un local para poder crear sus promociones.</string>
     <string name="promo_nueva">Nueva promoción</string>
     <string name="promo_titulo">Título</string>
     <string name="promo_titulo_ayuda">Ej.: 2x1 en café de 15:00 a 18:00</string>

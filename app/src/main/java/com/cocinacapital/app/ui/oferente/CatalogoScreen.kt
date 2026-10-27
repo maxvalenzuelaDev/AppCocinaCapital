@@ -62,13 +62,15 @@ import com.cocinacapital.app.data.model.precioTexto
 fun CatalogoScreen(
     snackbar: SnackbarHostState,
     usuarioId: String,
-    onIrAMiLocal: () -> Unit,
+    /** Local elegido en Mis locales; `null` si el oferente aún no tiene ninguno. */
+    localId: String?,
+    onIrAMisLocales: () -> Unit,
     // Una instancia por cuenta, igual que Mi local.
     viewModel: CatalogoViewModel = viewModel(key = "catalogo_$usuarioId", factory = CatalogoViewModel.Factory)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    LaunchedEffect(viewModel) { viewModel.onMostrar() }
+    LaunchedEffect(viewModel, localId) { viewModel.mostrarLocal(localId) }
     LaunchedEffect(viewModel, snackbar) {
         viewModel.mensajes.collect { snackbar.showSnackbar(context.getString(it)) }
     }
@@ -80,7 +82,7 @@ fun CatalogoScreen(
 
         is CatalogoUiState.Error -> Mensaje(Icons.Outlined.CloudOff, state.mensajeRes, R.string.mi_local_reintentar, viewModel::onReintentar)
 
-        CatalogoUiState.SinLocal -> Mensaje(Icons.Outlined.Storefront, R.string.catalogo_sin_local, R.string.catalogo_ir_mi_local, onIrAMiLocal)
+        CatalogoUiState.SinLocal -> Mensaje(Icons.Outlined.Storefront, R.string.catalogo_sin_local, R.string.catalogo_ir_mi_local, onIrAMisLocales)
 
         is CatalogoUiState.Success -> {
             ListaPlatos(state.platos, onAgregar = viewModel::onAgregar, onEditar = viewModel::onEditar, onEliminar = viewModel::onPedirEliminar)

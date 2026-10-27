@@ -1,6 +1,23 @@
 package com.cocinacapital.app.ui.oferente
 
 import androidx.annotation.StringRes
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.LocationOff
+import androidx.compose.material.icons.outlined.Storefront
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.text.font.FontWeight
+import com.cocinacapital.app.data.model.LocalGastronomico
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -46,21 +63,19 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cocinacapital.app.R
 import com.cocinacapital.app.data.model.Categoria
 import com.cocinacapital.app.ui.location.rememberUbicacionAction
 import java.util.Locale
 import kotlin.math.roundToInt
 
-/** Pestaña "Mi local" del oferente (HU-25): registrar o editar el perfil de su local. */
+/**
+ * Pestaña "Mis locales" del oferente (HU-25): lista de sus tiendas con un botón para crear otra;
+ * al tocar una se abre su formulario. El ViewModel lo crea OferenteScaffold, porque Catálogo y
+ * Promociones también usan la lista y el local elegido.
+ */
 @Composable
-fun MiLocalScreen(
-    snackbar: SnackbarHostState,
-    usuarioId: String,
-    // Una instancia por cuenta: si otro oferente inicia sesión en el teléfono, no ve el local anterior.
-    viewModel: MiLocalViewModel = viewModel(key = "mi_local_$usuarioId", factory = MiLocalViewModel.Factory)
-) {
+fun MisLocalesScreen(snackbar: SnackbarHostState, viewModel: MisLocalesViewModel) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     LaunchedEffect(viewModel, snackbar) {
@@ -68,13 +83,13 @@ fun MiLocalScreen(
     }
 
     when (val state = uiState) {
-        MiLocalUiState.Loading -> Column(
+        MisLocalesUiState.Loading -> Column(
             Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) { CircularProgressIndicator() }
 
-        is MiLocalUiState.Error -> Column(
+        is MisLocalesUiState.Error -> Column(
             Modifier.fillMaxSize().padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
@@ -86,42 +101,137 @@ fun MiLocalScreen(
             Button(onClick = viewModel::onReintentar) { Text(stringResource(R.string.mi_local_reintentar)) }
         }
 
-        is MiLocalUiState.Success -> {
-            // Permiso, GPS apagado y errores se avisan igual que en el resto de la app (HU-17).
-            val ubicacion = rememberUbicacionAction(snackbar)
-            FormularioMiLocal(
-                state = state,
-                obteniendoUbicacion = ubicacion.cargando,
-                onUsarUbicacion = { viewModel.onUsarUbicacion(); ubicacion.solicitar() },
-                onCambio = viewModel::onCambio,
-                onGuardar = viewModel::onGuardar
+        is MisLocalesUiState.Success -> {
+            val editor = state.editor
+            if (editor == null) {
+                ListaLocales(state.locales, state.categorias, onNuevo = viewModel::onNuevo, onEditar = viewModel::onEditar)
+            } else {
+                BackHandler(onBack = viewModel::onCerrarEditor)
+                // Permiso, GPS apagado y errores se avisan igual que en el resto de la app (HU-17).
+                val ubicacion = rememberUbicacionAction(snackbar)
+                FormularioLocalView(
+                    editor = editor,
+                    categorias = state.categorias,
+                    obteniendoUbicacion = ubicacion.cargando,
+                    onUsarUbicacion = { viewModel.onUsarUbicacion(); ubicacion.solicitar() },
+                    onCambio = viewModel::onCambio,
+                    onGuardar = viewModel::onGuardar,
+                    onCerrar = viewModel::onCerrarEditor
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ListaLocales(
+    locales: List<LocalGastronomico>,
+    categorias: List<Categoria>,
+    onNuevo: () -> Unit,
+    onEditar: (LocalGastronomico) -> Unit
+) {
+    Box(Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            // Espacio abajo para que el botón flotante no tape el último local.
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 96.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item {
+                Text(
+                    stringResource(R.string.mis_locales_ayuda),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            if (locales.isEmpty()) {
+                item {
+                    Column(Modifier.fillMaxWidth().padding(top = 48.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(Icons.Outlined.Storefront, null, Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
+                        Spacer(Modifier.height(12.dp))
+                        Text(stringResource(R.string.mis_locales_vacio), textAlign = TextAlign.Center)
+                    }
+                }
+            }
+            items(locales, key = { it.id }) { local ->
+                LocalItem(local, categorias.firstOrNull { it.id == local.categoriaId }?.nombre.orEmpty()) { onEditar(local) }
+            }
+        }
+        ExtendedFloatingActionButton(
+            onClick = onNuevo,
+            icon = { Icon(Icons.Filled.Add, contentDescription = null) },
+            text = { Text(stringResource(R.string.mis_locales_nuevo)) },
+            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
+        )
+    }
+}
+
+@Composable
+private fun LocalItem(local: LocalGastronomico, categoria: String, onClick: () -> Unit) {
+    ElevatedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Outlined.Storefront, null, Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
+            Spacer(Modifier.width(16.dp))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(local.nombre, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                Text(
+                    listOf(categoria, local.comuna).filter { it.isNotBlank() }.joinToString(" · "),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                local.direccion?.takeIf { it.isNotBlank() }?.let {
+                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                if (local.latitud == null || local.longitud == null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Outlined.LocationOff, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.error)
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            stringResource(R.string.mis_locales_sin_ubicacion),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            }
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = stringResource(R.string.mis_locales_editar, local.nombre),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
 }
 
 @Composable
-private fun FormularioMiLocal(
-    state: MiLocalUiState.Success,
+private fun FormularioLocalView(
+    editor: EditorLocal,
+    categorias: List<Categoria>,
     obteniendoUbicacion: Boolean,
     onUsarUbicacion: () -> Unit,
     onCambio: (FormularioLocal.() -> FormularioLocal) -> Unit,
-    onGuardar: () -> Unit
+    onGuardar: () -> Unit,
+    onCerrar: () -> Unit
 ) {
-    val form = state.formulario
-    val errores = state.errores
+    val form = editor.formulario
+    val errores = editor.errores
     Column(
         modifier = Modifier
             .fillMaxSize()
             .imePadding()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text(
-            stringResource(if (state.localId == null) R.string.mi_local_titulo_nuevo else R.string.mi_local_titulo_editar),
-            style = MaterialTheme.typography.titleMedium
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onCerrar, enabled = !editor.guardando) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.mis_locales_volver))
+            }
+            Text(
+                stringResource(if (editor.localId == null) R.string.mi_local_titulo_nuevo else R.string.mi_local_titulo_editar),
+                style = MaterialTheme.typography.titleMedium
+            )
+        }
         Text(
             stringResource(R.string.mi_local_ayuda),
             style = MaterialTheme.typography.bodyMedium,
@@ -129,10 +239,10 @@ private fun FormularioMiLocal(
         )
 
         Campo(form.nombre, { v -> onCambio { copy(nombre = v) } }, R.string.mi_local_nombre, errores.nombre, MAX_NOMBRE)
-        SelectorCategoria(state.categorias, form.categoriaId, errores.categoria) { id -> onCambio { copy(categoriaId = id) } }
+        SelectorCategoria(categorias, form.categoriaId, errores.categoria) { id -> onCambio { copy(categoriaId = id) } }
         Campo(form.comuna, { v -> onCambio { copy(comuna = v) } }, R.string.mi_local_comuna, errores.comuna, MAX_COMUNA)
         Campo(form.direccion, { v -> onCambio { copy(direccion = v) } }, R.string.mi_local_direccion, errores.direccion, MAX_DIRECCION)
-        SeccionUbicacion(form.latitud, form.longitud, state.precisionMetros, obteniendoUbicacion, onUsarUbicacion)
+        SeccionUbicacion(form.latitud, form.longitud, editor.precisionMetros, obteniendoUbicacion, onUsarUbicacion)
         Campo(
             form.horario, { v -> onCambio { copy(horario = v) } }, R.string.mi_local_horario, errores.horario, MAX_HORARIO,
             ayudaRes = R.string.mi_local_horario_ayuda
@@ -148,11 +258,11 @@ private fun FormularioMiLocal(
 
         Button(
             onClick = onGuardar,
-            enabled = !state.guardando,
-            modifier = Modifier.fillMaxWidth().padding(top = 4.dp)
+            enabled = !editor.guardando,
+            modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 16.dp)
         ) {
-            if (state.guardando) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
-            else Text(stringResource(if (state.localId == null) R.string.mi_local_crear else R.string.mi_local_guardar))
+            if (editor.guardando) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+            else Text(stringResource(if (editor.localId == null) R.string.mi_local_crear else R.string.mi_local_guardar))
         }
     }
 }

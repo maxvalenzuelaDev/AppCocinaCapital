@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.cocinacapital.app.R
-import com.cocinacapital.app.data.repository.MiLocalRepository
 import com.cocinacapital.app.data.repository.PromocionesOferenteRepository
 import com.cocinacapital.app.di.AppContainer
 import kotlinx.coroutines.CancellationException
@@ -28,7 +27,6 @@ import java.time.LocalDate
  * del consumidor, que ya filtra por `activa` y por fechas.
  */
 class PromocionesViewModel(
-    private val miLocal: MiLocalRepository,
     private val promociones: PromocionesOferenteRepository,
     private val reloj: Clock = Clock.systemDefaultZone()
 ) : ViewModel() {
@@ -42,15 +40,18 @@ class PromocionesViewModel(
     /** Momento actual según el reloj del ViewModel, para calcular el estado de cada promoción. */
     val ahora: Instant get() = reloj.instant()
 
-    init { cargar() }
+    /** Local cuyas promociones se muestran (el elegido en Mis locales). */
+    private var localId: String? = null
+
+    /** Muestra las promociones de [id]; `null` = el oferente aún no tiene locales. */
+    fun mostrarLocal(id: String?) {
+        val actual = _uiState.value
+        if (id == localId && actual !is PromocionesUiState.Error && actual !is PromocionesUiState.Loading) return
+        localId = id
+        cargar()
+    }
 
     fun onReintentar() = cargar()
-
-    /** Al volver a la pestaña: si antes no había local (o falló la carga), se consulta de nuevo. */
-    fun onMostrar() {
-        val estado = _uiState.value
-        if (estado is PromocionesUiState.SinLocal || estado is PromocionesUiState.Error) cargar()
-    }
 
     /** Abre el formulario con la vigencia sugerida: desde hoy y por una semana. */
     fun onNueva() = actualizar {
@@ -94,17 +95,19 @@ class PromocionesViewModel(
     }
 
     private fun cargar() {
+        val id = localId
+        if (id == null) { _uiState.value = PromocionesUiState.SinLocal; return }
         _uiState.value = PromocionesUiState.Loading
         viewModelScope.launch {
-            _uiState.value = try {
-                val local = miLocal.obtenerMiLocal()
-                if (local == null) PromocionesUiState.SinLocal
-                else PromocionesUiState.Success(local.id, promociones.listar(local.id))
+            val nuevo = try {
+                PromocionesUiState.Success(id, promociones.listar(id))
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {
                 PromocionesUiState.Error(R.string.promo_error_cargar)
             }
+            // Si mientras cargaba se eligió otro local, este resultado ya no sirve.
+            if (id == localId) _uiState.value = nuevo
         }
     }
 
@@ -115,7 +118,7 @@ class PromocionesViewModel(
 
     companion object {
         val Factory = viewModelFactory {
-            initializer { PromocionesViewModel(AppContainer.miLocalRepository, AppContainer.promocionesOferenteRepository) }
+            initializer { PromocionesViewModel(AppContainer.promocionesOferenteRepository) }
         }
     }
 }

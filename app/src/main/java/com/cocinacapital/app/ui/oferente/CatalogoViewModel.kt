@@ -8,7 +8,6 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.cocinacapital.app.R
 import com.cocinacapital.app.data.model.Plato
 import com.cocinacapital.app.data.repository.CatalogoRepository
-import com.cocinacapital.app.data.repository.MiLocalRepository
 import com.cocinacapital.app.di.AppContainer
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
@@ -25,7 +24,6 @@ import kotlinx.coroutines.launch
  * editarlos y eliminarlos. Los destacados aparecen en el detalle del local que ve el consumidor.
  */
 class CatalogoViewModel(
-    private val miLocal: MiLocalRepository,
     private val catalogo: CatalogoRepository
 ) : ViewModel() {
 
@@ -35,15 +33,18 @@ class CatalogoViewModel(
     private val _mensajes = Channel<Int>(Channel.BUFFERED)
     val mensajes: Flow<Int> = _mensajes.receiveAsFlow()
 
-    init { cargar() }
+    /** Local cuyo catálogo se muestra (el elegido en Mis locales). */
+    private var localId: String? = null
+
+    /** Muestra el catálogo de [id]; `null` = el oferente aún no tiene locales. */
+    fun mostrarLocal(id: String?) {
+        val actual = _uiState.value
+        if (id == localId && actual !is CatalogoUiState.Error && actual !is CatalogoUiState.Loading) return
+        localId = id
+        cargar()
+    }
 
     fun onReintentar() = cargar()
-
-    /** Al volver a la pestaña: si antes no había local (o falló la carga), se consulta de nuevo. */
-    fun onMostrar() {
-        val estado = _uiState.value
-        if (estado is CatalogoUiState.SinLocal || estado is CatalogoUiState.Error) cargar()
-    }
 
     fun onAgregar() = actualizar { it.copy(editor = EditorPlato()) }
 
@@ -111,17 +112,19 @@ class CatalogoViewModel(
     }
 
     private fun cargar() {
+        val id = localId
+        if (id == null) { _uiState.value = CatalogoUiState.SinLocal; return }
         _uiState.value = CatalogoUiState.Loading
         viewModelScope.launch {
-            _uiState.value = try {
-                val local = miLocal.obtenerMiLocal()
-                if (local == null) CatalogoUiState.SinLocal
-                else CatalogoUiState.Success(local.id, catalogo.listar(local.id))
+            val nuevo = try {
+                CatalogoUiState.Success(id, catalogo.listar(id))
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {
                 CatalogoUiState.Error(R.string.catalogo_error_cargar)
             }
+            // Si mientras cargaba se eligió otro local, este resultado ya no sirve.
+            if (id == localId) _uiState.value = nuevo
         }
     }
 
@@ -132,7 +135,7 @@ class CatalogoViewModel(
 
     companion object {
         val Factory = viewModelFactory {
-            initializer { CatalogoViewModel(AppContainer.miLocalRepository, AppContainer.catalogoRepository) }
+            initializer { CatalogoViewModel(AppContainer.catalogoRepository) }
         }
     }
 }

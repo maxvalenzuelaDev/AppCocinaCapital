@@ -1,6 +1,10 @@
 package com.cocinacapital.app.ui.oferente
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.Button
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
@@ -53,7 +57,7 @@ enum class OferenteTab(
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector
 ) {
-    MI_LOCAL(R.string.oferente_nav_local, Icons.Filled.Storefront, Icons.Outlined.Storefront),
+    MIS_LOCALES(R.string.oferente_nav_locales, Icons.Filled.Storefront, Icons.Outlined.Storefront),
     CATALOGO(R.string.oferente_nav_catalogo, Icons.Filled.RestaurantMenu, Icons.Outlined.RestaurantMenu),
     PROMOCIONES(R.string.oferente_nav_promociones, Icons.Filled.LocalOffer, Icons.Outlined.LocalOffer),
     CUENTA(R.string.oferente_nav_cuenta, Icons.Filled.Person, Icons.Outlined.Person)
@@ -61,8 +65,8 @@ enum class OferenteTab(
 
 /**
  * Estructura principal para cuentas con rol oferente (HU-04). AppEntry la muestra en lugar de
- * MainScaffold. Mi local es el perfil del local (HU-25), Catálogo sus platos (HU-26) y Promociones
- * las que publica (HU-27).
+ * MainScaffold. Mis locales son sus tiendas (HU-25); Catálogo (HU-26) y Promociones (HU-27) trabajan
+ * sobre el local elegido arriba de cada pestaña.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,8 +76,11 @@ fun OferenteScaffold(
     cerrandoSesion: Boolean,
     onCerrarSesion: () -> Unit
 ) {
-    var tab by rememberSaveable { mutableStateOf(OferenteTab.MI_LOCAL) }
+    var tab by rememberSaveable { mutableStateOf(OferenteTab.MIS_LOCALES) }
     val snackbar = remember { SnackbarHostState() }
+    // Una instancia por cuenta, compartida por las pestañas: la lista de locales y el elegido.
+    val misLocales: MisLocalesViewModel = viewModel(key = "mis_locales_$usuarioId", factory = MisLocalesViewModel.Factory)
+    val irAMisLocales = { tab = OferenteTab.MIS_LOCALES }
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
         topBar = { TopAppBar(title = { Text(stringResource(tab.labelRes)) }) },
@@ -98,11 +105,47 @@ fun OferenteScaffold(
     ) { innerPadding ->
         Crossfade(tab, Modifier.padding(innerPadding), animationSpec = tween(300), label = "oferente_tab") { actual ->
             when (actual) {
-                OferenteTab.MI_LOCAL -> MiLocalScreen(snackbar, usuarioId)
-                OferenteTab.CATALOGO -> CatalogoScreen(snackbar, usuarioId, onIrAMiLocal = { tab = OferenteTab.MI_LOCAL })
-                OferenteTab.PROMOCIONES -> PromocionesScreen(snackbar, usuarioId, onIrAMiLocal = { tab = OferenteTab.MI_LOCAL })
+                OferenteTab.MIS_LOCALES -> MisLocalesScreen(snackbar, misLocales)
+                OferenteTab.CATALOGO -> ConLocalElegido(misLocales) { localId ->
+                    CatalogoScreen(snackbar, usuarioId, localId, onIrAMisLocales = irAMisLocales)
+                }
+                OferenteTab.PROMOCIONES -> ConLocalElegido(misLocales) { localId ->
+                    PromocionesScreen(snackbar, usuarioId, localId, onIrAMisLocales = irAMisLocales)
+                }
                 OferenteTab.CUENTA -> CuentaOferente(correo, cerrandoSesion, onCerrarSesion)
             }
+        }
+    }
+}
+
+/**
+ * Muestra arriba el selector del local y debajo el contenido de ese local. Mientras se cargan los
+ * locales (o si falló la carga) se muestra lo mismo que en Mis locales.
+ */
+@Composable
+private fun ConLocalElegido(misLocales: MisLocalesViewModel, contenido: @Composable (localId: String?) -> Unit) {
+    val estado by misLocales.uiState.collectAsStateWithLifecycle()
+    when (val actual = estado) {
+        MisLocalesUiState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+        is MisLocalesUiState.Error -> Column(
+            Modifier.fillMaxSize().padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(stringResource(actual.mensajeRes))
+            Spacer(Modifier.height(16.dp))
+            Button(onClick = misLocales::onReintentar) { Text(stringResource(R.string.mi_local_reintentar)) }
+        }
+        is MisLocalesUiState.Success -> Column(Modifier.fillMaxSize()) {
+            if (actual.locales.isNotEmpty()) {
+                SelectorLocal(
+                    locales = actual.locales,
+                    seleccionado = actual.seleccionado,
+                    onElegir = misLocales::onSeleccionar,
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)
+                )
+            }
+            Box(Modifier.weight(1f)) { contenido(actual.seleccionadoId) }
         }
     }
 }

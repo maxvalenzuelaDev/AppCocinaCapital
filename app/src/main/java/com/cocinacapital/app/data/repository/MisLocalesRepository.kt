@@ -23,10 +23,10 @@ data class DatosLocal(
     val longitud: Double? = null
 )
 
-/** Local del oferente con sesión iniciada. Supabase (RLS) impide leer o editar locales ajenos. */
-interface MiLocalRepository {
-    /** El local de la cuenta actual, o `null` si todavía no registra uno. */
-    suspend fun obtenerMiLocal(): LocalGastronomico?
+/** Locales del oferente con sesión iniciada. Supabase (RLS) impide leer o editar locales ajenos. */
+interface MisLocalesRepository {
+    /** Los locales de la cuenta actual, ordenados por nombre; vacío si todavía no registra ninguno. */
+    suspend fun listar(): List<LocalGastronomico>
     suspend fun getCategorias(): List<Categoria>
     /** Crea el local si [localId] es `null`; si no, actualiza ese local. Devuelve el local guardado. */
     suspend fun guardar(localId: String?, datos: DatosLocal): LocalGastronomico

@@ -1,12 +1,9 @@
 package com.cocinacapital.app.ui.oferente
 
 import com.cocinacapital.app.R
-import com.cocinacapital.app.data.model.Categoria
 import com.cocinacapital.app.data.model.LocalGastronomico
 import com.cocinacapital.app.data.model.Promocion
-import com.cocinacapital.app.data.repository.DatosLocal
 import com.cocinacapital.app.data.repository.DatosPromocion
-import com.cocinacapital.app.data.repository.MiLocalRepository
 import com.cocinacapital.app.data.repository.PromocionesOferenteRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,12 +28,6 @@ class PromocionesViewModelTest {
     private val reloj = Clock.fixed(hoy.atTime(12, 0).atZone(zona).toInstant(), zona)
     private val local = LocalGastronomico(id = "local-1", nombre = "Café Cerro Alegre", categoriaId = "cat-1", comuna = "Valparaíso")
 
-    private class FakeMiLocal(var local: LocalGastronomico?) : MiLocalRepository {
-        override suspend fun obtenerMiLocal() = local
-        override suspend fun getCategorias() = emptyList<Categoria>()
-        override suspend fun guardar(localId: String?, datos: DatosLocal) = error("no se usa")
-    }
-
     private class FakePromos(var falla: Boolean = false) : PromocionesOferenteRepository {
         val creadas = mutableListOf<DatosPromocion>()
         override suspend fun listar(localId: String) = emptyList<Promocion>()
@@ -54,20 +45,28 @@ class PromocionesViewModelTest {
     @BeforeTest fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
     @AfterTest fun tearDown() = Dispatchers.resetMain()
 
-    private fun modelo(promos: FakePromos = FakePromos(), miLocal: FakeMiLocal = FakeMiLocal(local)) =
-        PromocionesViewModel(miLocal, promos, reloj)
+    /** Como lo usa la pantalla: el ViewModel recibe el local elegido en Mis locales. */
+    private fun modelo(promos: FakePromos = FakePromos(), localId: String? = local.id) =
+        PromocionesViewModel(promos, reloj).also { it.mostrarLocal(localId) }
 
     private fun PromocionesViewModel.success() = uiState.value as PromocionesUiState.Success
 
     private fun hora(iso: String): LocalDateTime = OffsetDateTime.parse(iso).atZoneSameInstant(zona).toLocalDateTime()
 
-    @Test fun `sin local pide registrarlo y al volver a la pestana lo carga`() {
-        val miLocal = FakeMiLocal(null)
-        val model = modelo(miLocal = miLocal)
+    @Test fun `sin locales pide registrar uno y al elegirlo carga sus promociones`() {
+        val model = modelo(localId = null)
         assertEquals(PromocionesUiState.SinLocal, model.uiState.value)
-        miLocal.local = local
-        model.onMostrar()
-        assertIs<PromocionesUiState.Success>(model.uiState.value)
+        model.mostrarLocal("local-2")
+        assertEquals("local-2", model.success().localId)
+    }
+
+    @Test fun `publica la promocion en el local elegido`() {
+        val promos = FakePromos()
+        val model = modelo(promos, localId = "local-2")
+        model.onNueva()
+        model.onCambio { copy(titulo = "2x1", descuento = "50") }
+        model.onGuardar()
+        assertEquals("local-2", model.success().promociones.single().localId)
     }
 
     @Test fun `la nueva promocion sugiere una semana desde hoy`() {

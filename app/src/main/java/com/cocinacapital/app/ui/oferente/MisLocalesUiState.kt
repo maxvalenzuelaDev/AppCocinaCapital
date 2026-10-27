@@ -6,21 +6,34 @@ import com.cocinacapital.app.data.model.Categoria
 import com.cocinacapital.app.data.model.LocalGastronomico
 import com.cocinacapital.app.data.repository.DatosLocal
 
-/** Estado de "Mi local" (HU-25): el formulario del perfil del local del oferente. */
-sealed interface MiLocalUiState {
-    data object Loading : MiLocalUiState
-    data class Error(@StringRes val mensajeRes: Int) : MiLocalUiState
+/**
+ * Estado de "Mis locales" (HU-25): la lista de tiendas del oferente y, si está abierto, el
+ * formulario para crear o editar una. Catálogo y Promociones trabajan sobre [Success.seleccionadoId].
+ */
+sealed interface MisLocalesUiState {
+    data object Loading : MisLocalesUiState
+    data class Error(@StringRes val mensajeRes: Int) : MisLocalesUiState
     data class Success(
+        val locales: List<LocalGastronomico>,
         val categorias: List<Categoria>,
-        val formulario: FormularioLocal,
-        /** `null` mientras el oferente no ha registrado su local: al guardar se crea. */
-        val localId: String?,
-        val errores: ErroresLocal = ErroresLocal(),
-        val guardando: Boolean = false,
-        /** Precisión de la última ubicación tomada con el botón; `null` si la posición vino guardada. */
-        val precisionMetros: Float? = null
-    ) : MiLocalUiState
+        /** Local elegido para Catálogo y Promociones; `null` si aún no hay locales. */
+        val seleccionadoId: String? = null,
+        /** Formulario abierto; `null` = se muestra la lista. */
+        val editor: EditorLocal? = null
+    ) : MisLocalesUiState {
+        val seleccionado: LocalGastronomico? get() = locales.firstOrNull { it.id == seleccionadoId }
+    }
 }
+
+/** Formulario de un local: nuevo si [localId] es `null`. */
+data class EditorLocal(
+    val localId: String? = null,
+    val formulario: FormularioLocal = FormularioLocal(),
+    val errores: ErroresLocal = ErroresLocal(),
+    val guardando: Boolean = false,
+    /** Precisión de la última ubicación tomada con el botón; `null` si la posición vino guardada. */
+    val precisionMetros: Float? = null
+)
 
 /** Texto tal como lo escribe el oferente; se valida y convierte al guardar. */
 data class FormularioLocal(

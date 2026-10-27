@@ -9,18 +9,21 @@ import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/** Implementación real: lee y escribe en `locales` el local cuyo `oferente_id` es la cuenta actual. */
-class SupabaseMiLocalRepository(
+/** Implementación real: lee y escribe en `locales` los locales cuyo `oferente_id` es la cuenta actual. */
+class SupabaseMisLocalesRepository(
     private val supabase: SupabaseClient
-) : MiLocalRepository {
+) : MisLocalesRepository {
 
     private fun oferenteId(): String =
         supabase.auth.currentUserOrNull()?.id ?: error("No hay sesión iniciada")
 
-    override suspend fun obtenerMiLocal(): LocalGastronomico? =
+    override suspend fun listar(): List<LocalGastronomico> =
         supabase.from("locales")
-            .select { filter { eq("oferente_id", oferenteId()) } }
-            .decodeSingleOrNull<LocalGastronomico>()
+            .select {
+                filter { eq("oferente_id", oferenteId()) }
+                order("nombre", Order.ASCENDING)
+            }
+            .decodeList<LocalGastronomico>()
 
     override suspend fun getCategorias(): List<Categoria> =
         supabase.from("categorias")

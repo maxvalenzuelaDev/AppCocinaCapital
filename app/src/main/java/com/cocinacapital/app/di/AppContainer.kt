@@ -18,6 +18,9 @@ import com.cocinacapital.app.data.local.HistorialSesion
 import com.cocinacapital.app.data.local.PreferenciasHistorialSesion
 import com.cocinacapital.app.data.remote.SupabaseProvider
 import com.cocinacapital.app.data.repository.DetalleLocalRepository
+import com.cocinacapital.app.data.repository.DetallePromocionRepository
+import com.cocinacapital.app.data.repository.FakeDetallePromocionRepository
+import com.cocinacapital.app.data.repository.SupabaseDetallePromocionRepository
 import com.cocinacapital.app.data.repository.FakeDetalleLocalRepository
 import com.cocinacapital.app.data.repository.FakeHomeRepository
 import com.cocinacapital.app.data.repository.FavoritosRepository
@@ -103,6 +106,11 @@ object AppContainer {
     }
 
     val fotoPerfilArchivos: FotoPerfilArchivos by lazy { AndroidFotoPerfilArchivos(appContext) }
+
+    val detallePromocionRepository: DetallePromocionRepository by lazy {
+        if (USE_FAKE_DATA) FakeDetallePromocionRepository()
+        else SupabaseDetallePromocionRepository(SupabaseProvider.client, detalleLocalRepository)
+    }
 
     val favoritosRepository: FavoritosRepository by lazy {
         FavoritosRepository(database.favoritosDao(), perfilSesion)

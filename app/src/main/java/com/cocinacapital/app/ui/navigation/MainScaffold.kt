@@ -208,7 +208,16 @@ fun MainScaffold() {
             ) { entry ->
                 DetallePromocionScreen(
                     promocionId = entry.arguments?.getString(RutasDetalle.ARG_ID).orEmpty(),
-                    onVolver = { navController.navigateUp() }
+                    onVolver = { navController.navigateUp() },
+                    onLocalClick = { id ->
+                        val anterior = navController.previousBackStackEntry
+                        if (anterior?.destination?.route == RutasDetalle.LOCAL &&
+                            anterior.arguments?.getString(RutasDetalle.ARG_ID) == id) {
+                            navController.navigateUp()
+                        } else {
+                            navController.navigate(RutasDetalle.local(id)) { launchSingleTop = true }
+                        }
+                    }
                 )
             }
         }

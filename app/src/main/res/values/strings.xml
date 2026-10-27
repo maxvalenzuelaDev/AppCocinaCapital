@@ -27,7 +27,6 @@
     <string name="detalle_local_promociones">Promociones activas</string>
     <string name="detalle_local_promociones_vacio">Este local no tiene promociones vigentes.</string>
     <string name="detalle_promocion_titulo">Detalle de la promoción</string>
-    <string name="detalle_promocion_pendiente">El detalle de la promoción %1$s estará disponible pronto.</string>
 
     <!-- Perfil: foto de perfil (T-23) -->
     <string name="perfil_foto_descripcion">Foto de perfil de %1$s</string>
@@ -74,4 +73,45 @@
     <string name="nav_perfil">Perfil</string>
     <string name="nav_billetera_pendiente">Billetera (mis beneficios)</string>
     <string name="nav_proximamente">%1$s — próximamente</string>
+    <!-- HU-12: detalle de la promoción -->
+    <string name="detalle_promocion_barra_titulo">Promoción</string>
+    <string name="detalle_promocion_cargando">Cargando la promoción…</string>
+    <string name="detalle_promocion_actualizar">Actualizar detalle</string>
+    <string name="detalle_promocion_error">No pudimos cargar la promoción. Revisa tu conexión y vuelve a intentarlo.</string>
+    <string name="detalle_promocion_no_encontrada">Esta promoción no está disponible.</string>
+    <string name="detalle_promocion_descuento">%1$d%% de descuento</string>
+    <string name="detalle_promocion_descripcion_pendiente">Descripción no informada.</string>
+    <string name="detalle_promocion_condiciones">Condiciones de uso</string>
+    <string name="detalle_promocion_condiciones_pendientes">El comercio aún no informa las condiciones de esta promoción.</string>
+    <string name="detalle_promocion_vigencia">Vigencia</string>
+    <string name="detalle_promocion_desde">Desde: %1$s</string>
+    <string name="detalle_promocion_hasta">Hasta: %1$s</string>
+    <string name="detalle_promocion_zona_horaria">Hora de Santiago de Chile.</string>
+    <string name="detalle_promocion_fecha_pendiente">Por confirmar</string>
+    <string name="detalle_promocion_horario">Horario de la promoción</string>
+    <string name="detalle_promocion_horario_pendiente">Horario de uso no informado.</string>
+    <string name="detalle_promocion_cupos">Cupos disponibles</string>
+    <string name="detalle_promocion_cupos_pendientes">El comercio aún no informa sus cupos.</string>
+    <string name="detalle_promocion_sin_cupos">Sin cupos disponibles</string>
+    <string name="detalle_promocion_local">Local asociado</string>
+    <string name="detalle_promocion_ver_local">Ver local</string>
+    <string name="detalle_promocion_direccion_pendiente">Dirección no informada.</string>
+    <string name="detalle_promocion_horario_local">Horario del local: %1$s</string>
+    <string name="detalle_promocion_local_no_disponible">El local asociado no está disponible.</string>
+    <string name="detalle_promocion_error_local">No pudimos cargar la información del local.</string>
+    <string name="detalle_promocion_vigente">Vigente</string>
+    <string name="detalle_promocion_programada">Próximamente</string>
+    <string name="detalle_promocion_finalizada">Finalizada</string>
+    <string name="detalle_promocion_no_disponible">No disponible</string>
+    <string name="detalle_promocion_vigencia_pendiente">Vigencia por confirmar</string>
+    <plurals name="detalle_promocion_cantidad_cupos">
+        <item quantity="one">%1$s cupo disponible</item>
+        <item quantity="other">%1$s cupos disponibles</item>
+    </plurals>
+    <string name="detalle_promocion_cupos_sin_limite">Sin límite de cupos</string>
+    <string name="detalle_promocion_todos_dias">Todos los días</string>
+    <string name="detalle_promocion_dias">Días: %1$s</string>
+    <string name="detalle_promocion_dias_pendientes">Días de uso por confirmar.</string>
+    <string name="detalle_promocion_franja">De %1$s a %2$s</string>
+    <string name="detalle_promocion_horario_del_local">Durante el horario de atención del local.</string>
 </resources>

@@ -2,4 +2,14 @@
 <resources>
     <style name="Theme.CocinaCapital" parent="@android:style/Theme.Material.Light.NoActionBar">
     </style>
+
+    <!--
+        T-09: pantalla de inicio con la API de SplashScreen (igual en Android 8 a 16). Fondo terracota
+        con el logo en blanco; al terminar, la actividad pasa al tema normal de la app.
+    -->
+    <style name="Theme.CocinaCapital.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/marca_terracota</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.CocinaCapital</item>
+    </style>
 </resources>

@@ -80,9 +80,11 @@ fun AppEntry(onRegisterRequested: (() -> Unit)? = null) {
         // HU-04: la navegación y las opciones dependen del rol de la cuenta.
         state.screen == AuthScreen.SESSION -> {
             androidx.compose.runtime.key(state.user?.id) {
-                if (state.user?.rol == Rol.OFERENTE) {
+                val user = state.user
+                if (user?.rol == Rol.OFERENTE) {
                     OferenteScaffold(
-                        correo = state.user?.email,
+                        usuarioId = user.id,
+                        correo = user.email,
                         cerrandoSesion = state.busy,
                         onCerrarSesion = model::logout
                     )

@@ -23,6 +23,7 @@ class SupabaseDetallePromocionRepositoryTest {
     private lateinit var repository: SupabaseDetallePromocionRepository
     private val consultas = ConcurrentLinkedQueue<String>()
     @Volatile private var respuesta = "[]"
+    @Volatile private var estadoHttp = "200 OK"
     private val id = "39f24af5-008c-4de5-ae10-2103e0b8d092"
     private val locales = object : DetalleLocalRepository {
         override suspend fun getLocal(id: String): LocalGastronomico? = null
@@ -60,7 +61,7 @@ class SupabaseDetallePromocionRepositoryTest {
         }
         consultas.add(URLDecoder.decode(first.split(" ")[1].substringAfter("?", ""), "UTF-8"))
         val bytes = respuesta.toByteArray(Charsets.UTF_8)
-        val headers = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: ${bytes.size}\r\nConnection: close\r\n\r\n"
+        val headers = "HTTP/1.1 $estadoHttp\r\nContent-Type: application/json\r\nContent-Length: ${bytes.size}\r\nConnection: close\r\n\r\n"
         socket.getOutputStream().write(headers.toByteArray(Charsets.US_ASCII))
         socket.getOutputStream().write(bytes)
         socket.getOutputStream().flush()
@@ -94,6 +95,19 @@ class SupabaseDetallePromocionRepositoryTest {
 
     @Test fun `una promocion ausente devuelve null`() = runBlocking {
         assertNull(repository.getPromocion(id))
+    }
+
+    @Test fun `el rechazo de permisos no se confunde con una promocion inexistente`() = runBlocking {
+        estadoHttp = "403 Forbidden"
+        respuesta = """{"code":"42501","message":"permission denied"}"""
+        val fallo = runCatching { repository.getPromocion(id) }.exceptionOrNull()
+        assertNotNull(fallo)
+        assertEquals(1, consultas.size)
+    }
+
+    @Test fun `una respuesta incompleta no se presenta como detalle valido`() = runBlocking {
+        respuesta = """[{"id":"$id","titulo":"Oferta sin local ni vigencia"}]"""
+        assertNotNull(runCatching { repository.getPromocion(id) }.exceptionOrNull())
     }
 
     @Test fun `un id invalido no envia consultas a Supabase`() = runBlocking {

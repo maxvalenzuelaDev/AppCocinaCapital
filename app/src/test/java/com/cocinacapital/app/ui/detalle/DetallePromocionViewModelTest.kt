@@ -75,6 +75,29 @@ class DetallePromocionViewModelTest {
         repo.promocion = { promo }; vm.onReintentar(); runCurrent()
         assertTrue(vm.uiState.value is DetallePromocionUiState.Success)
     }
+    @Test fun `una consulta que no responde deja de cargar y permite reintentar`() = runTest {
+        val repo = repo().apply { promocion = { awaitCancellation() } }
+        val vm = vm(repo)
+        runCurrent()
+        advanceTimeBy(15_000); runCurrent()
+        assertEquals(DetallePromocionUiState.Error, vm.uiState.value)
+        repo.promocion = { promo }
+        vm.onReintentar(); runCurrent()
+        assertEquals(promo, (vm.uiState.value as DetallePromocionUiState.Success).promocion)
+    }
+    @Test fun `la espera agotada del local no oculta la promocion ya obtenida`() = runTest {
+        val repo = repo().apply { local = { awaitCancellation() } }
+        val vm = vm(repo)
+        runCurrent()
+        advanceTimeBy(15_000); runCurrent()
+        val state = vm.uiState.value as DetallePromocionUiState.Success
+        assertEquals(promo, state.promocion)
+        assertNull(state.local)
+        assertTrue(state.errorLocal)
+        repo.local = { local }
+        vm.onReintentar(); runCurrent()
+        assertEquals(local, (vm.uiState.value as DetallePromocionUiState.Success).local)
+    }
     @Test fun `el fallo al cargar el local conserva la informacion de la promocion`() = runTest {
         val repo = repo().apply { local = { throw IOException() } }; val vm = vm(repo)
         runCurrent()

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- T-10: textos de Login y Registro -->
+    <string name="marca_nombre">COCINA CAPITAL</string>
+    <string name="marca_bajada">GASTRONOMÍA LOCAL</string>
+    <string name="login_lema">DESCUBRE  ·  ELIGE  ·  DISFRUTA</string>
+    <string name="login_kicker">TU LUGAR EN LA MESA</string>
+    <string name="login_preparando">Preparando tu mesa…</string>
+    <string name="login_iniciar">Iniciar sesión</string>
+    <string name="login_sin_cuenta">¿No tienes cuenta?</string>
+    <string name="login_crear_cuenta">Crear cuenta</string>
+
+    <string name="campo_correo">Correo electrónico</string>
+    <string name="campo_correo_ejemplo">tu@correo.com</string>
+    <string name="campo_contrasena">Contraseña</string>
+    <string name="campo_contrasena_ejemplo">Tu contraseña</string>
+    <string name="contrasena_mostrar">Mostrar</string>
+    <string name="contrasena_ocultar">Ocultar</string>
+
+    <!-- Mensajes del inicio de sesión (LoginError y AuthViewModel) -->
+    <string name="login_error_correo_invalido">Ingresa un correo válido.</string>
+    <string name="login_error_contrasena_vacia">Ingresa tu contraseña.</string>
+    <string name="login_error_credenciales">Correo o contraseña incorrectos.</string>
+    <string name="login_error_correo_sin_confirmar">Confirma tu correo antes de iniciar sesión.</string>
+    <string name="login_error_demasiados_intentos">Demasiados intentos. Inténtalo más tarde.</string>
+    <string name="login_error_sin_conexion">No se pudo conectar. Revisa tu conexión e inténtalo nuevamente.</string>
+    <string name="login_error_desconocido">No se pudo completar la operación. Inténtalo nuevamente.</string>
+    <string name="login_error_tiempo">La conexión tardó demasiado. Inténtalo nuevamente.</string>
+    <string name="login_error_sesion_no_recuperada">No pudimos recuperar tu sesión. Revisa tu conexión e inicia sesión nuevamente.</string>
+    <string name="login_sesion_cerrada">Cerraste tu sesión.</string>
+
+    <!-- Registro (HU-01) -->
+    <string name="registro_titulo">Crear cuenta</string>
+    <string name="registro_subtitulo">Descubre nuevas experiencias gastronómicas</string>
+    <string name="registro_nombre">Nombre completo</string>
+    <string name="registro_nombre_ejemplo">Ej. Juan Pérez</string>
+    <string name="registro_contrasena_ayuda">Mínimo 8 caracteres</string>
+    <string name="registro_boton">Registrarse</string>
+    <string name="registro_ya_tienes_cuenta">¿Ya tienes cuenta? Inicia sesión</string>
+    <string name="registro_error_nombre">Debes ingresar tu nombre</string>
+    <string name="registro_error_correo_vacio">Debes ingresar tu correo</string>
+    <string name="registro_error_correo_invalido">Ingresa un correo electrónico válido</string>
+    <string name="registro_error_contrasena_vacia">Debes ingresar una contraseña</string>
+    <string name="registro_error_contrasena_corta">La contraseña debe tener al menos 8 caracteres</string>
+    <string name="registro_exitoso">Solicitud de registro recibida. Revisa tu correo electrónico para confirmar tu cuenta.</string>
+    <string name="registro_error_limite_correos">Se alcanzó el límite de envío de correos. Inténtalo más tarde.</string>
+    <string name="registro_error_correo_rechazado">El correo electrónico fue rechazado. Prueba con otra dirección válida.</string>
+    <string name="registro_error_ya_existe">Ya existe una cuenta registrada con este correo electrónico.</string>
+    <string name="registro_error_desconocido">No se pudo completar el registro. Inténtalo nuevamente.</string>
+</resources>

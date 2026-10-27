@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- T-10: textos de la pantalla Perfil del consumidor -->
+    <string name="perfil_error_cargar">No pudimos cargar tus preferencias. Inténtalo de nuevo.</string>
+    <string name="perfil_reintentar">Reintentar</string>
+    <string name="perfil_editar">Editar perfil</string>
+    <string name="perfil_stat_canjeados">Beneficios canjeados</string>
+    <string name="perfil_stat_favoritos">Favoritos</string>
+    <string name="perfil_stat_cocinas">Cocinas preferidas</string>
+
+    <string name="perfil_preferencias_titulo">Preferencias gastronómicas</string>
+    <string name="perfil_preferencias_descripcion">Personalizan la sección \"Para ti\"</string>
+    <string name="perfil_tipos_cocina">Tipos de cocina</string>
+    <string name="perfil_rango_precios">Rango de precios</string>
+    <string name="rango_economico">Económico</string>
+    <string name="rango_medio">Medio</string>
+    <string name="rango_premium">Premium</string>
+
+    <string name="perfil_favoritos">Favoritos</string>
+    <string name="perfil_favoritos_vacio">Aún no tienes favoritos. Guarda locales y promociones para encontrarlos rápido.</string>
+    <string name="perfil_quitar_favorito">Quitar %1$s de favoritos</string>
+
+    <string name="perfil_notificaciones">Notificaciones</string>
+    <string name="perfil_notif_promociones">Promociones</string>
+    <string name="perfil_notif_promociones_descripcion">Avisos de ofertas afines a tu perfil</string>
+    <string name="perfil_notif_cerca">Solo cerca de mí</string>
+    <string name="perfil_notif_cocinas">Solo de mis cocinas preferidas</string>
+
+    <string name="perfil_privacidad">Privacidad y datos</string>
+    <string name="perfil_privacidad_leyes">Ley N.º 21.719 y Ley N.º 19.628</string>
+    <string name="perfil_personalizar">Personalizar con mi actividad</string>
+    <string name="perfil_personalizar_descripcion">Permite registrar tus búsquedas, promociones vistas y canjes para recomendarte ofertas. Puedes revocarlo cuando quieras.</string>
+    <string name="perfil_aceptado_el">Aceptado el %1$s</string>
+    <string name="perfil_borrar_historial">Borrar mi historial de actividad</string>
+    <string name="perfil_eliminar_cuenta">Eliminar mi cuenta y mis datos</string>
+
+    <string name="perfil_aplicacion">Aplicación</string>
+    <string name="perfil_tema">Tema</string>
+    <string name="tema_sistema">Del sistema</string>
+    <string name="tema_claro">Claro</string>
+    <string name="tema_oscuro">Oscuro</string>
+    <string name="perfil_version">Cocina Capital · versión %1$s</string>
+    <string name="perfil_cerrar_sesion">Cerrar sesión</string>
+
+    <string name="perfil_borrar_titulo">¿Borrar tu historial?</string>
+    <string name="perfil_borrar_mensaje">Se eliminarán tus búsquedas e interacciones usadas para recomendarte ofertas.</string>
+    <string name="perfil_borrar_confirmar">Borrar</string>
+    <string name="perfil_eliminar_titulo">¿Eliminar tu cuenta?</string>
+    <string name="perfil_eliminar_mensaje">Se eliminarán tu cuenta y tus datos de forma permanente. Esta acción no se puede deshacer.</string>
+    <string name="perfil_eliminar_confirmar">Eliminar</string>
+
+    <string name="perfil_nombre">Nombre</string>
+    <string name="perfil_nombre_minimo">Mínimo 2 caracteres</string>
+    <string name="perfil_guardar">Guardar</string>
+    <!-- perfil_cancelar ya existe en strings.xml (diálogos de la foto de perfil) -->
+
+</resources>

@@ -1,5 +1,6 @@
 package com.cocinacapital.app.ui.registro
 
+import com.cocinacapital.app.ui.theme.exito
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -99,7 +100,7 @@ fun RegistroContent(
 
             // ---------------- Encabezado de Cocina Capital ----------------
             Text(
-                text = "COCINA CAPITAL",
+                text = stringResource(R.string.marca_nombre),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = colores.primary
@@ -108,7 +109,7 @@ fun RegistroContent(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "Crear cuenta",
+                text = stringResource(R.string.registro_titulo),
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.SemiBold,
                 color = colores.onSurface
@@ -117,7 +118,7 @@ fun RegistroContent(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Descubre nuevas experiencias gastronómicas",
+                text = stringResource(R.string.registro_subtitulo),
                 style = MaterialTheme.typography.bodyMedium,
                 color = colores.onSurfaceVariant
             )
@@ -128,15 +129,15 @@ fun RegistroContent(
             OutlinedTextField(
                 value = state.nombre,
                 onValueChange = onNombreChange,
-                label = { Text("Nombre completo") },
-                placeholder = { Text("Ej. Juan Pérez") },
+                label = { Text(stringResource(R.string.registro_nombre)) },
+                placeholder = { Text(stringResource(R.string.registro_nombre_ejemplo)) },
                 singleLine = true,
                 // Editable tras enviar: si el correo estaba mal, se corrige y se vuelve a registrar.
                 enabled = !state.cargando,
                 isError = state.errorNombre != null,
                 supportingText = {
                     state.errorNombre?.let {
-                        Text(it, color = colores.error)
+                        Text(stringResource(it), color = colores.error)
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -151,8 +152,8 @@ fun RegistroContent(
             OutlinedTextField(
                 value = state.correo,
                 onValueChange = onCorreoChange,
-                label = { Text("Correo electrónico") },
-                placeholder = { Text("tu@correo.com") },
+                label = { Text(stringResource(R.string.campo_correo)) },
+                placeholder = { Text(stringResource(R.string.campo_correo_ejemplo)) },
                 singleLine = true,
                 // Editable tras enviar: si el correo estaba mal, se corrige y se vuelve a registrar.
                 enabled = !state.cargando,
@@ -162,7 +163,7 @@ fun RegistroContent(
                 isError = state.errorCorreo != null,
                 supportingText = {
                     state.errorCorreo?.let {
-                        Text(it, color = colores.error)
+                        Text(stringResource(it), color = colores.error)
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -177,7 +178,7 @@ fun RegistroContent(
             OutlinedTextField(
                 value = state.contrasena,
                 onValueChange = onContrasenaChange,
-                label = { Text("Contraseña") },
+                label = { Text(stringResource(R.string.campo_contrasena)) },
                 singleLine = true,
                 // Editable tras enviar: si el correo estaba mal, se corrige y se vuelve a registrar.
                 enabled = !state.cargando,
@@ -196,7 +197,7 @@ fun RegistroContent(
                         }
                     ) {
                         Text(
-                            text = if (mostrarContrasena) "Ocultar" else "Mostrar",
+                            text = stringResource(if (mostrarContrasena) R.string.contrasena_ocultar else R.string.contrasena_mostrar),
                             color = colores.primary
                         )
                     }
@@ -204,7 +205,7 @@ fun RegistroContent(
                 isError = state.errorContrasena != null,
                 supportingText = {
                     Text(
-                        text = state.errorContrasena ?: "Mínimo 8 caracteres",
+                        text = stringResource(state.errorContrasena ?: R.string.registro_contrasena_ayuda),
                         color = if (state.errorContrasena != null) {
                             colores.error
                         } else {
@@ -241,7 +242,7 @@ fun RegistroContent(
                     )
                 } else {
                     Text(
-                        text = "Registrarse",
+                        text = stringResource(R.string.registro_boton),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -253,9 +254,9 @@ fun RegistroContent(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = mensaje,
+                    text = stringResource(mensaje),
                     color = if (state.registroExitoso) {
-                        androidx.compose.ui.graphics.Color(0xFF81C995)
+                        colores.exito
                     } else {
                         colores.error
                     },
@@ -278,7 +279,7 @@ fun RegistroContent(
             // ---------------- Navegación hacia inicio de sesión ----------------
             TextButton(onClick = onVolverLogin) {
                 Text(
-                    text = "¿Ya tienes cuenta? Inicia sesión",
+                    text = stringResource(R.string.registro_ya_tienes_cuenta),
                     color = colores.primary,
                     fontWeight = FontWeight.SemiBold
                 )

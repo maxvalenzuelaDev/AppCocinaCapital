@@ -1,5 +1,6 @@
 package com.cocinacapital.app.ui.explore
 
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.selection.selectable
@@ -43,14 +44,16 @@ import java.text.NumberFormat
     val label = stringResource(R.string.ex_abrir_mapa)
     Surface(onClick = onClick, shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surfaceContainerLow,
         border = BorderStroke(1.dp, street.copy(alpha = .4f)),
-        modifier = Modifier.size(60.dp).semantics { contentDescription = label }) {
+        // Mínimo 60 dp; con la fuente grande se ensancha para que "Mapa" no se corte (T-18).
+        modifier = Modifier.defaultMinSize(60.dp, 60.dp).semantics { contentDescription = label }) {
         Box(contentAlignment = Alignment.BottomCenter) {
-            Canvas(Modifier.fillMaxSize().padding(bottom = 22.dp)) {
+            Canvas(Modifier.matchParentSize().padding(bottom = 22.dp)) {
                 for (fraction in listOf(.22f, .53f, .84f)) drawLine(street, Offset(size.width * fraction, 0f), Offset(size.width * (fraction - .1f), size.height), 3.dp.toPx())
                 drawLine(street, Offset(0f, size.height * .40f), Offset(size.width, size.height * .65f), 3.dp.toPx())
                 drawCircle(ink, 4.dp.toPx(), Offset(size.width * .55f, size.height * .48f))
             }
-            Text(stringResource(R.string.ex_mapa), Modifier.padding(bottom = 5.dp), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.ex_mapa), Modifier.padding(start = 8.dp, end = 8.dp, top = 30.dp, bottom = 5.dp),
+                style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
         }
     }
 }

@@ -32,7 +32,10 @@ data class EditorLocal(
     val errores: ErroresLocal = ErroresLocal(),
     val guardando: Boolean = false,
     /** Precisión de la última ubicación tomada con el botón; `null` si la posición vino guardada. */
-    val precisionMetros: Float? = null
+    val precisionMetros: Float? = null,
+    /** Foto de portada actual (URL pública de Storage, T-05); solo un local ya guardado puede tener. */
+    val imagenUrl: String? = null,
+    val subiendoFoto: Boolean = false
 )
 
 /** Texto tal como lo escribe el oferente; se valida y convierte al guardar. */

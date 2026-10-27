@@ -15,6 +15,12 @@
     <string name="mis_locales_editar">Editar %1$s</string>
     <string name="mis_locales_volver">Volver a Mis locales</string>
     <string name="selector_local_etiqueta">Local</string>
+    <!-- T-05: foto de portada del local -->
+    <string name="mis_locales_foto_agregar">Agregar foto</string>
+    <string name="mis_locales_foto_cambiar">Cambiar foto</string>
+    <string name="mis_locales_foto_despues">Podrás agregar una foto apenas registres el local.</string>
+    <string name="mis_locales_foto_lista">Foto actualizada. Los consumidores ya la ven.</string>
+    <string name="mis_locales_foto_error">No se pudo subir la foto. Revisa tu conexión e inténtalo nuevamente.</string>
     <string name="mi_local_titulo_nuevo">Registra tu local</string>
     <string name="mi_local_titulo_editar">Datos de tu local</string>
     <string name="mi_local_ayuda">Esta información la ven los consumidores en el listado y en el detalle de tu local.</string>
@@ -36,7 +42,7 @@
     <string name="mi_local_crear">Registrar local</string>
     <string name="mi_local_guardar">Guardar cambios</string>
     <string name="mi_local_reintentar">Reintentar</string>
-    <string name="mi_local_creado">Local registrado.</string>
+    <string name="mi_local_creado">Local registrado. Ya puedes agregarle una foto.</string>
     <string name="mi_local_guardado">Cambios guardados.</string>
     <string name="mi_local_error_cargar">No pudimos cargar tu local. Revisa tu conexión e inténtalo nuevamente.</string>
     <string name="mi_local_error_guardar">No se pudieron guardar los cambios. Inténtalo nuevamente.</string>

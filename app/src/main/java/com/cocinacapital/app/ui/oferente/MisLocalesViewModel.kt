@@ -8,7 +8,9 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.cocinacapital.app.R
 import com.cocinacapital.app.data.location.EstadoUbicacion
 import com.cocinacapital.app.data.location.UbicacionRepository
+import com.cocinacapital.app.data.local.PreparadorFoto
 import com.cocinacapital.app.data.model.LocalGastronomico
+import com.cocinacapital.app.data.repository.FotosLocalRepository
 import com.cocinacapital.app.data.repository.MisLocalesRepository
 import com.cocinacapital.app.di.AppContainer
 import kotlinx.coroutines.CancellationException
@@ -26,12 +28,15 @@ import kotlinx.coroutines.launch
 /**
  * ViewModel de "Mis locales" (HU-25): lista las tiendas del oferente, abre el formulario para crear
  * o editar una y la guarda en Supabase. También guarda qué local está elegido para Catálogo y
- * Promociones, por eso una sola instancia por cuenta se comparte entre las pestañas.
+ * Promociones, por eso una sola instancia por cuenta se comparte entre las pestañas. Las fotos de
+ * portada se suben a Supabase Storage (T-05).
  * Los cambios se ven en la app del consumidor la próxima vez que cargue el catálogo.
  */
 class MisLocalesViewModel(
     private val repository: MisLocalesRepository,
-    private val ubicacion: UbicacionRepository
+    private val ubicacion: UbicacionRepository,
+    private val fotos: FotosLocalRepository,
+    private val preparador: PreparadorFoto
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<MisLocalesUiState>(MisLocalesUiState.Loading)
@@ -62,7 +67,32 @@ class MisLocalesViewModel(
     fun onNuevo() = actualizar { it.copy(editor = EditorLocal()) }
 
     fun onEditar(local: LocalGastronomico) = actualizar {
-        it.copy(editor = EditorLocal(localId = local.id, formulario = local.aFormulario()))
+        it.copy(editor = EditorLocal(localId = local.id, formulario = local.aFormulario(), imagenUrl = local.imagenUrl))
+    }
+
+    /** Foto elegida en la galería: se reduce, se sube como portada y se ve al tiro en la lista. */
+    fun onFotoElegida(uri: String) {
+        val editor = (_uiState.value as? MisLocalesUiState.Success)?.editor ?: return
+        val localId = editor.localId ?: return
+        if (editor.subiendoFoto) return
+        actualizarEditor { it.copy(subiendoFoto = true) }
+        viewModelScope.launch {
+            try {
+                val url = fotos.subirPortada(localId, preparador.jpeg(uri), anterior = editor.imagenUrl)
+                actualizar { estado ->
+                    estado.copy(
+                        locales = estado.locales.map { if (it.id == localId) it.copy(imagenUrl = url) else it },
+                        editor = estado.editor?.let { if (it.localId == localId) it.copy(imagenUrl = url, subiendoFoto = false) else it }
+                    )
+                }
+                avisar(R.string.mis_locales_foto_lista)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                actualizarEditor { it.copy(subiendoFoto = false) }
+                avisar(R.string.mis_locales_foto_error)
+            }
+        }
     }
 
     fun onCerrarEditor() = actualizar { if (it.editor?.guardando == true) it else it.copy(editor = null) }
@@ -100,7 +130,7 @@ class MisLocalesViewModel(
     fun onGuardar() {
         val actual = _uiState.value as? MisLocalesUiState.Success ?: return
         val editor = actual.editor ?: return
-        if (editor.guardando) return
+        if (editor.guardando || editor.subiendoFoto) return
         val (datos, errores) = validarLocal(editor.formulario, actual.categorias)
         if (datos == null) {
             actualizarEditor { it.copy(errores = errores) }
@@ -114,7 +144,11 @@ class MisLocalesViewModel(
                     val locales = (estado.locales.filterNot { it.id == guardado.id } + guardado).sortedBy { it.nombre.lowercase() }
                     // Un local recién creado queda elegido para seguir con su catálogo y promociones.
                     val seleccionado = if (editor.localId == null) guardado.id else estado.seleccionadoId ?: guardado.id
-                    estado.copy(locales = locales, seleccionadoId = seleccionado, editor = null)
+                    // Un local nuevo sigue abierto para agregarle la foto, que necesita su id.
+                    val siguiente = if (editor.localId == null) {
+                        EditorLocal(localId = guardado.id, formulario = guardado.aFormulario(), imagenUrl = guardado.imagenUrl)
+                    } else null
+                    estado.copy(locales = locales, seleccionadoId = seleccionado, editor = siguiente)
                 }
                 avisar(if (editor.localId == null) R.string.mi_local_creado else R.string.mi_local_guardado)
             } catch (cancelled: CancellationException) {
@@ -157,7 +191,12 @@ class MisLocalesViewModel(
 
     companion object {
         val Factory = viewModelFactory {
-            initializer { MisLocalesViewModel(AppContainer.misLocalesRepository, AppContainer.ubicacionRepository) }
+            initializer {
+                MisLocalesViewModel(
+                    AppContainer.misLocalesRepository, AppContainer.ubicacionRepository,
+                    AppContainer.fotosLocalRepository, AppContainer.preparadorFoto
+                )
+            }
         }
     }
 }

@@ -2,6 +2,16 @@ package com.cocinacapital.app.ui.oferente
 
 import androidx.annotation.StringRes
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.outlined.AddPhotoAlternate
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -114,6 +124,7 @@ fun MisLocalesScreen(snackbar: SnackbarHostState, viewModel: MisLocalesViewModel
                     categorias = state.categorias,
                     obteniendoUbicacion = ubicacion.cargando,
                     onUsarUbicacion = { viewModel.onUsarUbicacion(); ubicacion.solicitar() },
+                    onFotoElegida = viewModel::onFotoElegida,
                     onCambio = viewModel::onCambio,
                     onGuardar = viewModel::onGuardar,
                     onCerrar = viewModel::onCerrarEditor
@@ -170,7 +181,7 @@ private fun ListaLocales(
 private fun LocalItem(local: LocalGastronomico, categoria: String, onClick: () -> Unit) {
     ElevatedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Outlined.Storefront, null, Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
+            Miniatura(local.imagenUrl, Modifier.size(56.dp))
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(local.nombre, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
@@ -203,12 +214,65 @@ private fun LocalItem(local: LocalGastronomico, categoria: String, onClick: () -
     }
 }
 
+/** Foto del local o, si no tiene, el ícono de tienda sobre el color de fondo. */
+@Composable
+private fun Miniatura(url: String?, modifier: Modifier) {
+    Box(
+        modifier.clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surfaceVariant),
+        contentAlignment = Alignment.Center
+    ) {
+        if (url.isNullOrBlank()) {
+            Icon(Icons.Outlined.Storefront, null, Modifier.size(28.dp), tint = MaterialTheme.colorScheme.primary)
+        } else {
+            AsyncImage(model = url, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+        }
+    }
+}
+
+/** Portada que ven los consumidores en el Inicio, Explorar y el detalle (T-05). */
+@Composable
+private fun SeccionFoto(editor: EditorLocal, onFotoElegida: (String) -> Unit) {
+    val galeria = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        uri?.let { onFotoElegida(it.toString()) }
+    }
+    val guardado = editor.localId != null
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Box(Modifier.fillMaxWidth().aspectRatio(16f / 9f), contentAlignment = Alignment.Center) {
+            Miniatura(editor.imagenUrl, Modifier.fillMaxSize())
+            if (editor.subiendoFoto) {
+                Box(
+                    Modifier.fillMaxSize().clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.4f)),
+                    contentAlignment = Alignment.Center
+                ) { CircularProgressIndicator() }
+            }
+        }
+        if (guardado) {
+            OutlinedButton(
+                onClick = { galeria.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                enabled = !editor.subiendoFoto && !editor.guardando,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Outlined.AddPhotoAlternate, contentDescription = null)
+                Spacer(Modifier.size(8.dp))
+                Text(stringResource(if (editor.imagenUrl.isNullOrBlank()) R.string.mis_locales_foto_agregar else R.string.mis_locales_foto_cambiar))
+            }
+        } else {
+            Text(
+                stringResource(R.string.mis_locales_foto_despues),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
 @Composable
 private fun FormularioLocalView(
     editor: EditorLocal,
     categorias: List<Categoria>,
     obteniendoUbicacion: Boolean,
     onUsarUbicacion: () -> Unit,
+    onFotoElegida: (String) -> Unit,
     onCambio: (FormularioLocal.() -> FormularioLocal) -> Unit,
     onGuardar: () -> Unit,
     onCerrar: () -> Unit
@@ -238,6 +302,7 @@ private fun FormularioLocalView(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
+        SeccionFoto(editor, onFotoElegida)
         Campo(form.nombre, { v -> onCambio { copy(nombre = v) } }, R.string.mi_local_nombre, errores.nombre, MAX_NOMBRE)
         SelectorCategoria(categorias, form.categoriaId, errores.categoria) { id -> onCambio { copy(categoriaId = id) } }
         Campo(form.comuna, { v -> onCambio { copy(comuna = v) } }, R.string.mi_local_comuna, errores.comuna, MAX_COMUNA)
@@ -258,7 +323,7 @@ private fun FormularioLocalView(
 
         Button(
             onClick = onGuardar,
-            enabled = !editor.guardando,
+            enabled = !editor.guardando && !editor.subiendoFoto,
             modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 16.dp)
         ) {
             if (editor.guardando) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)

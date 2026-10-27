@@ -42,7 +42,7 @@ class DetallePromocionViewModel(
     fun actualizarVigencia() {
         mutable.update { actual ->
             if (actual is DetallePromocionUiState.Success) {
-                actual.copy(vigencia = actual.promocion.vigenciaParaDetalle(reloj.instant(), actual.cuposConfigurados))
+                actual.copy(vigencia = actual.promocion.vigenciaParaDetalle(reloj.instant(), actual.cuposConfigurados, actual.horarioConfigurado))
             } else actual
         }
     }
@@ -76,7 +76,7 @@ class DetallePromocionViewModel(
                     DetallePromocionUiState.Success(
                         promocion = promocion,
                         local = local,
-                        vigencia = promocion.vigenciaParaDetalle(reloj.instant(), detalle.cuposConfigurados),
+                        vigencia = promocion.vigenciaParaDetalle(reloj.instant(), detalle.cuposConfigurados, detalle.horarioConfigurado),
                         errorLocal = errorLocal,
                         cuposConfigurados = detalle.cuposConfigurados,
                         horarioConfigurado = detalle.horarioConfigurado

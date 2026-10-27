@@ -40,7 +40,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Muestra el splash de marca (T-09) y luego aplica el tema normal; debe ir antes de super.onCreate.
-        installSplashScreen()
+        // Se mantiene mientras se prepara el inicio, así no aparece una pantalla de carga con un tema
+        // distinto al elegido en Perfil (ese tema se lee de Room recién cuando termina la preparación).
+        installSplashScreen().setKeepOnScreenCondition { inicio.uiState.value == InicioUiState.Loading }
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {

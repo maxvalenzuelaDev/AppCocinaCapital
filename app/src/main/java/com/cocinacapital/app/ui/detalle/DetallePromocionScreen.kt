@@ -260,16 +260,16 @@ private fun PromocionContent(
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 Text(diasTexto(promocion, state.horarioConfigurado),
                     style = MaterialTheme.typography.bodyMedium)
-                val franja = promocion.franjaParaDetalle()
+                val franja = promocion.franjaParaDetalle(state.horarioConfigurado)
                 Text(when {
                     franja != null -> stringResource(R.string.detalle_promocion_franja,
                         franja.desde.format(formatoHoraPromocion), franja.hasta.format(formatoHoraPromocion))
-                    state.horarioConfigurado && !promocion.horarioPorConfirmar() && promocion.horaInicio == null && promocion.horaFin == null ->
+                    state.horarioConfigurado && !promocion.horarioPorConfirmar(true) && promocion.horaInicio == null && promocion.horaFin == null ->
                         stringResource(R.string.detalle_promocion_horario_del_local)
                     else -> stringResource(R.string.detalle_promocion_horario_pendiente)
                 }, style = MaterialTheme.typography.bodyMedium)
                 if (promocion.franjaValida() == null && franja != null ||
-                    promocion.diasSemana == null && promocion.diasParaDetalle() != null) {
+                    promocion.diasSemana == null && promocion.diasParaDetalle(state.horarioConfigurado) != null) {
                     Text(stringResource(R.string.detalle_promocion_horario_descripcion),
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
@@ -371,8 +371,8 @@ private val formatoHoraPromocion = DateTimeFormatter.ofPattern("HH:mm", LocaleCL
 
 @Composable
 private fun diasTexto(promocion: Promocion, camposPresentes: Boolean): String {
-    val dias = promocion.diasParaDetalle()
-    if (dias == null) return stringResource(if (camposPresentes && !promocion.horarioPorConfirmar()) R.string.detalle_promocion_todos_dias
+    val dias = promocion.diasParaDetalle(camposPresentes)
+    if (dias == null) return stringResource(if (camposPresentes && !promocion.horarioPorConfirmar(true)) R.string.detalle_promocion_todos_dias
         else R.string.detalle_promocion_dias_pendientes)
     if (dias.isEmpty() || dias.any { it !in 1..7 }) return stringResource(R.string.detalle_promocion_dias_pendientes)
     val nombres = dias.distinct().sorted().joinToString(", ") {

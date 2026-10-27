@@ -38,7 +38,10 @@ abstract class CargaExperienciasViewModel<T>(private val consultar: suspend () -
                 currentCoroutineContext().ensureActive()
                 ExperienciasUiState.Error
             } catch (error: CancellationException) {
-                throw error
+                // Si se canceló la pantalla, se propaga; una cancelación interna de la consulta es un error
+                // recuperable y debe mostrar "Reintentar" en vez de quedar cargando para siempre.
+                currentCoroutineContext().ensureActive()
+                ExperienciasUiState.Error
             } catch (_: Exception) {
                 ExperienciasUiState.Error
             }

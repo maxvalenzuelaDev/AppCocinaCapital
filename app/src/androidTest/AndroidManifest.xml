@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Pruebas visuales de HU-12 y HU-09. Se declaran aparte para no reemplazar el runner del módulo
+    (cada una lo cambiaba por la suya). Se ejecutan por su nombre, por ejemplo:
+    adb shell am instrument -w com.cocinacapital.app.test/com.cocinacapital.app.detalle.DetallePromocionInstrumentacion
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <instrumentation
+        android:name="com.cocinacapital.app.detalle.DetallePromocionInstrumentacion"
+        android:targetPackage="com.cocinacapital.app" />
+    <instrumentation
+        android:name="com.cocinacapital.app.experiencias.ExperienciasInstrumentacion"
+        android:targetPackage="com.cocinacapital.app" />
+</manifest>

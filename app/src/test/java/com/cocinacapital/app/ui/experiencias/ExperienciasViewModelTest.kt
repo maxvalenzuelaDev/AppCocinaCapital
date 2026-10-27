@@ -56,9 +56,9 @@ class ExperienciasViewModelTest {
         gate.complete(emptyList()); runCurrent()
         assertEquals(listOf(experiencia), (vm.uiState.value as ExperienciasUiState.Success).datos)
     }
-    @Test fun `cancelar una carga no muestra un error de conexion`() = runTest {
+    @Test fun `una cancelacion interna de la consulta permite reintentar en vez de quedar cargando`() = runTest {
         val vm = ExperienciasViewModel(Repo().apply { lista = { throw CancellationException() } })
-        runCurrent(); assertEquals(ExperienciasUiState.Loading, vm.uiState.value)
+        runCurrent(); assertEquals(ExperienciasUiState.Error, vm.uiState.value)
     }
     @Test fun `detalle conserva horario y precio propios de la experiencia`() = runTest {
         val repo = Repo().apply { detalle = { id -> if (id == "e") experiencia else null } }

@@ -39,7 +39,8 @@ class InicioViewModel(private val preparar: suspend () -> Unit) : ViewModel() {
                 currentCoroutineContext().ensureActive()
                 InicioUiState.Error
             } catch (error: CancellationException) { throw error
-            } catch (_: Exception) { InicioUiState.Error }
+            // También errores de inicialización del SDK o de Room (Error, no Exception): se ofrece reintentar.
+            } catch (_: Throwable) { InicioUiState.Error }
         }
     }
     companion object {

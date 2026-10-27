@@ -54,6 +54,24 @@ class DisponibilidadPromocionTest {
         assertEquals(EstadoVigenciaPromocion.FINALIZADA, sinCupos.vigenciaParaDetalle(Instant.parse("2026-11-02T18:00:00Z"), true).estado)
         assertEquals(EstadoVigenciaPromocion.NO_DISPONIBLE, sinCupos.copy(activa = false).vigenciaParaDetalle(Instant.parse("2026-10-27T18:00:00Z"), true).estado)
     }
+    @Test fun `un no suelto como No acumulable no anula el horario de la descripcion`() {
+        val dato = promo.copy(descripcion = "Válido de lunes a viernes entre 15:00 y 18:00. No acumulable con otras promociones.")
+        assertEquals("15:00", dato.franjaParaDetalle()!!.desde.toString())
+        assertEquals(listOf(1, 2, 3, 4, 5), dato.diasParaDetalle())
+        assertFalse(dato.horarioPorConfirmar())
+    }
+    @Test fun `con columnas de HU-27 los dias y horas vacios significan sin restriccion y no se lee el texto`() {
+        val dato = promo.copy(descripcion = "Almuerzo del lunes, retiro desde 12:30 de 9:00 a 10:00")
+        val ahora = Instant.parse("2026-10-27T18:00:00Z")
+        assertNull(dato.franjaParaDetalle(horarioConfigurado = true))
+        assertNull(dato.diasParaDetalle(horarioConfigurado = true))
+        assertFalse(dato.horarioPorConfirmar(horarioConfigurado = true))
+        assertEquals(EstadoVigenciaPromocion.VIGENTE, dato.vigenciaParaDetalle(ahora, true, horarioConfigurado = true).estado)
+        val conFranja = dato.copy(horaInicio = "15:00", horaFin = "18:00")
+        assertEquals(EstadoVigenciaPromocion.VIGENTE, conFranja.vigenciaParaDetalle(ahora, true, horarioConfigurado = true).estado)
+        assertEquals(EstadoVigenciaPromocion.FUERA_DE_HORARIO,
+            conFranja.vigenciaParaDetalle(Instant.parse("2026-10-27T23:00:00Z"), true, horarioConfigurado = true).estado)
+    }
     @Test fun `no interpreta excepciones ni notacion ambigua de doce horas como disponibilidad`() {
         for (texto in listOf("No válido entre 15:00 y 18:00", "De 3:00 a 6:00 pm", "Excepto de lunes a jueves")) {
             val dato = promo.copy(descripcion = texto)

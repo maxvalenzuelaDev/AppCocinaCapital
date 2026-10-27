@@ -26,8 +26,12 @@ fun Promocion.franjaValida(): FranjaPromocion? {
     return FranjaPromocion(inicio, fin).takeIf { inicio.isBefore(fin) }
 }
 
-/** Recupera solo una franja explícita de los registros anteriores a HU-27. No deduce horarios vagos. */
-fun Promocion.franjaParaDetalle(): FranjaPromocion? {
+/**
+ * Franja de uso. Con las columnas de HU-27 ([horarioConfigurado]) manda lo que guardó el oferente;
+ * solo en bases anteriores se recupera una franja explícita de la descripción, sin deducir horarios vagos.
+ */
+fun Promocion.franjaParaDetalle(horarioConfigurado: Boolean = false): FranjaPromocion? {
+    if (horarioConfigurado) return franjaValida()
     franjaValida()?.let { return it }
     if (horaInicio != null || horaFin != null) return null
     if (descripcion.restriccionAmbigua()) return null
@@ -38,7 +42,9 @@ fun Promocion.franjaParaDetalle(): FranjaPromocion? {
     return copy(horaInicio = desde.padStart(5, '0'), horaFin = hasta.padStart(5, '0')).franjaValida()
 }
 
-fun Promocion.diasParaDetalle(): List<Int>? {
+/** Días de uso; igual que la franja, el texto solo se lee en bases sin las columnas de HU-27. */
+fun Promocion.diasParaDetalle(horarioConfigurado: Boolean = false): List<Int>? {
+    if (horarioConfigurado) return diasSemana
     diasSemana?.let { return it }
     if (descripcion.restriccionAmbigua()) return null
     val nombres = listOf("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo")
@@ -54,12 +60,19 @@ fun Promocion.diasParaDetalle(): List<Int>? {
 }
 
 
+/**
+ * Texto con excepciones o con horas de 12 h: no se interpreta. Un "no" suelto (por ejemplo "No acumulable")
+ * no cuenta; solo los que niegan el horario ("no válido", "no aplica", "no rige", "no incluye").
+ */
 private fun String.restriccionAmbigua(): Boolean =
-    Regex("""\b(no|excepto|exceptuando|salvo|am|pm)\b""", RegexOption.IGNORE_CASE).containsMatchIn(this)
+    Regex("""\b(excepto|exceptuando|salvo|am|pm)\b|\bno\s+(aplica|rige|incluye|es\s+v[aá]lid[oa]|v[aá]lid[oa])\b""", RegexOption.IGNORE_CASE)
+        .containsMatchIn(this)
 
-fun Promocion.horarioPorConfirmar(): Boolean {
+fun Promocion.horarioPorConfirmar(horarioConfigurado: Boolean = false): Boolean {
     if (diasSemana != null && (diasSemana.isEmpty() || diasSemana.any { it !in 1..7 })) return true
     if ((horaInicio != null || horaFin != null) && franjaValida() == null) return true
+    // Con columnas de HU-27, NULL significa "todos los días" o "todo el horario": nada que confirmar.
+    if (horarioConfigurado) return false
     if (horaInicio == null && horaFin == null && franjaParaDetalle() == null &&
         Regex("""\d{1,2}:\d{2}""").containsMatchIn(descripcion)) return true
     return diasSemana == null && diasParaDetalle() == null &&

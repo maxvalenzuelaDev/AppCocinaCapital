@@ -34,16 +34,16 @@ private fun String?.aInstante(): Instant? =
         runCatching { OffsetDateTime.parse(it).toInstant() }.getOrNull()
     }
 
-fun Promocion.vigenciaParaDetalle(ahora: Instant, cuposConfigurados: Boolean): VigenciaPromocion {
+fun Promocion.vigenciaParaDetalle(ahora: Instant, cuposConfigurados: Boolean, horarioConfigurado: Boolean = false): VigenciaPromocion {
     val vigencia = vigenciaEn(ahora)
     if (vigencia.estado != EstadoVigenciaPromocion.VIGENTE) return vigencia
     val cupos = cuposParaDetalle(cuposConfigurados)
     if (cupos is CuposPromocion.Disponibles && cupos.cantidad == 0)
         return vigencia.copy(estado = EstadoVigenciaPromocion.SIN_CUPOS)
-    if (horarioPorConfirmar()) return vigencia.copy(estado = EstadoVigenciaPromocion.POR_CONFIRMAR)
+    if (horarioPorConfirmar(horarioConfigurado)) return vigencia.copy(estado = EstadoVigenciaPromocion.POR_CONFIRMAR)
     val local = ahora.atZone(java.time.ZoneId.of("America/Santiago"))
-    val dias = diasParaDetalle()
-    val franja = franjaParaDetalle()
+    val dias = diasParaDetalle(horarioConfigurado)
+    val franja = franjaParaDetalle(horarioConfigurado)
     if (dias != null && dias.isNotEmpty() && dias.all { it in 1..7 } && local.dayOfWeek.value !in dias ||
         franja != null && (local.toLocalTime().isBefore(franja.desde) || !local.toLocalTime().isBefore(franja.hasta))) {
         return vigencia.copy(estado = EstadoVigenciaPromocion.FUERA_DE_HORARIO)

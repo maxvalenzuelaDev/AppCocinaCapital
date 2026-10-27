@@ -7,7 +7,7 @@
 -- 2. Ejecutar en el SQL Editor, cambiando el correo:
 update public.perfiles
 set rol = 'oferente'
-where id = (select id from auth.users where email = 'oferente.demo@cocinacapital.cl');
+where id = (select id from auth.users where email = 'oferente@gmail.com');
 
 -- 3. (Opcional) Asignarle un local que ya existe, en vez de que lo cree desde la app:
 -- update public.locales
@@ -23,6 +23,6 @@ order by u.email;
 
 -- Para volver a consumidor:
 -- update public.perfiles set rol = 'consumidor'
--- where id = (select id from auth.users where email = 'oferente.demo@cocinacapital.cl');
+-- where id = (select id from auth.users where email = 'oferente@gmail.com');
 
 -- Si la cuenta tenía la sesión abierta, debe cerrar sesión y volver a entrar para que la app vea el rol.

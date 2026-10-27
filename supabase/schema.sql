@@ -39,7 +39,15 @@ create table if not exists promociones (
   descuento_porcentaje int not null check (descuento_porcentaje between 1 and 100),
   vigente_desde timestamptz not null default now(),
   vigente_hasta timestamptz not null,
-  activa boolean not null default true
+  activa boolean not null default true,
+  -- HU-27: condiciones, días (1 = lunes … 7 = domingo), franja horaria y cupos (null = sin límite).
+  -- Restricciones, trigger de cupos y permisos en migraciones/2026-10-27_hu27_*
+  condiciones text not null default '',
+  dias_semana smallint[],
+  hora_inicio time,
+  hora_fin time,
+  cupos_total int,
+  cupos_disponibles int
 );
 
 -- Seguridad (RLS): lectura pública del catálogo; escritura solo desde el panel/servicio.

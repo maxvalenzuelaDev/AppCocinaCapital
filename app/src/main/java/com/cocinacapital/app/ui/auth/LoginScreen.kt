@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
+import androidx.annotation.StringRes
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -61,7 +62,7 @@ import com.cocinacapital.app.R
             Column(Modifier.fillMaxWidth().padding(vertical = 100.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 CircularProgressIndicator(Modifier.size(28.dp), color = MaterialTheme.colorScheme.onSurface, strokeWidth = 2.dp)
                 Spacer(Modifier.height(20.dp))
-                Text("Preparando tu mesa…", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.login_preparando), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else {
             key(state.screen) {
@@ -74,7 +75,7 @@ import com.cocinacapital.app.R
         Spacer(Modifier.height(36.dp))
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         Spacer(Modifier.height(21.dp))
-        Text("DESCUBRE  ·  ELIGE  ·  DISFRUTA", fontSize = 10.sp, letterSpacing = 2.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.login_lema), fontSize = 10.sp, letterSpacing = 2.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(28.dp))
     }
 }
@@ -93,9 +94,9 @@ import com.cocinacapital.app.R
         }
         Spacer(Modifier.width(13.dp))
         Column {
-            Text("COCINA CAPITAL", fontWeight = FontWeight.Bold, fontSize = 15.sp, letterSpacing = 1.5.sp, color = MaterialTheme.colorScheme.onSurface)
+            Text(stringResource(R.string.marca_nombre), fontWeight = FontWeight.Bold, fontSize = 15.sp, letterSpacing = 1.5.sp, color = MaterialTheme.colorScheme.onSurface)
             Spacer(Modifier.height(4.dp))
-            Text("GASTRONOMÍA LOCAL", fontSize = 9.sp, letterSpacing = 2.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.marca_bajada), fontSize = 9.sp, letterSpacing = 2.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -124,22 +125,22 @@ import com.cocinacapital.app.R
     // Primer uso en este teléfono: bienvenida; si ya hubo sesión: "volver a verte".
     val (title, subtitle) = if (state.firstVisit) R.string.login_titulo_bienvenida to R.string.login_subtitulo_bienvenida
         else R.string.login_titulo_regreso to R.string.login_subtitulo_regreso
-    Heading("TU LUGAR EN LA MESA", stringResource(title), stringResource(subtitle))
-    Field("Correo electrónico", "tu@correo.com", email, "email", !state.busy, KeyboardType.Email) {
+    Heading(stringResource(R.string.login_kicker), stringResource(title), stringResource(subtitle))
+    Field(stringResource(R.string.campo_correo), stringResource(R.string.campo_correo_ejemplo), email, "email", !state.busy, KeyboardType.Email) {
         email = it; model.dismissError()
     }
     Spacer(Modifier.height(19.dp))
-    PasswordField("Contraseña", password, "password", !state.busy, onDone = submit) {
+    PasswordField(stringResource(R.string.campo_contrasena), password, "password", !state.busy, onDone = submit) {
         password = it; model.dismissError()
     }
     Feedback(state)
     Spacer(Modifier.height(26.dp))
-    PrimaryButton("Iniciar sesión", "loginButton", state.busy, submit)
+    PrimaryButton(stringResource(R.string.login_iniciar), "loginButton", state.busy, submit)
     Spacer(Modifier.height(20.dp))
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-        Text("¿No tienes cuenta?", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.login_sin_cuenta), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         TextButton(onClick = onRegisterClick, enabled = !state.busy, modifier = Modifier.testTag("openRegister")) {
-            Text("Crear cuenta", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.login_crear_cuenta), fontSize = 13.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -159,7 +160,7 @@ import com.cocinacapital.app.R
 }
 
 @Composable private fun PasswordField(
-    label: String, value: String, tag: String, enabled: Boolean, hint: String = "Tu contraseña",
+    label: String, value: String, tag: String, enabled: Boolean, hint: String = stringResource(R.string.campo_contrasena_ejemplo),
     onDone: (() -> Unit)? = null, onChange: (String) -> Unit
 ) {
     var visible by remember { mutableStateOf(false) }
@@ -173,7 +174,7 @@ import com.cocinacapital.app.R
             keyboardActions = KeyboardActions(onDone = { onDone?.invoke() }),
             trailingIcon = {
                 TextButton(onClick = { visible = !visible }, enabled = enabled, modifier = Modifier.testTag("${tag}Toggle")) {
-                    Text(if (visible) "Ocultar" else "Mostrar", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(if (visible) R.string.contrasena_ocultar else R.string.contrasena_mostrar), fontSize = 11.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                 }
             }, colors = fieldColors(), textStyle = LocalTextStyle.current.copy(fontSize = 15.sp))
     }
@@ -189,7 +190,7 @@ import com.cocinacapital.app.R
     unfocusedTextColor = MaterialTheme.colorScheme.onSurface
 )
 
-private data class FeedbackMessage(val text: String, val isError: Boolean)
+private data class FeedbackMessage(@StringRes val textoRes: Int, val isError: Boolean)
 
 /** El mensaje aparece y se oculta animado (T-24); AnimatedContent mantiene visible el anterior mientras sale. */
 @Composable private fun Feedback(state: AuthUiState) {
@@ -207,7 +208,7 @@ private data class FeedbackMessage(val text: String, val isError: Boolean)
             Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(feedbackBackground).padding(14.dp)) {
                 Text(if (message.isError) "!" else "i", fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace, color = feedbackContent)
                 Spacer(Modifier.width(10.dp))
-                Text(message.text, fontSize = 12.sp, lineHeight = 18.sp, color = feedbackContent,
+                Text(stringResource(message.textoRes), fontSize = 12.sp, lineHeight = 18.sp, color = feedbackContent,
                     modifier = Modifier.testTag(if (message.isError) "errorMessage" else "noticeMessage"))
             }
         }

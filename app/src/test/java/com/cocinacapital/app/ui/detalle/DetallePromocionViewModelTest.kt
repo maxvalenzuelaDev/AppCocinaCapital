@@ -16,9 +16,9 @@ import org.junit.Assert.*
 @OptIn(ExperimentalCoroutinesApi::class)
 class DetallePromocionViewModelTest {
     private val dispatcher = StandardTestDispatcher()
-    private val ahora = Instant.parse("2026-10-27T15:00:00Z")
+    private val ahora = Instant.parse("2026-10-27T18:00:00Z")
     private val promo = Promocion("p", "l", "Oferta", descuentoPorcentaje = 25,
-        vigenteDesde = "2026-10-27T14:00:00Z", vigenteHasta = "2026-10-27T16:00:00Z",
+        vigenteDesde = "2026-10-27T17:00:00Z", vigenteHasta = "2026-10-27T20:00:00Z",
         condiciones = "Consumo en local", horaInicio = "15:00:00", horaFin = "18:00:00", cuposTotal = 7, cuposDisponibles = 7)
     private val local = LocalGastronomico("l", "Local", "c", "Viña del Mar", horario = "12:00–23:00")
     private class Reloj(var ahora: Instant) : Clock() {

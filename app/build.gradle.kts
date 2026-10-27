@@ -20,6 +20,7 @@ android {
 
     defaultConfig {
         applicationId = "com.cocinacapital.app"
+        testInstrumentationRunner = "com.cocinacapital.app.detalle.DetallePromocionInstrumentacion"
         minSdk = 26 // supabase-kt exige API 26 como mínimo
         targetSdk = 36
         versionCode = 1

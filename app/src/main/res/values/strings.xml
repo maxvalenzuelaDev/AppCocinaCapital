@@ -65,7 +65,7 @@
     <string name="home_distancia_pendiente">Distancia no disponible</string>
     <string name="home_descuento">-%1$d%%</string>
     <string name="home_vigencia_hasta">Hasta %1$s</string>
-    <string name="home_vigencia_pendiente">Vigencia por confirmar</string>
+    <string name="home_vigencia_pendiente">Disponibilidad por confirmar</string>
     <string name="acceso_sin_configuracion">El servicio de acceso todavía no está disponible.</string>
     <string name="nav_inicio">Inicio</string>
     <string name="nav_explorar">Explorar</string>
@@ -82,7 +82,7 @@
     <string name="detalle_promocion_descuento">%1$d%% de descuento</string>
     <string name="detalle_promocion_descripcion_pendiente">Descripción no informada.</string>
     <string name="detalle_promocion_condiciones">Condiciones de uso</string>
-    <string name="detalle_promocion_condiciones_pendientes">Condiciones no informadas.</string>
+    <string name="detalle_promocion_condiciones_pendientes">El comercio no ha indicado condiciones adicionales.</string>
     <string name="detalle_promocion_cuando">Cuándo usarla</string>
     <string name="detalle_promocion_vigencia">Vigencia</string>
     <string name="detalle_promocion_desde">Desde: %1$s</string>
@@ -104,7 +104,7 @@
     <string name="detalle_promocion_programada">Próximamente</string>
     <string name="detalle_promocion_finalizada">Finalizada</string>
     <string name="detalle_promocion_no_disponible">No disponible</string>
-    <string name="detalle_promocion_vigencia_pendiente">Vigencia por confirmar</string>
+    <string name="detalle_promocion_vigencia_pendiente">Disponibilidad por confirmar</string>
     <plurals name="detalle_promocion_cantidad_cupos">
         <item quantity="one">%1$s cupo disponible</item>
         <item quantity="other">%1$s cupos disponibles</item>
@@ -115,4 +115,8 @@
     <string name="detalle_promocion_dias_pendientes">Días de uso por confirmar.</string>
     <string name="detalle_promocion_franja">De %1$s a %2$s</string>
     <string name="detalle_promocion_horario_del_local">Durante el horario de atención del local.</string>
+    <string name="inicio_preparando">Preparando Cocina Capital…</string>
+    <string name="inicio_error">No pudimos preparar la aplicación. Vuelve a intentarlo.</string>
+    <string name="detalle_promocion_fuera_horario">Fuera del horario de uso</string>
+    <string name="detalle_promocion_horario_descripcion">Horario indicado en la descripción de la promoción.</string>
 </resources>

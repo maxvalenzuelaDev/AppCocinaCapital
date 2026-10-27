@@ -56,7 +56,22 @@ object AppContainer {
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     fun init(context: Context) {
         appContext = context.applicationContext
-        if (SupabaseProvider.isConfigured) applicationScope.launch {
+    }
+
+    /** Construye SDK y almacenamiento fuera del hilo que dibuja la primera pantalla. */
+    fun prepararInicio() {
+        if (!SupabaseProvider.isConfigured) return
+        authRepository
+        preferenciasRepository
+        historialSesion
+        ubicacionRepository
+        rutaRepository
+    }
+
+    private var sesionJob: Job? = null
+    fun observarSesion() {
+        if (sesionJob != null || !SupabaseProvider.isConfigured) return
+        sesionJob = applicationScope.launch {
             authRepository.sessions.identidadesUbicacion().collect {
                 ubicacionRepository.limpiar()
                 rutaRepository.limpiar()

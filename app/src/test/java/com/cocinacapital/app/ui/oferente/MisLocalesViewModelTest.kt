@@ -3,9 +3,11 @@ package com.cocinacapital.app.ui.oferente
 import com.cocinacapital.app.R
 import com.cocinacapital.app.data.location.EstadoUbicacion
 import com.cocinacapital.app.data.location.UbicacionRepository
+import com.cocinacapital.app.data.local.PreparadorFoto
 import com.cocinacapital.app.data.model.Categoria
 import com.cocinacapital.app.data.model.LocalGastronomico
 import com.cocinacapital.app.data.repository.DatosLocal
+import com.cocinacapital.app.data.repository.FotosLocalRepository
 import com.cocinacapital.app.data.repository.MisLocalesRepository
 import com.cocinacapital.location.LocationAccess
 import com.cocinacapital.location.LocationProblem
@@ -65,6 +67,23 @@ class MisLocalesViewModelTest {
 
     private val ubicacion = FakeUbicacion()
 
+    private class FakeFotos(var falla: Boolean = false) : FotosLocalRepository {
+        val subidas = mutableListOf<Triple<String, ByteArray, String?>>()
+        override suspend fun subirPortada(localId: String, jpeg: ByteArray, anterior: String?): String {
+            if (falla) error("sin permiso")
+            subidas += Triple(localId, jpeg, anterior)
+            return "https://ejemplo.supabase.co/storage/v1/object/public/locales/$localId/portada-${subidas.size}.jpg"
+        }
+    }
+
+    private class FakePreparador : PreparadorFoto {
+        val leidas = mutableListOf<String>()
+        override suspend fun jpeg(uri: String): ByteArray { leidas += uri; return byteArrayOf(1, 2, 3) }
+    }
+
+    private val fotos = FakeFotos()
+    private val preparador = FakePreparador()
+
     private fun fix(ts: Long, lat: Double = -33.04, lon: Double = -71.62) =
         UserPosition(lat, lon, 18f, ts, LocationAccess.PRECISE, fromCache = false)
 
@@ -77,7 +96,7 @@ class MisLocalesViewModelTest {
     @BeforeTest fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
     @AfterTest fun tearDown() = Dispatchers.resetMain()
 
-    private fun modelo(repo: FakeRepo) = MisLocalesViewModel(repo, ubicacion)
+    private fun modelo(repo: FakeRepo, fotos: FakeFotos = this.fotos) = MisLocalesViewModel(repo, ubicacion, fotos, preparador)
     private fun MisLocalesViewModel.success() = uiState.value as MisLocalesUiState.Success
     private fun MisLocalesViewModel.editor() = success().editor!!
 
@@ -135,7 +154,7 @@ class MisLocalesViewModelTest {
         assertTrue(repo.guardados.isEmpty())
     }
 
-    @Test fun `crea otro local, vuelve a la lista y lo deja elegido`() = runTest {
+    @Test fun `crea otro local, lo deja elegido y abierto para agregarle foto`() = runTest {
         val repo = FakeRepo(listOf(cafe), categorias = categorias)
         val model = modelo(repo)
         model.onNuevo()
@@ -149,7 +168,7 @@ class MisLocalesViewModelTest {
         assertEquals("Sushi Norte", datos.nombre)
         assertNull(datos.horario)
         assertEquals(15000L, datos.ticketPromedioPersona)
-        assertNull(model.success().editor)
+        assertEquals("nuevo-1", model.editor().localId)
         assertEquals(listOf("Café Cerro Alegre", "Sushi Norte"), model.success().locales.map { it.nombre })
         assertEquals("nuevo-1", model.success().seleccionadoId)
         assertEquals(R.string.mi_local_creado, model.mensajes.first())
@@ -235,5 +254,40 @@ class MisLocalesViewModelTest {
         ubicacion.estado.value = EstadoUbicacion(problema = LocationProblem.PERMISSION_REQUIRED)
         ubicacion.estado.value = EstadoUbicacion(posicion = fix(ts = 10))
         assertNull(model.editor().formulario.latitud)
+    }
+
+    // ---------------- T-05: foto de portada ----------------
+
+    @Test fun `sube la foto elegida y la muestra en el formulario y en la lista`() = runTest {
+        val sushiConFoto = sushi.copy(imagenUrl = "https://ejemplo.supabase.co/storage/v1/object/public/locales/local-2/vieja.jpg")
+        val model = modelo(FakeRepo(listOf(cafe, sushiConFoto), categorias = categorias))
+        model.onEditar(sushiConFoto)
+        model.onFotoElegida("content://media/picker/1")
+        assertEquals(listOf("content://media/picker/1"), preparador.leidas)
+        val (localId, _, anterior) = fotos.subidas.single()
+        assertEquals("local-2", localId)
+        assertEquals(sushiConFoto.imagenUrl, anterior)
+        val url = model.editor().imagenUrl!!
+        assertTrue(url.endsWith("local-2/portada-1.jpg"))
+        assertFalse(model.editor().subiendoFoto)
+        assertEquals(url, model.success().locales.first { it.id == "local-2" }.imagenUrl)
+        assertEquals(R.string.mis_locales_foto_lista, model.mensajes.first())
+    }
+
+    @Test fun `un local sin guardar no puede subir foto`() {
+        val model = modelo(FakeRepo(categorias = categorias))
+        model.onNuevo()
+        model.onFotoElegida("content://media/picker/1")
+        assertTrue(fotos.subidas.isEmpty())
+        assertNull(model.editor().imagenUrl)
+    }
+
+    @Test fun `si falla la subida conserva la foto anterior y avisa`() = runTest {
+        val model = modelo(FakeRepo(listOf(cafe), categorias = categorias), FakeFotos(falla = true))
+        model.onEditar(cafe)
+        model.onFotoElegida("content://media/picker/1")
+        assertNull(model.editor().imagenUrl)
+        assertFalse(model.editor().subiendoFoto)
+        assertEquals(R.string.mis_locales_foto_error, model.mensajes.first())
     }
 }

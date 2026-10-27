@@ -5,7 +5,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-data class LoginUser(val id: String, val email: String?)
+/** Rol de la cuenta (HU-04). Toda cuenta es consumidora salvo que Supabase la marque como oferente. */
+enum class Rol { CONSUMIDOR, OFERENTE }
+
+data class LoginUser(val id: String, val email: String?, val rol: Rol = Rol.CONSUMIDOR)
 
 sealed interface LoginSession {
     data object Initializing : LoginSession

@@ -12,6 +12,9 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import java.io.IOException
 
 /** Recibe el cliente compartido de la aplicación, con Auth instalado. */
@@ -65,7 +68,18 @@ class SupabaseAuthGateway(client: SupabaseClient) : AuthGateway {
     }
 }
 
-private fun UserInfo.toLoginUser() = LoginUser(id, email)
+private fun UserInfo.toLoginUser() = LoginUser(id, email, rolDesde(appMetadata))
+
+/**
+ * El rol se lee de `app_metadata`, que solo se puede modificar desde Supabase (no desde la app),
+ * así un usuario no puede convertirse en oferente por su cuenta. Su origen es la tabla `perfiles`
+ * (T-04), que lo copia ahí con un trigger. Ver supabase/asignar_oferente.sql.
+ */
+internal fun rolDesde(appMetadata: JsonObject?): Rol =
+    when ((appMetadata?.get("rol") as? JsonPrimitive)?.contentOrNull?.trim()?.lowercase()) {
+        "oferente" -> Rol.OFERENTE
+        else -> Rol.CONSUMIDOR
+    }
 
 private fun SessionStatus.toLoginSession(): LoginSession = when (this) {
     SessionStatus.Initializing -> LoginSession.Initializing

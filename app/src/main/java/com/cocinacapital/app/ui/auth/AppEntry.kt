@@ -19,7 +19,9 @@ import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cocinacapital.app.data.remote.SupabaseProvider
+import com.cocinacapital.app.data.auth.Rol
 import com.cocinacapital.app.ui.navigation.MainScaffold
+import com.cocinacapital.app.ui.oferente.OferenteScaffold
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -75,8 +77,19 @@ fun AppEntry(onRegisterRequested: (() -> Unit)? = null) {
     }
     // Muestra el login, el registro o la pantalla principal.
     when {
+        // HU-04: la navegación y las opciones dependen del rol de la cuenta.
         state.screen == AuthScreen.SESSION -> {
-            androidx.compose.runtime.key(state.user?.id) { MainScaffold() }
+            androidx.compose.runtime.key(state.user?.id) {
+                val user = state.user
+                if (user?.rol == Rol.OFERENTE) {
+                    OferenteScaffold(
+                        usuarioId = user.id,
+                        correo = user.email,
+                        cerrandoSesion = state.busy,
+                        onCerrarSesion = model::logout
+                    )
+                } else MainScaffold()
+            }
         }
 
         mostrarRegistro -> {

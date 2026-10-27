@@ -72,7 +72,8 @@ private fun UserInfo.toLoginUser() = LoginUser(id, email, rolDesde(appMetadata))
 
 /**
  * El rol se lee de `app_metadata`, que solo se puede modificar desde Supabase (no desde la app),
- * así un usuario no puede convertirse en oferente por su cuenta. Ver supabase/migraciones (HU-04).
+ * así un usuario no puede convertirse en oferente por su cuenta. Su origen es la tabla `perfiles`
+ * (T-04), que lo copia ahí con un trigger. Ver supabase/asignar_oferente.sql.
  */
 internal fun rolDesde(appMetadata: JsonObject?): Rol =
     when ((appMetadata?.get("rol") as? JsonPrimitive)?.contentOrNull?.trim()?.lowercase()) {

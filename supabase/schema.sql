@@ -18,7 +18,8 @@ create table if not exists locales (
   descripcion text not null default '',
   direccion text,
   horario text,                           -- texto libre, ej: 'Lun a Jue 12:00–22:00 · Vie y Sáb 12:00–00:00'
-  ticket_promedio_persona bigint check (ticket_promedio_persona > 0) -- CLP por persona, declarado por el comercio; null si no está informado
+  ticket_promedio_persona bigint check (ticket_promedio_persona > 0), -- CLP por persona, declarado por el comercio; null si no está informado
+  oferente_id uuid references auth.users(id) on delete set null -- dueño del local (T-04); perfiles y políticas en migraciones/2026-10-26_t04_*
 );
 
 create table if not exists platos (

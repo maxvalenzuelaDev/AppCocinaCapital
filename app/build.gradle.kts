@@ -50,6 +50,7 @@ dependencies {
     implementation(project(":location"))
     // --- AndroidX / Compose ---
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.splashscreen) // pantalla de inicio (T-09)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)    // collectAsStateWithLifecycle
     implementation(libs.androidx.lifecycle.viewmodel.compose)  // viewModel()

@@ -20,7 +20,11 @@ import com.cocinacapital.app.data.remote.SupabaseProvider
 import com.cocinacapital.app.data.repository.ExperienciasRepository
 import com.cocinacapital.app.data.repository.FakeExperienciasRepository
 import com.cocinacapital.app.data.repository.SupabaseExperienciasRepository
+import com.cocinacapital.app.data.local.AndroidPreparadorFoto
+import com.cocinacapital.app.data.local.PreparadorFoto
 import com.cocinacapital.app.data.repository.CatalogoRepository
+import com.cocinacapital.app.data.repository.FotosLocalRepository
+import com.cocinacapital.app.data.repository.SupabaseFotosLocalRepository
 import com.cocinacapital.app.data.repository.DetalleLocalRepository
 import com.cocinacapital.app.data.repository.DetallePromocionRepository
 import com.cocinacapital.app.data.repository.FakeDetallePromocionRepository
@@ -129,6 +133,10 @@ object AppContainer {
     // ---- Oferente (HU-25 a HU-27): sus locales, protegidos por las políticas de la migración T-04 ----
     val misLocalesRepository: MisLocalesRepository by lazy { SupabaseMisLocalesRepository(SupabaseProvider.client) }
     val catalogoRepository: CatalogoRepository by lazy { SupabaseCatalogoRepository(SupabaseProvider.client) }
+
+    // ---- Fotos de los locales (T-05): bucket `locales` de Supabase Storage ----
+    val fotosLocalRepository: FotosLocalRepository by lazy { SupabaseFotosLocalRepository(SupabaseProvider.client) }
+    val preparadorFoto: PreparadorFoto by lazy { AndroidPreparadorFoto(appContext) }
     val promocionesOferenteRepository: PromocionesOferenteRepository by lazy {
         SupabasePromocionesOferenteRepository(SupabaseProvider.client)
     }

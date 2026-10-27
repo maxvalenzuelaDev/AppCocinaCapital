@@ -22,6 +22,8 @@ import com.cocinacapital.app.data.repository.FakeDetalleLocalRepository
 import com.cocinacapital.app.data.repository.FakeHomeRepository
 import com.cocinacapital.app.data.repository.FavoritosRepository
 import com.cocinacapital.app.data.repository.HomeRepository
+import com.cocinacapital.app.data.repository.MiLocalRepository
+import com.cocinacapital.app.data.repository.SupabaseMiLocalRepository
 import com.cocinacapital.app.data.repository.PreferenciasRepository
 import com.cocinacapital.app.data.repository.SupabaseDetalleLocalRepository
 import com.cocinacapital.app.data.repository.SupabaseHomeRepository
@@ -103,6 +105,9 @@ object AppContainer {
     }
 
     val fotoPerfilArchivos: FotoPerfilArchivos by lazy { AndroidFotoPerfilArchivos(appContext) }
+
+    // ---- Oferente (HU-25): su local, protegido por las políticas de la migración T-04 ----
+    val miLocalRepository: MiLocalRepository by lazy { SupabaseMiLocalRepository(SupabaseProvider.client) }
 
     val favoritosRepository: FavoritosRepository by lazy {
         FavoritosRepository(database.favoritosDao(), perfilSesion)

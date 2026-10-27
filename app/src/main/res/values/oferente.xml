@@ -38,4 +38,35 @@
     <string name="mi_local_error_largo">El texto es demasiado largo.</string>
     <string name="mi_local_error_categoria">Elige una categoría.</string>
     <string name="mi_local_error_ticket">Ingresa un monto en pesos, por ejemplo 12.000.</string>
+
+    <!-- HU-26: catálogo del oferente -->
+    <string name="oferente_nav_catalogo">Catálogo</string>
+    <string name="catalogo_ayuda">Los platos destacados aparecen en \"Menú destacado\" cuando un consumidor abre tu local.</string>
+    <string name="catalogo_vacio">Todavía no tienes platos. Agrega el primero con el botón de abajo.</string>
+    <string name="catalogo_sin_local">Primero registra tu local para poder publicar tu catálogo.</string>
+    <string name="catalogo_ir_mi_local">Ir a Mi local</string>
+    <string name="catalogo_agregar">Agregar plato</string>
+    <string name="catalogo_nuevo">Nuevo plato</string>
+    <string name="catalogo_editar">Editar plato</string>
+    <string name="catalogo_editar_plato">Editar %1$s</string>
+    <string name="catalogo_eliminar_plato">Eliminar %1$s</string>
+    <string name="catalogo_nombre">Nombre</string>
+    <string name="catalogo_precio">Precio</string>
+    <string name="catalogo_precio_ayuda">En pesos, ej.: 12.900</string>
+    <string name="catalogo_descripcion">Descripción (opcional)</string>
+    <string name="catalogo_destacado">Destacado</string>
+    <string name="catalogo_destacar">Destacar plato</string>
+    <string name="catalogo_destacar_ayuda">Se muestra a los consumidores en el detalle del local.</string>
+    <string name="catalogo_guardar">Guardar</string>
+    <string name="catalogo_cancelar">Cancelar</string>
+    <string name="catalogo_eliminar">Eliminar</string>
+    <string name="catalogo_eliminar_titulo">¿Eliminar plato?</string>
+    <string name="catalogo_eliminar_texto">\"%1$s\" dejará de aparecer en tu catálogo. Esta acción no se puede deshacer.</string>
+    <string name="catalogo_creado">Plato agregado.</string>
+    <string name="catalogo_guardado">Plato actualizado.</string>
+    <string name="catalogo_eliminado">Plato eliminado.</string>
+    <string name="catalogo_error_cargar">No pudimos cargar tu catálogo. Revisa tu conexión e inténtalo nuevamente.</string>
+    <string name="catalogo_error_guardar">No se pudo guardar el plato. Inténtalo nuevamente.</string>
+    <string name="catalogo_error_eliminar">No se pudo eliminar el plato. Inténtalo nuevamente.</string>
+    <string name="catalogo_error_precio">Ingresa un precio en pesos, por ejemplo 12.900.</string>
 </resources>

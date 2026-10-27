@@ -85,7 +85,7 @@ fun validarLocal(formulario: FormularioLocal, categorias: List<Categoria>): Pair
         },
         descripcion = R.string.mi_local_error_largo.takeIf { descripcion.length > MAX_DESCRIPCION },
         horario = R.string.mi_local_error_largo.takeIf { horario.length > MAX_HORARIO },
-        ticket = R.string.mi_local_error_ticket.takeIf { ticket == TICKET_INVALIDO }
+        ticket = R.string.mi_local_error_ticket.takeIf { ticket == MONTO_INVALIDO }
     )
     if (errores.hayErrores) return null to errores
     return DatosLocal(
@@ -101,18 +101,21 @@ fun validarLocal(formulario: FormularioLocal, categorias: List<Categoria>): Pair
     ) to errores
 }
 
-private const val TICKET_INVALIDO = -1L
+internal const val MONTO_INVALIDO = -1L
 
 /**
- * Acepta "15000", "15.000" o "$15.000" (como se muestran los precios en la app).
- * Vacío = no informado (`null`); cualquier otra cosa no válida devuelve [TICKET_INVALIDO].
+ * Monto en pesos escrito por el oferente: acepta "15000", "15.000" o "$15.000" (como se muestran los
+ * precios en la app). Vacío = `null`; cualquier otra cosa, o un monto fuera de 1..[maximo], devuelve
+ * [MONTO_INVALIDO]. Se usa para el consumo por persona (HU-25) y el precio de los platos (HU-26).
  */
-internal fun ticketDesde(texto: String): Long? {
+internal fun montoEnPesos(texto: String, maximo: Long): Long? {
     val limpio = texto.trim().removePrefix("$").replace(".", "").replace(" ", "")
     if (limpio.isEmpty()) return null
-    if (!limpio.all(Char::isDigit) || limpio.length > 9) return TICKET_INVALIDO
-    return limpio.toLong().takeIf { it in 1..MAX_TICKET } ?: TICKET_INVALIDO
+    if (!limpio.all(Char::isDigit) || limpio.length > 9) return MONTO_INVALIDO
+    return limpio.toLong().takeIf { it in 1..maximo } ?: MONTO_INVALIDO
 }
+
+internal fun ticketDesde(texto: String): Long? = montoEnPesos(texto, MAX_TICKET)
 
 fun LocalGastronomico.aFormulario() = FormularioLocal(
     nombre = nombre,

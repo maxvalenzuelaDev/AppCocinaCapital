@@ -15,9 +15,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material.icons.outlined.LocalOffer
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.RestaurantMenu
 import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CircularProgressIndicator
@@ -53,13 +55,15 @@ enum class OferenteTab(
     val unselectedIcon: ImageVector
 ) {
     MI_LOCAL(R.string.oferente_nav_local, Icons.Filled.Storefront, Icons.Outlined.Storefront),
+    CATALOGO(R.string.oferente_nav_catalogo, Icons.Filled.RestaurantMenu, Icons.Outlined.RestaurantMenu),
     PROMOCIONES(R.string.oferente_nav_promociones, Icons.Filled.LocalOffer, Icons.Outlined.LocalOffer),
     CUENTA(R.string.oferente_nav_cuenta, Icons.Filled.Person, Icons.Outlined.Person)
 }
 
 /**
  * Estructura principal para cuentas con rol oferente (HU-04). AppEntry la muestra en lugar de
- * MainScaffold. Mi local es el perfil del local (HU-25); Promociones queda pendiente hasta HU-27 y HU-28.
+ * MainScaffold. Mi local es el perfil del local (HU-25) y Catálogo sus platos (HU-26); Promociones
+ * queda pendiente hasta HU-27 y HU-28.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,6 +100,7 @@ fun OferenteScaffold(
         Crossfade(tab, Modifier.padding(innerPadding), animationSpec = tween(300), label = "oferente_tab") { actual ->
             when (actual) {
                 OferenteTab.MI_LOCAL -> MiLocalScreen(snackbar, usuarioId)
+                OferenteTab.CATALOGO -> CatalogoScreen(snackbar, usuarioId, onIrAMiLocal = { tab = OferenteTab.MI_LOCAL })
                 OferenteTab.PROMOCIONES -> SeccionPendiente(Icons.Outlined.LocalOffer, R.string.oferente_promociones_pendiente)
                 OferenteTab.CUENTA -> CuentaOferente(correo, cerrandoSesion, onCerrarSesion)
             }

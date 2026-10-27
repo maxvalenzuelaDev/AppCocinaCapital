@@ -1,5 +1,6 @@
 package com.cocinacapital.app.ui.perfil
 
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import com.cocinacapital.app.BuildConfig
 import com.cocinacapital.app.R
@@ -238,13 +239,29 @@ private fun PerfilContent(
                         Spacer(Modifier.size(6.dp))
                         Text(stringResource(R.string.perfil_editar))
                     }
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        Estadistica("${state.canjeados}", stringResource(R.string.perfil_stat_canjeados))
-                        Estadistica("${state.favoritos.size}", stringResource(R.string.perfil_stat_favoritos))
-                        Estadistica("${prefs.categoriasIds.size}", stringResource(R.string.perfil_stat_cocinas))
+                    val estadisticas = listOf(
+                        "${state.canjeados}" to stringResource(R.string.perfil_stat_canjeados),
+                        "${state.favoritos.size}" to stringResource(R.string.perfil_stat_favoritos),
+                        "${prefs.categoriasIds.size}" to stringResource(R.string.perfil_stat_cocinas)
+                    )
+                    // Con la fuente del sistema muy grande, tres columnas parten las palabras: se apilan (T-18).
+                    if (LocalDensity.current.fontScale >= 1.5f) {
+                        Column(Modifier.fillMaxWidth().padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            estadisticas.forEach { (valor, etiqueta) ->
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(valor, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                                    Spacer(Modifier.size(12.dp))
+                                    Text(etiqueta, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            estadisticas.forEach { (valor, etiqueta) -> Estadistica(valor, etiqueta, Modifier.weight(1f)) }
+                        }
                     }
                 }
             }

@@ -17,11 +17,17 @@ import com.cocinacapital.app.data.local.FotoPerfilArchivos
 import com.cocinacapital.app.data.local.HistorialSesion
 import com.cocinacapital.app.data.local.PreferenciasHistorialSesion
 import com.cocinacapital.app.data.remote.SupabaseProvider
+import com.cocinacapital.app.data.repository.CatalogoRepository
 import com.cocinacapital.app.data.repository.DetalleLocalRepository
+import com.cocinacapital.app.data.repository.SupabaseCatalogoRepository
+import com.cocinacapital.app.data.repository.PromocionesOferenteRepository
+import com.cocinacapital.app.data.repository.SupabasePromocionesOferenteRepository
 import com.cocinacapital.app.data.repository.FakeDetalleLocalRepository
 import com.cocinacapital.app.data.repository.FakeHomeRepository
 import com.cocinacapital.app.data.repository.FavoritosRepository
 import com.cocinacapital.app.data.repository.HomeRepository
+import com.cocinacapital.app.data.repository.MisLocalesRepository
+import com.cocinacapital.app.data.repository.SupabaseMisLocalesRepository
 import com.cocinacapital.app.data.repository.PreferenciasRepository
 import com.cocinacapital.app.data.repository.SupabaseDetalleLocalRepository
 import com.cocinacapital.app.data.repository.SupabaseHomeRepository
@@ -103,6 +109,13 @@ object AppContainer {
     }
 
     val fotoPerfilArchivos: FotoPerfilArchivos by lazy { AndroidFotoPerfilArchivos(appContext) }
+
+    // ---- Oferente (HU-25 a HU-27): sus locales, protegidos por las políticas de la migración T-04 ----
+    val misLocalesRepository: MisLocalesRepository by lazy { SupabaseMisLocalesRepository(SupabaseProvider.client) }
+    val catalogoRepository: CatalogoRepository by lazy { SupabaseCatalogoRepository(SupabaseProvider.client) }
+    val promocionesOferenteRepository: PromocionesOferenteRepository by lazy {
+        SupabasePromocionesOferenteRepository(SupabaseProvider.client)
+    }
 
     val favoritosRepository: FavoritosRepository by lazy {
         FavoritosRepository(database.favoritosDao(), perfilSesion)

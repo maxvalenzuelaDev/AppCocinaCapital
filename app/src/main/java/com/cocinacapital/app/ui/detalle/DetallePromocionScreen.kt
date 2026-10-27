@@ -63,6 +63,9 @@ import com.cocinacapital.app.data.model.CuposPromocion
 import com.cocinacapital.app.data.model.Promocion
 import com.cocinacapital.app.data.model.cuposParaDetalle
 import com.cocinacapital.app.data.model.franjaValida
+import com.cocinacapital.app.data.model.franjaParaDetalle
+import com.cocinacapital.app.data.model.diasParaDetalle
+import com.cocinacapital.app.data.model.horarioPorConfirmar
 import com.cocinacapital.app.ui.detalle.components.DetalleTopBar
 import com.cocinacapital.app.util.LocaleCL
 import java.time.Instant
@@ -257,14 +260,19 @@ private fun PromocionContent(
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 Text(diasTexto(promocion, state.horarioConfigurado),
                     style = MaterialTheme.typography.bodyMedium)
-                val franja = promocion.franjaValida()
+                val franja = promocion.franjaParaDetalle()
                 Text(when {
                     franja != null -> stringResource(R.string.detalle_promocion_franja,
                         franja.desde.format(formatoHoraPromocion), franja.hasta.format(formatoHoraPromocion))
-                    state.horarioConfigurado && promocion.horaInicio == null && promocion.horaFin == null ->
+                    state.horarioConfigurado && !promocion.horarioPorConfirmar() && promocion.horaInicio == null && promocion.horaFin == null ->
                         stringResource(R.string.detalle_promocion_horario_del_local)
                     else -> stringResource(R.string.detalle_promocion_horario_pendiente)
                 }, style = MaterialTheme.typography.bodyMedium)
+                if (promocion.franjaValida() == null && franja != null ||
+                    promocion.diasSemana == null && promocion.diasParaDetalle() != null) {
+                    Text(stringResource(R.string.detalle_promocion_horario_descripcion),
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
                 Text(stringResource(R.string.detalle_promocion_zona_horaria),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -342,6 +350,8 @@ private fun SeccionPromocion(
 
 @StringRes
 private fun estadoTexto(estado: EstadoVigenciaPromocion): Int = when (estado) {
+    EstadoVigenciaPromocion.SIN_CUPOS -> R.string.detalle_promocion_sin_cupos
+    EstadoVigenciaPromocion.FUERA_DE_HORARIO -> R.string.detalle_promocion_fuera_horario
     EstadoVigenciaPromocion.VIGENTE -> R.string.detalle_promocion_vigente
     EstadoVigenciaPromocion.PROGRAMADA -> R.string.detalle_promocion_programada
     EstadoVigenciaPromocion.FINALIZADA -> R.string.detalle_promocion_finalizada
@@ -361,8 +371,8 @@ private val formatoHoraPromocion = DateTimeFormatter.ofPattern("HH:mm", LocaleCL
 
 @Composable
 private fun diasTexto(promocion: Promocion, camposPresentes: Boolean): String {
-    val dias = promocion.diasSemana
-    if (dias == null) return stringResource(if (camposPresentes) R.string.detalle_promocion_todos_dias
+    val dias = promocion.diasParaDetalle()
+    if (dias == null) return stringResource(if (camposPresentes && !promocion.horarioPorConfirmar()) R.string.detalle_promocion_todos_dias
         else R.string.detalle_promocion_dias_pendientes)
     if (dias.isEmpty() || dias.any { it !in 1..7 }) return stringResource(R.string.detalle_promocion_dias_pendientes)
     val nombres = dias.distinct().sorted().joinToString(", ") {

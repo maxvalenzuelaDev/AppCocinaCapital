@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.cocinacapital.app.data.model.vigenciaEn
+import com.cocinacapital.app.data.model.vigenciaParaDetalle
 import com.cocinacapital.app.data.repository.DetallePromocionRepository
 import com.cocinacapital.app.di.AppContainer
 import java.time.Clock
@@ -42,7 +42,7 @@ class DetallePromocionViewModel(
     fun actualizarVigencia() {
         mutable.update { actual ->
             if (actual is DetallePromocionUiState.Success) {
-                actual.copy(vigencia = actual.promocion.vigenciaEn(reloj.instant()))
+                actual.copy(vigencia = actual.promocion.vigenciaParaDetalle(reloj.instant(), actual.cuposConfigurados))
             } else actual
         }
     }
@@ -76,7 +76,7 @@ class DetallePromocionViewModel(
                     DetallePromocionUiState.Success(
                         promocion = promocion,
                         local = local,
-                        vigencia = promocion.vigenciaEn(reloj.instant()),
+                        vigencia = promocion.vigenciaParaDetalle(reloj.instant(), detalle.cuposConfigurados),
                         errorLocal = errorLocal,
                         cuposConfigurados = detalle.cuposConfigurados,
                         horarioConfigurado = detalle.horarioConfigurado

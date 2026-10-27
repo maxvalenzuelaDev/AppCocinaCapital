@@ -1,5 +1,7 @@
 package com.cocinacapital.app.data.repository
 
+import android.util.Log
+import com.cocinacapital.app.BuildConfig
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.storage.storage
@@ -21,13 +23,22 @@ class SupabaseFotosLocalRepository(
 
     override suspend fun subirPortada(localId: String, jpeg: ByteArray, anterior: String?): String {
         val ruta = "$localId/portada-${ahora()}.jpg"
-        bucket.upload(ruta, jpeg) { contentType = ContentType.Image.JPEG }
-        val url = bucket.publicUrl(ruta)
-        supabase.from("locales").update(buildJsonObject { put("imagen_url", url) }) {
-            filter { eq("id", localId) }
+        try {
+            bucket.upload(ruta, jpeg) { contentType = ContentType.Image.JPEG }
+            val url = bucket.publicUrl(ruta)
+            supabase.from("locales").update(buildJsonObject { put("imagen_url", url) }) {
+                filter { eq("id", localId) }
+            }
+            anterior?.let { borrarSiEsNuestra(it) }
+            return url
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            // Solo en depuración y solo la primera línea: el mensaje completo de Supabase incluye las
+            // cabeceras de la petición, con el token de la sesión.
+            if (BuildConfig.DEBUG) Log.w("CocinaFotos", "Subida de $ruta (${jpeg.size} bytes): ${error.javaClass.simpleName}: ${error.message?.lineSequence()?.firstOrNull()}")
+            throw error
         }
-        anterior?.let { borrarSiEsNuestra(it) }
-        return url
     }
 
     /** La foto anterior sobra; si no se puede borrar, no afecta al oferente. */

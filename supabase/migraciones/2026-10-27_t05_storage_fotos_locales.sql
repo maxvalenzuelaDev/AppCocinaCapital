@@ -14,12 +14,14 @@ on conflict (id) do update
       file_size_limit = excluded.file_size_limit,
       allowed_mime_types = excluded.allowed_mime_types;
 
--- ¿La carpeta de este archivo es un local de la cuenta actual?
+-- ¿La carpeta de este archivo es un local de la cuenta actual? La carpeta es lo que va antes de la
+-- primera "/". El parámetro se escribe con el nombre de la función porque `locales` también tiene
+-- una columna `nombre`, y sin calificarlo Postgres usaría la columna.
 create or replace function public.es_carpeta_de_mi_local(nombre text)
 returns boolean language sql stable security definer set search_path = '' as $$
   select public.es_oferente() and exists (
     select 1 from public.locales l
-    where l.id::text = (storage.foldername(nombre))[1] and l.oferente_id = auth.uid()
+    where l.id::text = split_part(es_carpeta_de_mi_local.nombre, '/', 1) and l.oferente_id = auth.uid()
   );
 $$;
 

@@ -8,6 +8,8 @@ import android.graphics.Matrix
 import android.media.ExifInterface
 import android.net.Uri
 import android.os.Build
+import android.util.Log
+import com.cocinacapital.app.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
@@ -31,11 +33,16 @@ class AndroidPreparadorFoto(
 ) : PreparadorFoto {
 
     override suspend fun jpeg(uri: String): ByteArray = withContext(Dispatchers.IO) {
-        val bitmap = decodificar(Uri.parse(uri))
-        ByteArrayOutputStream().use { salida ->
-            bitmap.compress(Bitmap.CompressFormat.JPEG, calidad, salida)
-            bitmap.recycle()
-            salida.toByteArray()
+        try {
+            val bitmap = decodificar(Uri.parse(uri))
+            ByteArrayOutputStream().use { salida ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, calidad, salida)
+                bitmap.recycle()
+                salida.toByteArray()
+            }
+        } catch (error: Exception) {
+            if (BuildConfig.DEBUG) Log.w("CocinaFotos", "No se pudo preparar la foto: ${error.javaClass.simpleName}: ${error.message?.lineSequence()?.firstOrNull()}")
+            throw error
         }
     }
 

@@ -11,10 +11,10 @@ select id, nombre, imagen_url from public.locales order by nombre;
 update public.locales l
 set imagen_url = 'https://pwuwpypnjbgdqbrwslrp.supabase.co/storage/v1/object/public/locales/' || f.name
 from (
-  select distinct on ((storage.foldername(name))[1]) (storage.foldername(name))[1] as local_id, name
+  select distinct on (split_part(name, '/', 1)) split_part(name, '/', 1) as local_id, name
   from storage.objects
   where bucket_id = 'locales'
-  order by (storage.foldername(name))[1], created_at desc
+  order by split_part(name, '/', 1), created_at desc
 ) f
 where l.id::text = f.local_id;
 

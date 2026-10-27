@@ -2,6 +2,7 @@ package com.cocinacapital.app.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -18,13 +19,21 @@ val LocalDarkTheme = androidx.compose.runtime.staticCompositionLocalOf { false }
 private val LightColors = lightColorScheme(
     primary = Color(0xFFB5451B),
     secondary = Color(0xFF77574B),
-    tertiary = Color(0xFFC79200)
+    // Dorado oscurecido (T-18): #C79200 sobre fondo claro daba 2,65:1; este da 5,06:1 (WCAG AA).
+    tertiary = Color(0xFF8A6500)
 )
 private val DarkColors = darkColorScheme(
     primary = Color(0xFFFFB59B),
     secondary = Color(0xFFE7BDB0),
     tertiary = Color(0xFFF2C14E)
 )
+
+/**
+ * Verde para mensajes de éxito con contraste suficiente en ambos temas (T-18):
+ * 6,2:1 sobre el fondo claro y 9,5:1 sobre el oscuro.
+ */
+val ColorScheme.exito: Color
+    @Composable get() = if (LocalDarkTheme.current) Color(0xFF81C995) else Color(0xFF1E6B3A)
 
 @Composable
 fun CocinaCapitalTheme(

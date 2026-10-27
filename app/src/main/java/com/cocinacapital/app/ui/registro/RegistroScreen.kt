@@ -1,5 +1,6 @@
 package com.cocinacapital.app.ui.registro
 
+import com.cocinacapital.app.ui.theme.exito
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -255,7 +256,7 @@ fun RegistroContent(
                 Text(
                     text = stringResource(mensaje),
                     color = if (state.registroExitoso) {
-                        androidx.compose.ui.graphics.Color(0xFF81C995)
+                        colores.exito
                     } else {
                         colores.error
                     },

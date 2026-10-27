@@ -1,5 +1,6 @@
 package com.cocinacapital.app.ui.oferente
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.Button
@@ -97,7 +98,7 @@ fun OferenteScaffold(
                                 contentDescription = stringResource(item.labelRes)
                             )
                         },
-                        label = { Text(stringResource(item.labelRes)) }
+                        label = { Text(stringResource(item.labelRes), maxLines = 1, overflow = TextOverflow.Ellipsis) }
                     )
                 }
             }

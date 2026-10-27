@@ -17,7 +17,10 @@ data class DatosLocal(
     val direccion: String,
     val descripcion: String = "",
     val horario: String? = null,
-    @SerialName("ticket_promedio_persona") val ticketPromedioPersona: Long? = null
+    @SerialName("ticket_promedio_persona") val ticketPromedioPersona: Long? = null,
+    /** Posición del local; sin ella no aparece en Explorar ni en el mapa del consumidor. */
+    val latitud: Double? = null,
+    val longitud: Double? = null
 )
 
 /** Local del oferente con sesión iniciada. Supabase (RLS) impide leer o editar locales ajenos. */

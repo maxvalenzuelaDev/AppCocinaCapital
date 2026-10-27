@@ -16,7 +16,9 @@ sealed interface MiLocalUiState {
         /** `null` mientras el oferente no ha registrado su local: al guardar se crea. */
         val localId: String?,
         val errores: ErroresLocal = ErroresLocal(),
-        val guardando: Boolean = false
+        val guardando: Boolean = false,
+        /** Precisión de la última ubicación tomada con el botón; `null` si la posición vino guardada. */
+        val precisionMetros: Float? = null
     ) : MiLocalUiState
 }
 
@@ -28,7 +30,9 @@ data class FormularioLocal(
     val direccion: String = "",
     val descripcion: String = "",
     val horario: String = "",
-    val ticket: String = ""
+    val ticket: String = "",
+    val latitud: Double? = null,
+    val longitud: Double? = null
 )
 
 data class ErroresLocal(
@@ -91,7 +95,9 @@ fun validarLocal(formulario: FormularioLocal, categorias: List<Categoria>): Pair
         direccion = direccion,
         descripcion = descripcion,
         horario = horario.ifEmpty { null },
-        ticketPromedioPersona = ticket
+        ticketPromedioPersona = ticket,
+        latitud = formulario.latitud,
+        longitud = formulario.longitud
     ) to errores
 }
 
@@ -115,5 +121,7 @@ fun LocalGastronomico.aFormulario() = FormularioLocal(
     direccion = direccion.orEmpty(),
     descripcion = descripcion,
     horario = horario.orEmpty(),
-    ticket = ticketPromedioPersona?.toString().orEmpty()
+    ticket = ticketPromedioPersona?.toString().orEmpty(),
+    latitud = latitud,
+    longitud = longitud
 )

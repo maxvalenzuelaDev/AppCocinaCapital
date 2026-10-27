@@ -15,6 +15,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CloudOff
+import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
@@ -24,6 +25,8 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -46,6 +49,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cocinacapital.app.R
 import com.cocinacapital.app.data.model.Categoria
+import com.cocinacapital.app.ui.location.rememberUbicacionAction
+import java.util.Locale
+import kotlin.math.roundToInt
 
 /** Pestaña "Mi local" del oferente (HU-25): registrar o editar el perfil de su local. */
 @Composable
@@ -80,17 +86,25 @@ fun MiLocalScreen(
             Button(onClick = viewModel::onReintentar) { Text(stringResource(R.string.mi_local_reintentar)) }
         }
 
-        is MiLocalUiState.Success -> FormularioMiLocal(
-            state = state,
-            onCambio = viewModel::onCambio,
-            onGuardar = viewModel::onGuardar
-        )
+        is MiLocalUiState.Success -> {
+            // Permiso, GPS apagado y errores se avisan igual que en el resto de la app (HU-17).
+            val ubicacion = rememberUbicacionAction(snackbar)
+            FormularioMiLocal(
+                state = state,
+                obteniendoUbicacion = ubicacion.cargando,
+                onUsarUbicacion = { viewModel.onUsarUbicacion(); ubicacion.solicitar() },
+                onCambio = viewModel::onCambio,
+                onGuardar = viewModel::onGuardar
+            )
+        }
     }
 }
 
 @Composable
 private fun FormularioMiLocal(
     state: MiLocalUiState.Success,
+    obteniendoUbicacion: Boolean,
+    onUsarUbicacion: () -> Unit,
     onCambio: (FormularioLocal.() -> FormularioLocal) -> Unit,
     onGuardar: () -> Unit
 ) {
@@ -118,6 +132,7 @@ private fun FormularioMiLocal(
         SelectorCategoria(state.categorias, form.categoriaId, errores.categoria) { id -> onCambio { copy(categoriaId = id) } }
         Campo(form.comuna, { v -> onCambio { copy(comuna = v) } }, R.string.mi_local_comuna, errores.comuna, MAX_COMUNA)
         Campo(form.direccion, { v -> onCambio { copy(direccion = v) } }, R.string.mi_local_direccion, errores.direccion, MAX_DIRECCION)
+        SeccionUbicacion(form.latitud, form.longitud, state.precisionMetros, obteniendoUbicacion, onUsarUbicacion)
         Campo(
             form.horario, { v -> onCambio { copy(horario = v) } }, R.string.mi_local_horario, errores.horario, MAX_HORARIO,
             ayudaRes = R.string.mi_local_horario_ayuda
@@ -174,6 +189,56 @@ private fun Campo(
         },
         modifier = Modifier.fillMaxWidth()
     )
+}
+
+/** Posición del local para Explorar y el mapa del consumidor; se toma con el GPS estando en el local. */
+@Composable
+private fun SeccionUbicacion(
+    latitud: Double?,
+    longitud: Double?,
+    precisionMetros: Float?,
+    cargando: Boolean,
+    onUsarUbicacion: () -> Unit
+) {
+    OutlinedCard(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(stringResource(R.string.mi_local_ubicacion_titulo), style = MaterialTheme.typography.titleSmall)
+            if (latitud != null && longitud != null) {
+                Text(
+                    stringResource(
+                        R.string.mi_local_ubicacion_coordenadas,
+                        String.format(Locale.US, "%.5f", latitud),
+                        String.format(Locale.US, "%.5f", longitud)
+                    ),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                if (precisionMetros != null) Text(
+                    stringResource(R.string.mi_local_ubicacion_precision, precisionMetros.roundToInt()),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                Text(
+                    stringResource(R.string.mi_local_ubicacion_sin),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+            Text(
+                stringResource(R.string.mi_local_ubicacion_ayuda),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            OutlinedButton(onClick = onUsarUbicacion, enabled = !cargando, modifier = Modifier.fillMaxWidth()) {
+                if (cargando) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                else {
+                    Icon(Icons.Outlined.MyLocation, contentDescription = null)
+                    Spacer(Modifier.size(8.dp))
+                    Text(stringResource(R.string.mi_local_ubicacion_usar))
+                }
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

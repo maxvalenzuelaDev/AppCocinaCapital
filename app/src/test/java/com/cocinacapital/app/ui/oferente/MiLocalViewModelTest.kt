@@ -1,17 +1,24 @@
 package com.cocinacapital.app.ui.oferente
 
 import com.cocinacapital.app.R
+import com.cocinacapital.app.data.location.EstadoUbicacion
+import com.cocinacapital.app.data.location.UbicacionRepository
 import com.cocinacapital.app.data.model.Categoria
 import com.cocinacapital.app.data.model.LocalGastronomico
 import com.cocinacapital.app.data.repository.DatosLocal
 import com.cocinacapital.app.data.repository.MiLocalRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import com.cocinacapital.location.LocationAccess
+import com.cocinacapital.location.LocationProblem
+import com.cocinacapital.location.UserPosition
 import kotlin.test.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -41,6 +48,20 @@ class MiLocalViewModelTest {
         }
     }
 
+    private class FakeUbicacion : UbicacionRepository {
+        override val estado = MutableStateFlow(EstadoUbicacion())
+        override val posicion = flowOf(null)
+        override suspend fun obtener() = Unit
+        override fun limpiar() = Unit
+        override fun permisoDenegado() = Unit
+        override fun validarDisponibilidad() = Unit
+    }
+
+    private val ubicacion = FakeUbicacion()
+
+    private fun fix(ts: Long, lat: Double = -33.04, lon: Double = -71.62) =
+        UserPosition(lat, lon, 18f, ts, LocationAccess.PRECISE, fromCache = false)
+
     private val existente = LocalGastronomico(
         id = "local-1", nombre = "Café Cerro Alegre", categoriaId = "cat-1", comuna = "Valparaíso",
         direccion = "Calle Templeman 345", horario = "Lun a Sáb 09:00–20:00", ticketPromedioPersona = 6500
@@ -52,14 +73,14 @@ class MiLocalViewModelTest {
     private fun MiLocalViewModel.success() = uiState.value as MiLocalUiState.Success
 
     @Test fun `sin local muestra el formulario vacio para registrarlo`() {
-        val model = MiLocalViewModel(FakeRepo(categorias = categorias))
+        val model = MiLocalViewModel(FakeRepo(categorias = categorias), ubicacion)
         assertNull(model.success().localId)
         assertEquals(FormularioLocal(), model.success().formulario)
         assertEquals(categorias, model.success().categorias)
     }
 
     @Test fun `con local carga sus datos en el formulario`() {
-        val model = MiLocalViewModel(FakeRepo(local = existente, categorias = categorias))
+        val model = MiLocalViewModel(FakeRepo(local = existente, categorias = categorias), ubicacion)
         assertEquals("local-1", model.success().localId)
         assertEquals("Café Cerro Alegre", model.success().formulario.nombre)
         assertEquals("6500", model.success().formulario.ticket)
@@ -67,7 +88,7 @@ class MiLocalViewModelTest {
 
     @Test fun `si falla la carga muestra error y se puede reintentar`() {
         val repo = FakeRepo(fallaCarga = true, categorias = categorias)
-        val model = MiLocalViewModel(repo)
+        val model = MiLocalViewModel(repo, ubicacion)
         assertEquals(MiLocalUiState.Error(R.string.mi_local_error_cargar), model.uiState.value)
         repo.fallaCarga = false
         model.onReintentar()
@@ -76,7 +97,7 @@ class MiLocalViewModelTest {
 
     @Test fun `no guarda si faltan datos obligatorios`() {
         val repo = FakeRepo(categorias = categorias)
-        val model = MiLocalViewModel(repo)
+        val model = MiLocalViewModel(repo, ubicacion)
         model.onGuardar()
         val errores = model.success().errores
         assertEquals(R.string.mi_local_error_obligatorio, errores.nombre)
@@ -88,7 +109,7 @@ class MiLocalViewModelTest {
 
     @Test fun `registra el local nuevo con los datos limpios`() = runTest {
         val repo = FakeRepo(categorias = categorias)
-        val model = MiLocalViewModel(repo)
+        val model = MiLocalViewModel(repo, ubicacion)
         model.onCambio {
             copy(nombre = "  Sushi Norte ", categoriaId = "cat-2", comuna = "Viña del Mar",
                 direccion = "Av. Libertad 100", ticket = "$15.000")
@@ -105,7 +126,7 @@ class MiLocalViewModelTest {
 
     @Test fun `edita el local existente`() = runTest {
         val repo = FakeRepo(local = existente, categorias = categorias)
-        val model = MiLocalViewModel(repo)
+        val model = MiLocalViewModel(repo, ubicacion)
         model.onCambio { copy(horario = "Lun a Dom 10:00–21:00") }
         model.onGuardar()
         assertEquals("local-1", repo.guardados.single().first)
@@ -115,7 +136,7 @@ class MiLocalViewModelTest {
 
     @Test fun `si falla el guardado conserva lo escrito y avisa`() = runTest {
         val repo = FakeRepo(local = existente, fallaGuardado = true, categorias = categorias)
-        val model = MiLocalViewModel(repo)
+        val model = MiLocalViewModel(repo, ubicacion)
         model.onCambio { copy(nombre = "Nuevo nombre") }
         model.onGuardar()
         assertEquals("Nuevo nombre", model.success().formulario.nombre)
@@ -140,5 +161,41 @@ class MiLocalViewModelTest {
         ).second
         assertEquals(R.string.mi_local_error_largo, errores.nombre)
         assertEquals(R.string.mi_local_error_categoria, errores.categoria)
+    }
+
+    @Test fun `al pulsar el boton usa la nueva posicion y la guarda con el local`() {
+        val repo = FakeRepo(local = existente, categorias = categorias)
+        val model = MiLocalViewModel(repo, ubicacion)
+        model.onUsarUbicacion()
+        ubicacion.estado.value = EstadoUbicacion(cargando = true)
+        ubicacion.estado.value = EstadoUbicacion(posicion = fix(ts = 10, lat = -33.0425, lon = -71.6285))
+        assertEquals(-33.0425, model.success().formulario.latitud)
+        assertEquals(-71.6285, model.success().formulario.longitud)
+        assertEquals(18f, model.success().precisionMetros)
+        model.onGuardar()
+        assertEquals(-33.0425, repo.guardados.single().second.latitud)
+    }
+
+    @Test fun `no toma la ubicacion si el oferente no pulso el boton`() {
+        val model = MiLocalViewModel(FakeRepo(categorias = categorias), ubicacion)
+        ubicacion.estado.value = EstadoUbicacion(posicion = fix(ts = 10))
+        assertNull(model.success().formulario.latitud)
+    }
+
+    @Test fun `acepta la misma posicion en cache si la consulta pedida ya empezo`() {
+        ubicacion.estado.value = EstadoUbicacion(posicion = fix(ts = 5))
+        val model = MiLocalViewModel(FakeRepo(categorias = categorias), ubicacion)
+        model.onUsarUbicacion()
+        ubicacion.estado.value = EstadoUbicacion(posicion = fix(ts = 5), cargando = true)
+        ubicacion.estado.value = EstadoUbicacion(posicion = fix(ts = 5))
+        assertEquals(-33.04, model.success().formulario.latitud)
+    }
+
+    @Test fun `un error de ubicacion cancela la espera`() {
+        val model = MiLocalViewModel(FakeRepo(categorias = categorias), ubicacion)
+        model.onUsarUbicacion()
+        ubicacion.estado.value = EstadoUbicacion(problema = LocationProblem.PERMISSION_REQUIRED)
+        ubicacion.estado.value = EstadoUbicacion(posicion = fix(ts = 10))
+        assertNull(model.success().formulario.latitud)
     }
 }

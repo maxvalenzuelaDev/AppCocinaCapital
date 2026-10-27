@@ -21,6 +21,12 @@
     <string name="mi_local_descripcion">Descripción (opcional)</string>
     <string name="mi_local_ticket">Consumo promedio por persona (opcional)</string>
     <string name="mi_local_ticket_ayuda">En pesos, ej.: 12.000. Se usa en el filtro de presupuesto.</string>
+    <string name="mi_local_ubicacion_titulo">Ubicación en el mapa</string>
+    <string name="mi_local_ubicacion_coordenadas">Coordenadas: %1$s, %2$s</string>
+    <string name="mi_local_ubicacion_precision">Precisión aproximada: ±%1$d m</string>
+    <string name="mi_local_ubicacion_sin">Sin ubicación: tu local no aparecerá en Explorar ni en el mapa.</string>
+    <string name="mi_local_ubicacion_ayuda">Pulsa el botón estando en tu local y luego guarda los cambios.</string>
+    <string name="mi_local_ubicacion_usar">Usar mi ubicación actual</string>
     <string name="mi_local_crear">Registrar local</string>
     <string name="mi_local_guardar">Guardar cambios</string>
     <string name="mi_local_reintentar">Reintentar</string>

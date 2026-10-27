@@ -52,10 +52,12 @@ private data class NuevoLocal(
     val direccion: String,
     val descripcion: String,
     val horario: String?,
-    @SerialName("ticket_promedio_persona") val ticketPromedioPersona: Long?
+    @SerialName("ticket_promedio_persona") val ticketPromedioPersona: Long?,
+    val latitud: Double?,
+    val longitud: Double?
 ) {
     constructor(oferenteId: String, datos: DatosLocal) : this(
         oferenteId, datos.nombre, datos.categoriaId, datos.comuna, datos.direccion,
-        datos.descripcion, datos.horario, datos.ticketPromedioPersona
+        datos.descripcion, datos.horario, datos.ticketPromedioPersona, datos.latitud, datos.longitud
     )
 }

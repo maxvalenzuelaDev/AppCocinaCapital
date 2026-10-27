@@ -15,6 +15,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.RestaurantMenu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -32,7 +33,7 @@ import com.cocinacapital.app.R
 
 @Composable
 fun ExploreScreen(onLocation: () -> Unit, onLocalDetail: (String) -> Unit, onPreferences: () -> Unit,
-    snackbar: SnackbarHostState, ubicacionEnCurso: Boolean = false,
+    snackbar: SnackbarHostState, onExperiencias: () -> Unit = {}, ubicacionEnCurso: Boolean = false,
     solicitarBusqueda: Boolean = false, categoriaDesdeHome: String? = null, onBusquedaConsumida: () -> Unit = {},
     barraAnclada: Boolean = false, onCerrarBusqueda: () -> Unit = {},
     model: ExplorarViewModel = viewModel(factory = ExplorarViewModel.Factory)) {
@@ -88,6 +89,13 @@ fun ExploreScreen(onLocation: () -> Unit, onLocalDetail: (String) -> Unit, onPre
                 Box(Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
                     ExploreSearchFilters(s, model, enfocarBuscador, { enfocarBuscador = false }, onPreferences,
                         onBack = if (barraAnclada) cerrarBusqueda else null)
+                }
+                AnimatedVisibility(!tecladoAbierto && !barraAnclada) {
+                    TextButton(onClick = onExperiencias, modifier = Modifier.padding(horizontal = 12.dp)) {
+                        Icon(Icons.Outlined.RestaurantMenu, null, Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.exp_entrada))
+                    }
                 }
                 when (state) {
                     ExplorarUiState.Loading -> Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }

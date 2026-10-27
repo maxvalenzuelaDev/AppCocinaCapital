@@ -17,6 +17,9 @@ import com.cocinacapital.app.data.local.FotoPerfilArchivos
 import com.cocinacapital.app.data.local.HistorialSesion
 import com.cocinacapital.app.data.local.PreferenciasHistorialSesion
 import com.cocinacapital.app.data.remote.SupabaseProvider
+import com.cocinacapital.app.data.repository.ExperienciasRepository
+import com.cocinacapital.app.data.repository.FakeExperienciasRepository
+import com.cocinacapital.app.data.repository.SupabaseExperienciasRepository
 import com.cocinacapital.app.data.repository.CatalogoRepository
 import com.cocinacapital.app.data.repository.DetalleLocalRepository
 import com.cocinacapital.app.data.repository.DetallePromocionRepository
@@ -100,6 +103,11 @@ object AppContainer {
     val homeRepository: HomeRepository by lazy {
         if (USE_FAKE_DATA) FakeHomeRepository()
         else SupabaseHomeRepository(SupabaseProvider.client)
+    }
+
+    val experienciasRepository: ExperienciasRepository by lazy {
+        if (USE_FAKE_DATA) FakeExperienciasRepository()
+        else SupabaseExperienciasRepository(SupabaseProvider.client)
     }
 
     val detalleLocalRepository: DetalleLocalRepository by lazy {

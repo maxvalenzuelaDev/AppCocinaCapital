@@ -182,6 +182,21 @@ class PromocionesViewModel(
             }
             // Si mientras cargaba se eligió otro local, este resultado ya no sirve.
             if (id == localId) _uiState.value = nuevo
+            if (nuevo is PromocionesUiState.Success) cargarMetricas(id)
+        }
+    }
+
+    /** HU-30: las métricas llegan aparte; si fallan, la lista se sigue viendo sin contadores. */
+    private fun cargarMetricas(id: String) {
+        viewModelScope.launch {
+            val metricas = try {
+                promociones.metricas(id)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                return@launch
+            }
+            if (id == localId) actualizar { it.copy(metricas = metricas) }
         }
     }
 

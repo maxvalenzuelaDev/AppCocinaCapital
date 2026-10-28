@@ -78,6 +78,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cocinacapital.app.R
+import com.cocinacapital.app.data.repository.MetricasPromocion
+import androidx.compose.ui.res.pluralStringResource
 import com.cocinacapital.app.data.model.Promocion
 import com.cocinacapital.app.util.LocaleCL
 import java.time.DayOfWeek
@@ -135,7 +137,8 @@ fun PromocionesScreen(
                         pausar = viewModel::onPausar,
                         reanudar = viewModel::onReanudar,
                         finalizar = viewModel::onPedirFinalizar
-                    )
+                    ),
+                    metricas = state.metricas
                 )
                 state.porFinalizar?.let { promo ->
                     AlertDialog(
@@ -183,7 +186,8 @@ private fun ListaPromociones(
     ahora: Instant,
     procesandoId: String?,
     onNueva: () -> Unit,
-    acciones: AccionesPromocion
+    acciones: AccionesPromocion,
+    metricas: Map<String, MetricasPromocion> = emptyMap()
 ) {
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
@@ -209,7 +213,8 @@ private fun ListaPromociones(
                 }
             }
             items(promociones, key = { it.id }) { promo ->
-                PromocionItem(promo, promo.estado(ahora), procesando = promo.id == procesandoId, acciones = acciones)
+                PromocionItem(promo, promo.estado(ahora), procesando = promo.id == procesandoId, acciones = acciones,
+                    metricas = metricas[promo.id])
             }
         }
         ExtendedFloatingActionButton(
@@ -222,7 +227,13 @@ private fun ListaPromociones(
 }
 
 @Composable
-private fun PromocionItem(promo: Promocion, estado: EstadoPromocion, procesando: Boolean, acciones: AccionesPromocion) {
+private fun PromocionItem(
+    promo: Promocion,
+    estado: EstadoPromocion,
+    procesando: Boolean,
+    acciones: AccionesPromocion,
+    metricas: MetricasPromocion? = null
+) {
     ElevatedCard(onClick = { acciones.editar(promo) }, enabled = !procesando, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -262,6 +273,18 @@ private fun PromocionItem(promo: Promocion, estado: EstadoPromocion, procesando:
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            // HU-30: cuántos la vieron, la obtuvieron y la canjearon.
+            metricas?.let {
+                Text(
+                    listOf(
+                        pluralStringResource(R.plurals.promo_metricas_vistas, it.vistas, it.vistas),
+                        pluralStringResource(R.plurals.promo_metricas_obtenidos, it.obtenidos, it.obtenidos),
+                        pluralStringResource(R.plurals.promo_metricas_canjeados, it.canjeados, it.canjeados)
+                    ).joinToString(" · "),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
         }
     }
 }

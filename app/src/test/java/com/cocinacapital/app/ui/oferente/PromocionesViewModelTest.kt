@@ -4,6 +4,7 @@ import com.cocinacapital.app.R
 import com.cocinacapital.app.data.model.LocalGastronomico
 import com.cocinacapital.app.data.model.Promocion
 import com.cocinacapital.app.data.repository.DatosPromocion
+import com.cocinacapital.app.data.repository.MetricasPromocion
 import com.cocinacapital.app.data.repository.PromocionesOferenteRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -33,6 +34,8 @@ class PromocionesViewModelTest {
         val guardadas = guardadas.toMutableList()
         val editadas = mutableListOf<Pair<String, DatosPromocion>>()
         val vigencias = mutableListOf<Pair<String?, String>>()
+        var metricasCon: suspend (String) -> Map<String, MetricasPromocion> = { emptyMap() }
+        override suspend fun metricas(localId: String) = metricasCon(localId)
         override suspend fun listar(localId: String) = guardadas.filter { it.localId == localId }
         override suspend fun crear(localId: String, datos: DatosPromocion): Promocion {
             if (falla) error("rechazado")
@@ -286,5 +289,24 @@ class PromocionesViewModelTest {
         assertTrue(model.success().promociones.single().activa)
         assertNull(model.success().procesandoId)
         assertEquals(R.string.promo_error_cambiar, model.mensajes.first())
+    }
+
+    // ---- HU-30: métricas ----
+
+    @Test fun `muestra los contadores de cada promocion`() {
+        val promo = Promocion("p1", local.id, "Combo", descuentoPorcentaje = 20, vigenteHasta = "2030-01-01T00:00:00Z")
+        val promos = FakePromos(guardadas = listOf(promo)).apply {
+            metricasCon = { mapOf("p1" to MetricasPromocion("p1", vistas = 12, obtenidos = 5, canjeados = 3)) }
+        }
+        val vm = modelo(promos)
+        assertEquals(MetricasPromocion("p1", 12, 5, 3), vm.success().metricas["p1"])
+    }
+
+    @Test fun `si fallan las metricas la lista se sigue viendo`() {
+        val promo = Promocion("p1", local.id, "Combo", descuentoPorcentaje = 20, vigenteHasta = "2030-01-01T00:00:00Z")
+        val promos = FakePromos(guardadas = listOf(promo)).apply { metricasCon = { error("sin red") } }
+        val vm = modelo(promos)
+        assertEquals(listOf("p1"), vm.success().promociones.map { it.id })
+        assertTrue(vm.success().metricas.isEmpty())
     }
 }

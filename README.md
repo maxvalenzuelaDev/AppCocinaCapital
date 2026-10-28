@@ -48,6 +48,7 @@ Proyecto de la asignatura **DSY1105** (Duoc UC). Todos los datos de prueba son f
 - **Mis locales:** uno o varios locales, con ubicación por GPS y foto de portada.
 - **Catálogo:** platos con precio y destacados.
 - **Promociones:** crear, editar, pausar, reanudar y finalizar, con vigencia, días, franja horaria y cupos.
+- **Métricas:** cada promoción muestra cuántas veces se vio, cuántos beneficios se obtuvieron y cuántos se canjearon.
 - **Canjear:** escanea el QR del cliente (o escribe el código), revisa si está válido, vencido, ya canjeado o fuera de horario, y confirma el canje.
 
 **Datos para pruebas**
@@ -95,6 +96,7 @@ En **SQL Editor** ejecuta, en este orden, [`supabase/schema.sql`](supabase/schem
 | 10 | `2026-10-28_t06_preferencias_y_consentimientos.sql` | Preferencias y consentimientos en Supabase |
 | 11 | `2026-10-28_hu20_t07_interacciones_y_cuenta.sql` | Interacciones, borrar historial y eliminar cuenta |
 | 12 | `2026-10-28_hu34_dataset_perfiles_consumo.sql` | Tablas del dataset de perfiles de consumo |
+| 13 | `2026-10-28_hu30_metricas_oferente.sql` | Métricas por promoción para el oferente |
 
 Las migraciones `2026-10-24_hu07_*` y `2026-10-25_hu08_*` solo hacen falta en bases creadas con una versión anterior de `schema.sql`.
 

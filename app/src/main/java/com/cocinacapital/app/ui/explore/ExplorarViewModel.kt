@@ -7,6 +7,9 @@ import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.cocinacapital.app.data.location.UbicacionRepository
+import com.cocinacapital.app.data.repository.Interaccion
+import com.cocinacapital.app.data.repository.RegistroInteracciones
+import com.cocinacapital.app.data.repository.TipoInteraccion
 import com.cocinacapital.app.data.model.Categoria
 import com.cocinacapital.app.data.model.LocalGastronomico
 import com.cocinacapital.app.data.model.PreferenciasUsuario
@@ -54,7 +57,8 @@ fun localesCercanos(locales: List<LocalGastronomico>, filtros: FiltrosExplorar, 
 }
 
 class ExplorarViewModel(private val catalogo: HomeRepository, private val ubicacion: UbicacionRepository,
-    preferencias: Flow<PreferenciasUsuario>, private val saved: SavedStateHandle) : ViewModel() {
+    preferencias: Flow<PreferenciasUsuario>, private val saved: SavedStateHandle,
+    private val interacciones: RegistroInteracciones = RegistroInteracciones.Ninguno) : ViewModel() {
     private sealed interface Catalogo {
         data object Cargando : Catalogo
         data object Error : Catalogo
@@ -96,7 +100,27 @@ class ExplorarViewModel(private val catalogo: HomeRepository, private val ubicac
             catch (_: Exception) { Catalogo.Error }
         }
     }
-    fun texto(value: String) = cambiar { it.copy(texto = value, seleccionadoId = null) }
+    fun texto(value: String) {
+        cambiar { it.copy(texto = value, seleccionadoId = null) }
+        registrarBusqueda(value)
+    }
+
+    /**
+     * HU-20: una búsqueda se registra cuando el texto deja de cambiar, no por cada letra. Se ignoran
+     * los textos muy cortos y repetir la misma búsqueda.
+     */
+    private var busquedaPendiente: Job? = null
+    private var ultimaBusqueda = ""
+    private fun registrarBusqueda(texto: String) {
+        busquedaPendiente?.cancel()
+        val termino = texto.trim()
+        if (termino.length < LARGO_MINIMO_BUSQUEDA || termino.equals(ultimaBusqueda, ignoreCase = true)) return
+        busquedaPendiente = viewModelScope.launch {
+            delay(ESPERA_BUSQUEDA_MS)
+            ultimaBusqueda = termino
+            interacciones.registrar(Interaccion(TipoInteraccion.BUSQUEDA, termino = termino))
+        }
+    }
     /** Inicio aporta su categoría rápida; la consulta y los filtros avanzados siguen siendo de Explorar. */
     fun iniciarBusquedaDesdeHome(categoriaId: String?) = cambiar { it.copy(categoriaId = categoriaId, seleccionadoId = null) }
     fun categoria(id: String?) = cambiar { it.copy(categoriaId = if (it.categoriaId == id) null else id, seleccionadoId = null) }
@@ -119,8 +143,13 @@ class ExplorarViewModel(private val catalogo: HomeRepository, private val ubicac
         saved["presupuesto_hasta"] = next.presupuesto?.maximo
         filtros.value = next
     }
-    companion object { val Factory = viewModelFactory { initializer {
-        ExplorarViewModel(AppContainer.homeRepository, AppContainer.ubicacionRepository,
-            AppContainer.preferenciasRepository.observar(), createSavedStateHandle())
-    } } }
+    companion object {
+        private const val LARGO_MINIMO_BUSQUEDA = 3
+        private const val ESPERA_BUSQUEDA_MS = 1_500L
+
+        val Factory = viewModelFactory { initializer {
+            ExplorarViewModel(AppContainer.homeRepository, AppContainer.ubicacionRepository,
+                AppContainer.preferenciasRepository.observar(), createSavedStateHandle(), AppContainer.registroInteracciones)
+        } }
+    }
 }

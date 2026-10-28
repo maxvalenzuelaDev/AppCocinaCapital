@@ -52,6 +52,13 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.remember
+import androidx.compose.material3.SnackbarHostState
+import com.cocinacapital.app.ui.legal.DocumentoLegal
+import com.cocinacapital.app.ui.legal.DocumentoLegalDialog
+import com.cocinacapital.app.ui.legal.EnlacesLegales
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -154,42 +161,52 @@ fun PerfilScreen(
         WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
     )
 
-    when (val state = uiState) {
-        PerfilUiState.Loading -> Column(
-            modifier = contenidoModifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) { CircularProgressIndicator() }
+    val snackbar = remember { SnackbarHostState() }
+    val eliminandoCuenta by viewModel.eliminandoCuenta.collectAsStateWithLifecycle()
+    LaunchedEffect(viewModel) {
+        viewModel.mensajes.collect { snackbar.showSnackbar(context.getString(it)) }
+    }
 
-        is PerfilUiState.Error -> Column(
-            modifier = contenidoModifier.fillMaxSize().padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Icon(Icons.Outlined.CloudOff, null, Modifier.size(48.dp), tint = MaterialTheme.colorScheme.error)
-            Spacer(Modifier.height(12.dp))
-            Text(stringResource(state.mensajeRes), textAlign = TextAlign.Center)
-            Spacer(Modifier.height(16.dp))
-            Button(onClick = viewModel::onReintentar) { Text(stringResource(R.string.perfil_reintentar)) }
+    Box(Modifier.fillMaxSize()) {
+        when (val state = uiState) {
+            PerfilUiState.Loading -> Column(
+                modifier = contenidoModifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) { CircularProgressIndicator() }
+
+            is PerfilUiState.Error -> Column(
+                modifier = contenidoModifier.fillMaxSize().padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Icon(Icons.Outlined.CloudOff, null, Modifier.size(48.dp), tint = MaterialTheme.colorScheme.error)
+                Spacer(Modifier.height(12.dp))
+                Text(stringResource(state.mensajeRes), textAlign = TextAlign.Center)
+                Spacer(Modifier.height(16.dp))
+                Button(onClick = viewModel::onReintentar) { Text(stringResource(R.string.perfil_reintentar)) }
+            }
+
+            is PerfilUiState.Success -> PerfilContent(
+                state = state,
+                alCambiarFoto = viewModel::onCambiarFoto,
+                alGuardarNombre = viewModel::onGuardarNombre,
+                alElegirCategoria = viewModel::onCategoriaClick,
+                alElegirRango = viewModel::onRangoPrecio,
+                alQuitarFavorito = viewModel::onQuitarFavorito,
+                alCambiarNotificaciones = alCambiarNotificaciones,
+                alCambiarSoloCercanas = viewModel::onSoloCercanas,
+                alCambiarSoloCategorias = viewModel::onSoloCategoriasFavoritas,
+                alCambiarConsentimiento = viewModel::onConsentimiento,
+                alBorrarHistorial = viewModel::onBorrarHistorial,
+                alEliminarCuenta = viewModel::onEliminarCuenta,
+                alElegirTema = viewModel::onTema,
+                alCerrarSesion = viewModel::onCerrarSesion,
+                modifier = contenidoModifier,
+                eliminandoCuenta = eliminandoCuenta
+            )
         }
-
-        is PerfilUiState.Success -> PerfilContent(
-            state = state,
-            alCambiarFoto = viewModel::onCambiarFoto,
-            alGuardarNombre = viewModel::onGuardarNombre,
-            alElegirCategoria = viewModel::onCategoriaClick,
-            alElegirRango = viewModel::onRangoPrecio,
-            alQuitarFavorito = viewModel::onQuitarFavorito,
-            alCambiarNotificaciones = alCambiarNotificaciones,
-            alCambiarSoloCercanas = viewModel::onSoloCercanas,
-            alCambiarSoloCategorias = viewModel::onSoloCategoriasFavoritas,
-            alCambiarConsentimiento = viewModel::onConsentimiento,
-            alBorrarHistorial = viewModel::onBorrarHistorial,
-            alEliminarCuenta = viewModel::onEliminarCuenta,
-            alElegirTema = viewModel::onTema,
-            alCerrarSesion = viewModel::onCerrarSesion,
-            modifier = contenidoModifier
-        )
+        SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter))
     }
 }
 
@@ -210,12 +227,15 @@ private fun PerfilContent(
     alEliminarCuenta: () -> Unit,
     alElegirTema: (TemaApp) -> Unit,
     alCerrarSesion: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    eliminandoCuenta: Boolean = false
 ) {
     val prefs = state.preferencias
     var editandoNombre by rememberSaveable { mutableStateOf(false) }
     var confirmarBorrado by rememberSaveable { mutableStateOf(false) }
     var confirmarEliminar by rememberSaveable { mutableStateOf(false) }
+    var documentoAbierto by rememberSaveable { mutableStateOf<DocumentoLegal?>(null) }
+    documentoAbierto?.let { DocumentoLegalDialog(it, onCerrar = { documentoAbierto = null }) }
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -371,8 +391,12 @@ private fun PerfilContent(
                 }
                 OutlinedButton(
                     onClick = { confirmarEliminar = true },
+                    enabled = !eliminandoCuenta,
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text(stringResource(R.string.perfil_eliminar_cuenta), color = MaterialTheme.colorScheme.error) }
+                ) {
+                    if (eliminandoCuenta) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                    else Text(stringResource(R.string.perfil_eliminar_cuenta), color = MaterialTheme.colorScheme.error)
+                }
             }
         }
 
@@ -395,7 +419,8 @@ private fun PerfilContent(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                // TODO: enlazar términos de uso y política de privacidad
+                // T-16: política de privacidad y términos de uso.
+                EnlacesLegales(onAbrir = { documentoAbierto = it })
             }
         }
 

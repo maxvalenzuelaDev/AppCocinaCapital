@@ -46,6 +46,11 @@ import com.cocinacapital.app.data.repository.MisLocalesRepository
 import com.cocinacapital.app.data.repository.SupabaseMisLocalesRepository
 import com.cocinacapital.app.data.repository.PreferenciasRepository
 import com.cocinacapital.app.data.repository.SupabasePreferenciasRemotas
+import com.cocinacapital.app.data.repository.GestionCuenta
+import com.cocinacapital.app.data.repository.RegistroInteracciones
+import com.cocinacapital.app.data.repository.SupabaseGestionCuenta
+import com.cocinacapital.app.data.repository.SupabaseRegistroInteracciones
+import kotlinx.coroutines.flow.first
 import com.cocinacapital.app.data.repository.SupabaseDetalleLocalRepository
 import com.cocinacapital.app.data.repository.SupabaseHomeRepository
 import com.cocinacapital.app.data.repository.RutaRepository
@@ -171,6 +176,21 @@ object AppContainer {
     val billeteraRepository: BilleteraRepository by lazy { SupabaseBilleteraRepository(SupabaseProvider.client) }
     val canjeRepository: CanjeRepository by lazy { SupabaseCanjeRepository(SupabaseProvider.client) }
     val lectorQr: LectorQr by lazy { AndroidLectorQr(appContext) }
+
+    // ---- HU-20: interacciones, solo con consentimiento (HU-03); T-07: borrar historial y eliminar cuenta ----
+    val registroInteracciones: RegistroInteracciones by lazy {
+        SupabaseRegistroInteracciones(
+            SupabaseProvider.client,
+            hayConsentimiento = { preferenciasRepository.observar().first().consentimiento },
+            segundoPlano = applicationScope
+        )
+    }
+    val gestionCuenta: GestionCuenta by lazy {
+        SupabaseGestionCuenta(
+            SupabaseProvider.client, perfilSesion,
+            database.preferenciasDao(), database.favoritosDao(), fotoPerfilArchivos
+        )
+    }
 
     val favoritosRepository: FavoritosRepository by lazy {
         FavoritosRepository(database.favoritosDao(), perfilSesion)

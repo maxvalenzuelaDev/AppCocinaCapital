@@ -31,6 +31,9 @@ class PreferenciasDaoEnMemoria : PreferenciasDao {
     override suspend fun borrarCategorias(userId: String) {
         categorias.value = categorias.value.filterNot { it.userId == userId }.toSet()
     }
+    override suspend fun borrar(userId: String) {
+        filas.value = filas.value - userId
+    }
 }
 
 class FavoritosDaoEnMemoria : FavoritosDao {
@@ -46,5 +49,8 @@ class FavoritosDaoEnMemoria : FavoritosDao {
     }
     override suspend fun eliminar(userId: String, itemId: String, tipo: String) {
         filas.value = filas.value.filterNot { it.userId == userId && it.itemId == itemId && it.tipo == tipo }
+    }
+    override suspend fun borrarTodos(userId: String) {
+        filas.value = filas.value.filterNot { it.userId == userId }
     }
 }

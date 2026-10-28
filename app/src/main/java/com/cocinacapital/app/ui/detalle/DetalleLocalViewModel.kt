@@ -10,6 +10,9 @@ import com.cocinacapital.app.data.model.TipoFavorito
 import com.cocinacapital.app.data.repository.DetalleLocalRepository
 import com.cocinacapital.app.data.repository.FavoritosRepository
 import com.cocinacapital.app.di.AppContainer
+import com.cocinacapital.app.data.repository.Interaccion
+import com.cocinacapital.app.data.repository.RegistroInteracciones
+import com.cocinacapital.app.data.repository.TipoInteraccion
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -25,8 +28,12 @@ import kotlinx.coroutines.launch
 class DetalleLocalViewModel(
     private val localId: String,
     private val repository: DetalleLocalRepository,
-    private val favoritos: FavoritosRepository
+    private val favoritos: FavoritosRepository,
+    private val interacciones: RegistroInteracciones = RegistroInteracciones.Ninguno
 ) : ViewModel() {
+
+    /** HU-20: la vista se registra una vez por apertura, no en cada reintento. */
+    private var vistaRegistrada = false
 
     private val _uiState = MutableStateFlow<DetalleLocalUiState>(DetalleLocalUiState.Loading)
     val uiState: StateFlow<DetalleLocalUiState> = _uiState.asStateFlow()
@@ -70,6 +77,10 @@ class DetalleLocalViewModel(
                     if (localOk == null) {
                         DetalleLocalUiState.NoEncontrado
                     } else {
+                        if (!vistaRegistrada) {
+                            vistaRegistrada = true
+                            interacciones.registrar(Interaccion(TipoInteraccion.VISTA_LOCAL, localId = localOk.id))
+                        }
                         DetalleLocalUiState.Success(
                             local = localOk,
                             platosDestacados = platos.await(),
@@ -91,7 +102,10 @@ class DetalleLocalViewModel(
     companion object {
         fun factory(localId: String): ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                DetalleLocalViewModel(localId, AppContainer.detalleLocalRepository, AppContainer.favoritosRepository)
+                DetalleLocalViewModel(
+                    localId, AppContainer.detalleLocalRepository, AppContainer.favoritosRepository,
+                    AppContainer.registroInteracciones
+                )
             }
         }
     }

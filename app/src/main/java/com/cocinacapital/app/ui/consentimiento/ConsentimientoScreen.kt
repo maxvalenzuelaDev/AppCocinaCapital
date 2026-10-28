@@ -41,6 +41,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cocinacapital.app.R
+import com.cocinacapital.app.ui.legal.DocumentoLegal
+import com.cocinacapital.app.ui.legal.DocumentoLegalDialog
+import com.cocinacapital.app.ui.legal.EnlacesLegales
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 
 /**
  * Muestra [contenido] solo cuando la cuenta ya respondió el consentimiento (HU-03); antes, la
@@ -67,6 +73,8 @@ fun ConConsentimiento(
 
 @Composable
 fun ConsentimientoScreen(onAceptar: () -> Unit, onRechazar: () -> Unit) {
+    var abierto by rememberSaveable { mutableStateOf<DocumentoLegal?>(null) }
+    abierto?.let { DocumentoLegalDialog(it, onCerrar = { abierto = null }) }
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(Modifier.fillMaxSize().safeDrawingPadding()) {
             Column(
@@ -98,6 +106,10 @@ fun ConsentimientoScreen(onAceptar: () -> Unit, onRechazar: () -> Unit) {
                 Punto(Icons.Outlined.LocationOn, stringResource(R.string.consentimiento_garantia_ubicacion))
                 Punto(Icons.Outlined.Block, stringResource(R.string.consentimiento_garantia_terceros))
                 Punto(Icons.Outlined.ToggleOn, stringResource(R.string.consentimiento_garantia_revocar))
+
+                // T-16: los documentos completos, antes de decidir.
+                Text(stringResource(R.string.consentimiento_leer_documentos), style = MaterialTheme.typography.bodyMedium)
+                EnlacesLegales(onAbrir = { abierto = it })
             }
             Column(
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),

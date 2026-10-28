@@ -90,6 +90,9 @@ create table if not exists consentimientos (
   registrado_en timestamptz not null default now()
 );
 
+-- Interacciones del consumidor (HU-20): búsquedas, vistas y canjes, solo con consentimiento. Tabla,
+-- políticas y funciones borrar_historial() y eliminar_cuenta() (T-07) en migraciones/2026-10-28_hu20_t07_*
+
 -- Dataset ficticio de perfiles de consumo (HU-34): tablas dataset_perfiles_consumo y
 -- dataset_interacciones en migraciones/2026-10-28_hu34_*; se cargan con dataset_perfiles_consumo.sql.
 

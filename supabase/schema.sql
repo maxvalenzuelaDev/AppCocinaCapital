@@ -50,6 +50,22 @@ create table if not exists promociones (
   cupos_disponibles int
 );
 
+-- Billetera (T-02): un beneficio por consumidor y promoción, con su código de canje. Solo se lee;
+-- adquirir, liberar y canjear pasan por las funciones de migraciones/2026-10-28_t03_rpc_beneficios.sql.
+-- El código lo genera public.generar_codigo_beneficio() (migraciones/2026-10-28_t02_*).
+create table if not exists beneficios_usuario (
+  id uuid primary key default gen_random_uuid(),
+  usuario_id uuid not null references auth.users(id) on delete cascade,
+  promocion_id uuid not null references promociones(id) on delete cascade,
+  guardado_en timestamptz not null default now(),
+  codigo text not null unique,                  -- 8 caracteres; se muestra como texto y como QR
+  estado text not null default 'vigente',       -- vigente | canjeado ("vencido" se calcula con la promoción)
+  canjeado_en timestamptz,
+  constraint beneficio_usuario_unico unique (usuario_id, promocion_id),
+  constraint beneficios_usuario_estado_valido
+    check (estado in ('vigente', 'canjeado') and (estado = 'canjeado') = (canjeado_en is not null))
+);
+
 -- Seguridad (RLS): lectura pública del catálogo; escritura solo desde el panel/servicio.
 alter table categorias enable row level security;
 alter table locales enable row level security;
@@ -59,6 +75,8 @@ create policy "lectura categorias" on categorias for select to anon, authenticat
 create policy "lectura locales" on locales for select to anon, authenticated using (activo);
 create policy "lectura promociones" on promociones for select to anon, authenticated using (activa);
 create policy "lectura platos" on platos for select to anon, authenticated using (true);
+alter table beneficios_usuario enable row level security;
+create policy "Ver mis beneficios" on beneficios_usuario for select to authenticated using (auth.uid() = usuario_id);
 
 -- Datos de prueba (ficticios)
 insert into categorias (nombre) values

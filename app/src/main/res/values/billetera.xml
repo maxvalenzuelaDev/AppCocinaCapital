@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- HU-14 y HU-16: billetera del consumidor -->
+    <string name="billetera_titulo">Mi billetera</string>
+    <string name="billetera_subtitulo">Tus beneficios para presentar en el local.</string>
+    <string name="billetera_tab_vigentes">Vigentes (%1$d)</string>
+    <string name="billetera_tab_historial">Historial (%1$d)</string>
+    <string name="billetera_vacia_titulo">Tu billetera está vacía</string>
+    <string name="billetera_vacia_texto">Todavía no tienes beneficios. Explora las promociones y obtén el que quieras usar.</string>
+    <string name="billetera_explorar">Explorar promociones</string>
+    <string name="billetera_sin_vigentes">No tienes beneficios vigentes. Los canjeados y vencidos quedan en el historial.</string>
+    <string name="billetera_sin_historial">Aquí verás los beneficios que canjees o que venzan.</string>
+    <string name="billetera_reintentar">Reintentar</string>
+    <string name="billetera_error_cargar">No se pudieron cargar tus beneficios. Revisa tu conexión e inténtalo nuevamente.</string>
+    <string name="billetera_descuento">%1$d%% de descuento</string>
+    <string name="billetera_valido_hasta">Válido hasta el %1$s</string>
+    <string name="billetera_vencio_el">Venció el %1$s</string>
+    <string name="billetera_canjeado_el">Canjeado el %1$s</string>
+    <string name="billetera_mostrar_codigo">Mostrar código</string>
+    <string name="billetera_quitar">Quitar</string>
+    <string name="billetera_quitar_titulo">¿Quitar este beneficio?</string>
+    <string name="billetera_quitar_texto">Liberarás tu cupo de «%1$s» para que otra persona lo use. Podrás obtenerlo de nuevo si quedan cupos.</string>
+    <string name="billetera_quitar_confirmar">Quitar beneficio</string>
+    <string name="billetera_cancelar">Cancelar</string>
+    <string name="billetera_quitado">Beneficio quitado de tu billetera.</string>
+    <string name="billetera_error_quitar">No se pudo quitar el beneficio. Inténtalo nuevamente.</string>
+    <string name="billetera_estado_vigente">Vigente</string>
+    <string name="billetera_estado_canjeado">Canjeado</string>
+    <string name="billetera_estado_vencido">Vencido</string>
+
+    <!-- HU-14: código y QR para mostrar en el local -->
+    <string name="billetera_codigo_titulo">Muestra este código en el local</string>
+    <string name="billetera_codigo_ayuda">El local escanea el QR o escribe el código para aplicar tu beneficio. Sube el brillo de la pantalla si no lo lee.</string>
+    <string name="billetera_codigo_qr">Código QR del beneficio %1$s</string>
+    <string name="billetera_codigo_texto">Código: %1$s</string>
+    <string name="billetera_cerrar">Cerrar</string>
+
+    <!-- HU-13: obtener el beneficio desde el detalle de la promoción -->
+    <string name="beneficio_obtener">Obtener beneficio</string>
+    <string name="beneficio_ver_codigo">Ver mi código</string>
+    <string name="beneficio_ya_canjeado">Ya canjeaste este beneficio</string>
+    <string name="beneficio_no_obtenible">Esta promoción ya no entrega beneficios</string>
+    <string name="beneficio_obtenido_titulo">¡Beneficio obtenido!</string>
+    <string name="beneficio_obtenido_texto">Quedó guardado en tu billetera. Muéstralo en el local para usar tu descuento.</string>
+    <string name="beneficio_error_estado">No se pudo revisar si ya tienes este beneficio.</string>
+    <string name="beneficio_error_obtener">No se pudo obtener el beneficio. Revisa tu conexión e inténtalo nuevamente.</string>
+    <string name="beneficio_error_sin_cupos">Se agotaron los cupos de esta promoción.</string>
+    <string name="beneficio_error_vencida">Esta promoción ya terminó.</string>
+    <string name="beneficio_error_no_iniciada">Esta promoción todavía no comienza.</string>
+    <string name="beneficio_error_no_disponible">Esta promoción no está disponible por ahora.</string>
+    <string name="beneficio_error_sin_sesion">Inicia sesión para obtener beneficios.</string>
+
+    <!-- HU-15 y HU-29: canje en el local (oferente) -->
+    <string name="oferente_nav_canjear">Canjear</string>
+    <string name="canje_ayuda">Escanea el QR del cliente o escribe su código para revisar el beneficio antes de aplicarlo.</string>
+    <string name="canje_codigo">Código del beneficio</string>
+    <string name="canje_codigo_ejemplo">Ej: ABCD-EFGH</string>
+    <string name="canje_revisar">Revisar código</string>
+    <string name="canje_escanear">Escanear QR</string>
+    <string name="canje_confirmar">Confirmar canje</string>
+    <string name="canje_nuevo">Revisar otro código</string>
+    <string name="canje_codigo_invalido">El código tiene 8 letras y números, por ejemplo ABCD-EFGH.</string>
+    <string name="canje_qr_no_leido">No se encontró un código QR en la foto. Acércate, evita reflejos e inténtalo de nuevo, o escribe el código.</string>
+    <string name="canje_qr_ajeno">Ese QR no es un beneficio de Cocina Capital.</string>
+    <string name="canje_permiso_camara">Para escanear, permite el uso de la cámara. También puedes escribir el código.</string>
+    <string name="canje_error_no_encontrado">No existe un beneficio con ese código en tus locales.</string>
+    <string name="canje_error_no_autorizado">Solo una cuenta de oferente puede canjear beneficios.</string>
+    <string name="canje_error_red">No se pudo revisar el código. Revisa tu conexión e inténtalo nuevamente.</string>
+    <string name="canje_estado_valido">Válido: puedes aplicarlo</string>
+    <string name="canje_estado_canjeado_ahora">Canje registrado</string>
+    <string name="canje_estado_canjeado">Ya fue canjeado</string>
+    <string name="canje_estado_vencido">Vencido</string>
+    <string name="canje_estado_no_disponible">Promoción pausada o local inactivo</string>
+    <string name="canje_estado_no_iniciado">La promoción aún no comienza</string>
+    <string name="canje_estado_fuera_de_horario">Fuera del día u horario de la promoción</string>
+    <string name="canje_canjeado_el">Canjeado el %1$s</string>
+    <string name="canje_vigente_hasta">Vigente hasta el %1$s</string>
+    <string name="canje_condiciones">Condiciones: %1$s</string>
+</resources>

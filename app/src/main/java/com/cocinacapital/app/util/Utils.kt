@@ -27,3 +27,12 @@ fun String.normalizado(): String =
         .replace("\\p{Mn}+".toRegex(), "")
         .lowercase(LocaleCL)
         .trim()
+
+/** Fecha de Supabase (ISO 8601) en hora de Santiago, ej: "3 de noviembre de 2026, 23:59"; `null` si no se entiende. */
+fun fechaHoraChile(iso: String?): String? = iso?.let {
+    runCatching {
+        java.time.OffsetDateTime.parse(it)
+            .atZoneSameInstant(java.time.ZoneId.of("America/Santiago"))
+            .format(java.time.format.DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy, HH:mm", LocaleCL))
+    }.getOrNull()
+}

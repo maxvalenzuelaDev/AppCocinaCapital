@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Carpetas que FileProvider puede compartir con la cámara (foto de perfil, T-23). -->
+<!-- Carpetas que FileProvider puede compartir con la cámara: foto de perfil (T-23) y QR de canje (HU-29). -->
 <paths>
     <files-path name="fotos_perfil" path="fotos_perfil/" />
+    <cache-path name="escaneos_qr" path="escaneos_qr/" />
 </paths>

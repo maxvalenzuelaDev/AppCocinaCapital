@@ -75,7 +75,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import com.cocinacapital.app.ui.billetera.GuardarPromocionButton
+import com.cocinacapital.app.ui.billetera.ObtenerBeneficioButton
 
 @Composable
 fun DetallePromocionScreen(
@@ -97,7 +97,7 @@ fun DetallePromocionScreen(
             }
         }
     }
-    DetallePromocionContent(state, onVolver, onLocalClick, model::onReintentar, modifier)
+    DetallePromocionContent(state, onVolver, onLocalClick, model::onReintentar, modifier, onCuposCambiaron = model::actualizarCupos)
 }
 
 @Composable
@@ -106,7 +106,8 @@ fun DetallePromocionContent(
     onVolver: () -> Unit,
     onLocalClick: (String) -> Unit,
     onReintentar: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onCuposCambiaron: () -> Unit = {}
 ) {
     Scaffold(
         modifier = modifier,
@@ -127,9 +128,13 @@ fun DetallePromocionContent(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
 
-                        // Botón de nuestra billetera.
-                        GuardarPromocionButton(
-                            promocionId = detalle.promocion.id
+                        // HU-13: obtener el beneficio y verlo en la billetera.
+                        ObtenerBeneficioButton(
+                            promocionId = detalle.promocion.id,
+                            titulo = detalle.promocion.titulo,
+                            localNombre = detalle.local?.nombre,
+                            obtenible = detalle.vigencia.estado !in NO_OBTENIBLE,
+                            onCuposCambiaron = onCuposCambiaron
                         )
 
                         // Botón Ver local de nuestros compañeros.
@@ -406,3 +411,11 @@ private fun diasTexto(promocion: Promocion, camposPresentes: Boolean): String {
     }
     return stringResource(R.string.detalle_promocion_dias, nombres)
 }
+
+/** Estados en que Supabase rechazaría el beneficio; fuera de horario sí se obtiene para usarlo después. */
+private val NO_OBTENIBLE = setOf(
+    EstadoVigenciaPromocion.FINALIZADA,
+    EstadoVigenciaPromocion.NO_DISPONIBLE,
+    EstadoVigenciaPromocion.SIN_CUPOS,
+    EstadoVigenciaPromocion.PROGRAMADA
+)

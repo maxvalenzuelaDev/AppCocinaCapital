@@ -22,6 +22,12 @@ import com.cocinacapital.app.data.repository.FakeExperienciasRepository
 import com.cocinacapital.app.data.repository.SupabaseExperienciasRepository
 import com.cocinacapital.app.data.local.AndroidPreparadorFoto
 import com.cocinacapital.app.data.local.PreparadorFoto
+import com.cocinacapital.app.data.local.AndroidLectorQr
+import com.cocinacapital.app.data.local.LectorQr
+import com.cocinacapital.app.data.repository.BilleteraRepository
+import com.cocinacapital.app.data.repository.CanjeRepository
+import com.cocinacapital.app.data.repository.SupabaseBilleteraRepository
+import com.cocinacapital.app.data.repository.SupabaseCanjeRepository
 import com.cocinacapital.app.data.repository.CatalogoRepository
 import com.cocinacapital.app.data.repository.FotosLocalRepository
 import com.cocinacapital.app.data.repository.SupabaseFotosLocalRepository
@@ -155,6 +161,11 @@ object AppContainer {
     val promocionesOferenteRepository: PromocionesOferenteRepository by lazy {
         SupabasePromocionesOferenteRepository(SupabaseProvider.client)
     }
+
+    // ---- Billetera (HU-13 a HU-16) y canje en el local (HU-29): funciones de la migración T-03 ----
+    val billeteraRepository: BilleteraRepository by lazy { SupabaseBilleteraRepository(SupabaseProvider.client) }
+    val canjeRepository: CanjeRepository by lazy { SupabaseCanjeRepository(SupabaseProvider.client) }
+    val lectorQr: LectorQr by lazy { AndroidLectorQr(appContext) }
 
     val favoritosRepository: FavoritosRepository by lazy {
         FavoritosRepository(database.favoritosDao(), perfilSesion)

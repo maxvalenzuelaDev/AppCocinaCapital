@@ -16,6 +16,7 @@ coroutines = "1.10.2"
 junit = "4.13.2"
 room = "2.8.1"
 ksp = "2.2.20-2.0.4"
+zxing = "3.5.3"
 
 [libraries]
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -46,6 +47,9 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
+
+# Código QR de la billetera: generarlo (consumidor) y leerlo desde una foto (oferente)
+zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
 
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }

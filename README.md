@@ -162,7 +162,7 @@ flowchart LR
     subgraph App["App Android"]
         UI["Pantallas Compose"] --> VM["ViewModels<br/>StateFlow + UiState"]
         VM --> Repo["Repositorios<br/>(interfaces)"]
-        AC["AppContainer"] -. crea .-> Repo
+        AC["AppContainer"] -.->|crea| Repo
         Repo --> Room[("Room<br/>preferencias, favoritos")]
     end
     subgraph Supabase
@@ -253,7 +253,7 @@ flowchart LR
     O --- O2["Gestionar catálogo"]
     O --- O3["Crear y pausar promociones"]
     O --- O4["Validar y canjear códigos"]
-    U5 -. "código" .-> O4
+    U5 -.->|código| O4
 ```
 
 ### Carpetas

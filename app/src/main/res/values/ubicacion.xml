@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gps_titulo">Mi ubicación</string>
+    <string name="gps_buscando">Buscando tu ubicación…</string>
+    <string name="gps_actualizada">Ubicación actualizada</string>
+    <string name="gps_sin_permiso">Permite el acceso para calcular distancias desde tu ubicación.</string>
+    <string name="gps_apagado">La ubicación del teléfono está desactivada.</string>
+    <string name="gps_tiempo">No llegó una posición a tiempo. Inténtalo de nuevo cerca de una ventana o al aire libre.</string>
+    <string name="gps_sin_proveedor">No hay un proveedor de ubicación disponible.</string>
+    <string name="gps_error">No se pudo obtener tu ubicación. Inténtalo de nuevo.</string>
+    <string name="gps_activar">Activar ubicación</string>
+    <string name="gps_ajustes">Abrir permisos</string>
+    <string name="gps_obtener">Usar mi ubicación</string>
+    <string name="gps_actualizar">Actualizar ubicación</string>
+    <string name="gps_permiso_titulo">Encuentra locales cerca de ti</string>
+    <string name="gps_permiso_explicacion">Usamos tu ubicación para mostrar locales, promociones y distancias cercanas. Solo se consulta mientras la app está abierta. Si prefieres no dar permiso, puedes seguir usando el catálogo general.</string>
+    <string name="gps_permiso_continuar">Continuar</string>
+    <string name="gps_permiso_ahora_no">Ahora no</string>
+</resources>

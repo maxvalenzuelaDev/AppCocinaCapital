@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="exp_titulo">Experiencias</string>
+    <string name="exp_entrada">Experiencias culinarias</string>
+    <string name="exp_subtitulo">Degustaciones, menús temáticos y propuestas para descubrir.</string>
+    <string name="exp_detalle">Experiencia</string>
+    <string name="exp_actualizar">Actualizar experiencias</string>
+    <string name="exp_vacio">Aún no hay experiencias publicadas. Vuelve a consultar más adelante.</string>
+    <string name="exp_error">No pudimos cargar las experiencias. Vuelve a intentarlo en unos momentos.</string>
+    <string name="exp_error_detalle">No pudimos cargar esta experiencia. Vuelve a intentarlo en unos momentos.</string>
+    <string name="exp_no_encontrada">Esta experiencia ya no está disponible.</string>
+    <string name="exp_horario">Horario de la experiencia</string>
+    <string name="exp_horario_pendiente">Horario no informado.</string>
+    <string name="exp_precio">Precio referencial</string>
+    <string name="exp_precio_resumen">Precio referencial: %1$s</string>
+    <string name="exp_precio_pendiente">No informado</string>
+    <string name="exp_descripcion_pendiente">Descripción no informada.</string>
+    <string name="exp_foto">Foto de %1$s</string>
+</resources>

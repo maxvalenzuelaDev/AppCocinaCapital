@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Logo de Cocina Capital: la campana de servir (cloche) del Login, en blanco.
+    Lienzo de 108 × 108 del ícono adaptativo; el dibujo queda dentro de la zona segura (66 × 66 al centro),
+    así se ve completo con cualquier forma de máscara del lanzador. También es el ícono del splash.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Campana -->
+    <path
+        android:pathData="M32.72,61.88 A21.28,18.2 0 0,1 75.28,61.88"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.4"
+        android:strokeLineCap="round" />
+
+    <!-- Bandeja -->
+    <path
+        android:pathData="M30.48,63.28 L77.52,63.28"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.4"
+        android:strokeLineCap="round" />
+
+    <!-- Base -->
+    <path
+        android:pathData="M40.56,72.24 L67.44,72.24"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.4"
+        android:strokeLineCap="round" />
+
+    <!-- Asa -->
+    <path
+        android:pathData="M50.83,39.2 a3.17,3.17 0 1,0 6.34,0 a3.17,3.17 0 1,0 -6.34,0"
+        android:fillColor="#FFFFFF" />
+</vector>

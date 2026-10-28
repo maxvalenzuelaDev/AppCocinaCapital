@@ -5,6 +5,7 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.auth.Auth
+import io.github.jan.supabase.storage.Storage
 
 /**
  * Único cliente de Supabase de toda la app (singleton).
@@ -21,6 +22,7 @@ object SupabaseProvider {
         ) {
             install(Postgrest)
             install(Auth)
+            install(Storage) // fotos de los locales (T-05)
         }
     }
 }

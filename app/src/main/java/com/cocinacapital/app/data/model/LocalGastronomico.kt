@@ -25,5 +25,7 @@ data class LocalGastronomico(
     /** Texto libre, ej: "Lun a Jue 12:00–22:00 · Vie y Sáb 12:00–00:00". */
     val horario: String? = null,
     @Transient val categoriaNombre: String = "",
-    @Transient val distanciaKm: Double? = null
+    @Transient val distanciaKm: Double? = null,
+    /** Consumo promedio en CLP por persona, informado por el comercio; nunca se deriva del menú. */
+    @SerialName("ticket_promedio_persona") val ticketPromedioPersona: Long? = null
 )

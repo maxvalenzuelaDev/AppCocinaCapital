@@ -1,5 +1,9 @@
 package com.cocinacapital.app.ui.perfil
 
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
+import com.cocinacapital.app.BuildConfig
+import com.cocinacapital.app.R
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -161,9 +165,9 @@ fun PerfilScreen(
         ) {
             Icon(Icons.Outlined.CloudOff, null, Modifier.size(48.dp), tint = MaterialTheme.colorScheme.error)
             Spacer(Modifier.height(12.dp))
-            Text(state.message, textAlign = TextAlign.Center)
+            Text(stringResource(state.mensajeRes), textAlign = TextAlign.Center)
             Spacer(Modifier.height(16.dp))
-            Button(onClick = viewModel::onReintentar) { Text("Reintentar") }
+            Button(onClick = viewModel::onReintentar) { Text(stringResource(R.string.perfil_reintentar)) }
         }
 
         is PerfilUiState.Success -> PerfilContent(
@@ -233,15 +237,31 @@ private fun PerfilContent(
                     TextButton(onClick = { editandoNombre = true }) {
                         Icon(Icons.Outlined.Edit, null, Modifier.size(18.dp))
                         Spacer(Modifier.size(6.dp))
-                        Text("Editar perfil")
+                        Text(stringResource(R.string.perfil_editar))
                     }
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        Estadistica("${state.canjeados}", "Beneficios canjeados")
-                        Estadistica("${state.favoritos.size}", "Favoritos")
-                        Estadistica("${prefs.categoriasIds.size}", "Cocinas preferidas")
+                    val estadisticas = listOf(
+                        "${state.canjeados}" to stringResource(R.string.perfil_stat_canjeados),
+                        "${state.favoritos.size}" to stringResource(R.string.perfil_stat_favoritos),
+                        "${prefs.categoriasIds.size}" to stringResource(R.string.perfil_stat_cocinas)
+                    )
+                    // Con la fuente del sistema muy grande, tres columnas parten las palabras: se apilan (T-18).
+                    if (LocalDensity.current.fontScale >= 1.5f) {
+                        Column(Modifier.fillMaxWidth().padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            estadisticas.forEach { (valor, etiqueta) ->
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(valor, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                                    Spacer(Modifier.size(12.dp))
+                                    Text(etiqueta, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            estadisticas.forEach { (valor, etiqueta) -> Estadistica(valor, etiqueta, Modifier.weight(1f)) }
+                        }
                     }
                 }
             }
@@ -249,8 +269,8 @@ private fun PerfilContent(
 
         // ---- Preferencias gastronómicas ----
         item {
-            SeccionCard("Preferencias gastronómicas", descripcion = "Personalizan la sección \"Para ti\"") {
-                Text("Tipos de cocina", style = MaterialTheme.typography.labelLarge)
+            SeccionCard(stringResource(R.string.perfil_preferencias_titulo), descripcion = stringResource(R.string.perfil_preferencias_descripcion)) {
+                Text(stringResource(R.string.perfil_tipos_cocina), style = MaterialTheme.typography.labelLarge)
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -264,14 +284,14 @@ private fun PerfilContent(
                     }
                 }
                 Separador()
-                Text("Rango de precios", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(R.string.perfil_rango_precios), style = MaterialTheme.typography.labelLarge)
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                     RangoPrecio.entries.forEachIndexed { i, rango ->
                         SegmentedButton(
                             selected = prefs.rangoPrecio == rango,
                             onClick = { alElegirRango(rango) },
                             shape = SegmentedButtonDefaults.itemShape(i, RangoPrecio.entries.size)
-                        ) { Text("${rango.simbolo} ${rango.etiqueta}", maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                        ) { Text("${rango.simbolo} ${stringResource(rango.etiquetaRes)}", maxLines = 1, overflow = TextOverflow.Ellipsis) }
                     }
                 }
             }
@@ -279,10 +299,10 @@ private fun PerfilContent(
 
         // ---- Favoritos ----
         item {
-            SeccionCard("Favoritos") {
+            SeccionCard(stringResource(R.string.perfil_favoritos)) {
                 if (state.favoritos.isEmpty()) {
                     Text(
-                        "Aún no tienes favoritos. Guarda locales y promociones para encontrarlos rápido.",
+                        stringResource(R.string.perfil_favoritos_vacio),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -300,7 +320,7 @@ private fun PerfilContent(
                                 )
                             }
                             IconButton(onClick = { alQuitarFavorito(fav) }) {
-                                Icon(Icons.Filled.Close, contentDescription = "Quitar ${fav.nombre} de favoritos")
+                                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.perfil_quitar_favorito, fav.nombre))
                             }
                         }
                     }
@@ -310,17 +330,17 @@ private fun PerfilContent(
 
         // ---- Notificaciones ----
         item {
-            SeccionCard("Notificaciones") {
+            SeccionCard(stringResource(R.string.perfil_notificaciones)) {
                 SwitchRow(
-                    "Promociones", prefs.notificaciones, alCambiarNotificaciones,
-                    descripcion = "Avisos de ofertas afines a tu perfil"
+                    stringResource(R.string.perfil_notif_promociones), prefs.notificaciones, alCambiarNotificaciones,
+                    descripcion = stringResource(R.string.perfil_notif_promociones_descripcion)
                 )
                 SwitchRow(
-                    "Solo cerca de mí", prefs.soloCercanas, alCambiarSoloCercanas,
+                    stringResource(R.string.perfil_notif_cerca), prefs.soloCercanas, alCambiarSoloCercanas,
                     enabled = prefs.notificaciones
                 )
                 SwitchRow(
-                    "Solo de mis cocinas preferidas", prefs.soloCategoriasFavoritas, alCambiarSoloCategorias,
+                    stringResource(R.string.perfil_notif_cocinas), prefs.soloCategoriasFavoritas, alCambiarSoloCategorias,
                     enabled = prefs.notificaciones
                 )
             }
@@ -328,47 +348,47 @@ private fun PerfilContent(
 
         // ---- Privacidad ----
         item {
-            SeccionCard("Privacidad y datos", descripcion = "Ley N.º 21.719 y Ley N.º 19.628") {
+            SeccionCard(stringResource(R.string.perfil_privacidad), descripcion = stringResource(R.string.perfil_privacidad_leyes)) {
                 SwitchRow(
-                    "Personalizar con mi actividad",
+                    stringResource(R.string.perfil_personalizar),
                     prefs.consentimiento,
                     alCambiarConsentimiento,
-                    descripcion = "Permite registrar tus búsquedas, promociones vistas y canjes para recomendarte ofertas. Puedes revocarlo cuando quieras."
+                    descripcion = stringResource(R.string.perfil_personalizar_descripcion)
                 )
                 prefs.consentimientoFecha?.let {
                     Text(
-                        "Aceptado el " + DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(it)),
+                        stringResource(R.string.perfil_aceptado_el, DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(it))),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Separador()
                 OutlinedButton(onClick = { confirmarBorrado = true }, modifier = Modifier.fillMaxWidth()) {
-                    Text("Borrar mi historial de actividad")
+                    Text(stringResource(R.string.perfil_borrar_historial))
                 }
                 OutlinedButton(
                     onClick = { confirmarEliminar = true },
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text("Eliminar mi cuenta y mis datos", color = MaterialTheme.colorScheme.error) }
+                ) { Text(stringResource(R.string.perfil_eliminar_cuenta), color = MaterialTheme.colorScheme.error) }
             }
         }
 
         // ---- Aplicación ----
         item {
-            SeccionCard("Aplicación") {
-                Text("Tema", style = MaterialTheme.typography.labelLarge)
+            SeccionCard(stringResource(R.string.perfil_aplicacion)) {
+                Text(stringResource(R.string.perfil_tema), style = MaterialTheme.typography.labelLarge)
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                     TemaApp.entries.forEachIndexed { i, tema ->
                         SegmentedButton(
                             selected = prefs.tema == tema,
                             onClick = { alElegirTema(tema) },
                             shape = SegmentedButtonDefaults.itemShape(i, TemaApp.entries.size)
-                        ) { Text(tema.etiqueta, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                        ) { Text(stringResource(tema.etiquetaRes), maxLines = 1, overflow = TextOverflow.Ellipsis) }
                     }
                 }
                 Separador()
                 Text(
-                    "Cocina Capital · versión 1.0",
+                    stringResource(R.string.perfil_version, BuildConfig.VERSION_NAME),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -383,7 +403,7 @@ private fun PerfilContent(
             ) {
                 Icon(Icons.AutoMirrored.Outlined.Logout, null, Modifier.size(18.dp))
                 Spacer(Modifier.size(8.dp))
-                Text("Cerrar sesión")
+                Text(stringResource(R.string.perfil_cerrar_sesion))
             }
         }
     }
@@ -397,18 +417,18 @@ private fun PerfilContent(
     }
     if (confirmarBorrado) {
         ConfirmDialog(
-            titulo = "¿Borrar tu historial?",
-            mensaje = "Se eliminarán tus búsquedas e interacciones usadas para recomendarte ofertas.",
-            confirmar = "Borrar",
+            titulo = stringResource(R.string.perfil_borrar_titulo),
+            mensaje = stringResource(R.string.perfil_borrar_mensaje),
+            confirmar = stringResource(R.string.perfil_borrar_confirmar),
             onConfirmar = { alBorrarHistorial(); confirmarBorrado = false },
             onCancelar = { confirmarBorrado = false }
         )
     }
     if (confirmarEliminar) {
         ConfirmDialog(
-            titulo = "¿Eliminar tu cuenta?",
-            mensaje = "Se eliminarán tu cuenta y tus datos de forma permanente. Esta acción no se puede deshacer.",
-            confirmar = "Eliminar",
+            titulo = stringResource(R.string.perfil_eliminar_titulo),
+            mensaje = stringResource(R.string.perfil_eliminar_mensaje),
+            confirmar = stringResource(R.string.perfil_eliminar_confirmar),
             onConfirmar = { alEliminarCuenta(); confirmarEliminar = false },
             onCancelar = { confirmarEliminar = false }
         )
@@ -420,19 +440,19 @@ private fun EditarNombreDialog(nombreActual: String, onGuardar: (String) -> Unit
     var texto by rememberSaveable { mutableStateOf(nombreActual) }
     AlertDialog(
         onDismissRequest = onCancelar,
-        title = { Text("Editar perfil") },
+        title = { Text(stringResource(R.string.perfil_editar)) },
         text = {
             OutlinedTextField(
                 value = texto,
                 onValueChange = { texto = it },
-                label = { Text("Nombre") },
+                label = { Text(stringResource(R.string.perfil_nombre)) },
                 singleLine = true,
                 isError = texto.trim().length < 2,
-                supportingText = { if (texto.trim().length < 2) Text("Mínimo 2 caracteres") }
+                supportingText = { if (texto.trim().length < 2) Text(stringResource(R.string.perfil_nombre_minimo)) }
             )
         },
-        confirmButton = { TextButton(onClick = { onGuardar(texto) }, enabled = texto.trim().length >= 2) { Text("Guardar") } },
-        dismissButton = { TextButton(onClick = onCancelar) { Text("Cancelar") } }
+        confirmButton = { TextButton(onClick = { onGuardar(texto) }, enabled = texto.trim().length >= 2) { Text(stringResource(R.string.perfil_guardar)) } },
+        dismissButton = { TextButton(onClick = onCancelar) { Text(stringResource(R.string.perfil_cancelar)) } }
     )
 }
 
@@ -449,6 +469,6 @@ private fun ConfirmDialog(
         title = { Text(titulo) },
         text = { Text(mensaje) },
         confirmButton = { TextButton(onClick = onConfirmar) { Text(confirmar) } },
-        dismissButton = { TextButton(onClick = onCancelar) { Text("Cancelar") } }
+        dismissButton = { TextButton(onClick = onCancelar) { Text(stringResource(R.string.perfil_cancelar)) } }
     )
 }

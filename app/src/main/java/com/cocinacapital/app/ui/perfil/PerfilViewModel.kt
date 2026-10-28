@@ -51,7 +51,7 @@ class PerfilViewModel(
     ) { usuario, prefs, favs, cats ->
         when {
             cats == null -> PerfilUiState.Loading
-            cats.isFailure -> PerfilUiState.Error("No pudimos cargar tus preferencias. Inténtalo de nuevo.")
+            cats.isFailure -> PerfilUiState.Error(com.cocinacapital.app.R.string.perfil_error_cargar)
             else -> PerfilUiState.Success(usuario, prefs, cats.getOrThrow(), favs)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PerfilUiState.Loading)

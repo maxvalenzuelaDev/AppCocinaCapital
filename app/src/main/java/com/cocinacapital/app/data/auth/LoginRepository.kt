@@ -1,11 +1,16 @@
 package com.cocinacapital.app.data.auth
 
+import androidx.annotation.StringRes
+import com.cocinacapital.app.R
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-data class LoginUser(val id: String, val email: String?)
+/** Rol de la cuenta (HU-04). Toda cuenta es consumidora salvo que Supabase la marque como oferente. */
+enum class Rol { CONSUMIDOR, OFERENTE }
+
+data class LoginUser(val id: String, val email: String?, val rol: Rol = Rol.CONSUMIDOR)
 
 sealed interface LoginSession {
     data object Initializing : LoginSession
@@ -14,14 +19,15 @@ sealed interface LoginSession {
     data class SignedIn(val user: LoginUser) : LoginSession
 }
 
-enum class LoginError(val message: String) {
-    INVALID_EMAIL("Ingresa un correo válido."),
-    EMPTY_PASSWORD("Ingresa tu contraseña."),
-    INVALID_CREDENTIALS("Correo o contraseña incorrectos."),
-    EMAIL_NOT_CONFIRMED("Confirma tu correo antes de iniciar sesión."),
-    TOO_MANY_ATTEMPTS("Demasiados intentos. Inténtalo más tarde."),
-    NETWORK("No se pudo conectar. Revisa tu conexión e inténtalo nuevamente."),
-    UNKNOWN("No se pudo completar la operación. Inténtalo nuevamente.")
+/** Cada error trae su texto en `res/values/acceso.xml` (T-10). */
+enum class LoginError(@StringRes val mensajeRes: Int) {
+    INVALID_EMAIL(R.string.login_error_correo_invalido),
+    EMPTY_PASSWORD(R.string.login_error_contrasena_vacia),
+    INVALID_CREDENTIALS(R.string.login_error_credenciales),
+    EMAIL_NOT_CONFIRMED(R.string.login_error_correo_sin_confirmar),
+    TOO_MANY_ATTEMPTS(R.string.login_error_demasiados_intentos),
+    NETWORK(R.string.login_error_sin_conexion),
+    UNKNOWN(R.string.login_error_desconocido)
 }
 
 sealed interface LoginResult<out T> {
@@ -72,4 +78,4 @@ class LoginRepository(private val gateway: AuthGateway) {
 }
 
 /** Error seguro: no incluye el cuerpo HTTP ni datos de la sesión. */
-class AuthFailure(val reason: LoginError) : Exception(reason.message)
+class AuthFailure(val reason: LoginError) : Exception(reason.name)

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_buscar_explorar">Buscar locales y filtrar</string>
+    <string name="home_abrir_busqueda">Buscar en Explorar</string>
+    <string name="home_destacados_gps">Locales destacados según valoración y cercanía</string>
+    <string name="home_destacados_general">Locales destacados para descubrir</string>
+    <string name="home_promociones_cercania">Ordenadas por cercanía a tu ubicación</string>
+    <string name="home_promociones_general">Aprovecha las horas de baja demanda</string>
+    <string name="home_promocion_distancia">%1$s km en línea recta</string>
+</resources>

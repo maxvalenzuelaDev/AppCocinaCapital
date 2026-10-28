@@ -38,6 +38,10 @@ alter table public.beneficios_usuario
 alter table public.beneficios_usuario
   add column if not exists canjeado_en timestamptz;
 
+-- Si la tabla ya venía con la columna (por ejemplo, creada con schema.sql), `add column if not exists`
+-- no le pone el valor por defecto: se fija aparte.
+alter table public.beneficios_usuario alter column codigo set default public.generar_codigo_beneficio();
+
 -- Las filas guardadas antes de este cambio también reciben código.
 update public.beneficios_usuario set codigo = public.generar_codigo_beneficio() where codigo is null;
 alter table public.beneficios_usuario alter column codigo set not null;

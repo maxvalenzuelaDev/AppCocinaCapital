@@ -101,4 +101,5 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)     // Coil 3 necesita un motor de red explícito
     implementation(libs.zxing.core)              // QR de los beneficios (HU-14 y HU-29), sin servicios de Google
+    implementation(libs.androidx.work.runtime.ktx) // avisos de promociones en segundo plano (HU-22)
 }

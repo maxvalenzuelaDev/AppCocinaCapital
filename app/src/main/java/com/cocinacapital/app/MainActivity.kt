@@ -1,6 +1,8 @@
 package com.cocinacapital.app
 
+import android.content.Intent
 import android.os.Bundle
+import com.cocinacapital.app.data.notificaciones.AvisosPromociones
 import androidx.activity.viewModels
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -38,12 +40,24 @@ class MainActivity : ComponentActivity() {
         if (serviciosListos) AppContainer.ubicacionRepository.validarDisponibilidad()
     }
 
+    /** HU-22: al tocar una notificación con la app abierta llega aquí (launchMode singleTop). */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        abrirDesdeAviso(intent)
+    }
+
+    private fun abrirDesdeAviso(intent: Intent?) {
+        intent?.getStringExtra(AvisosPromociones.EXTRA_PROMOCION)?.let(AppContainer::abrirPromocion)
+        intent?.removeExtra(AvisosPromociones.EXTRA_PROMOCION) // al girar la pantalla no se vuelve a abrir
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // Muestra el splash de marca (T-09) y luego aplica el tema normal; debe ir antes de super.onCreate.
         // Se mantiene mientras se prepara el inicio, así no aparece una pantalla de carga con un tema
         // distinto al elegido en Perfil (ese tema se lee de Room recién cuando termina la preparación).
         installSplashScreen().setKeepOnScreenCondition { inicio.uiState.value == InicioUiState.Loading }
         super.onCreate(savedInstanceState)
+        abrirDesdeAviso(intent)
         enableEdgeToEdge()
         setContent {
             val estado by inicio.uiState.collectAsStateWithLifecycle()

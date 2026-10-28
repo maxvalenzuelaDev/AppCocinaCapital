@@ -35,6 +35,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.LaunchedEffect
+import com.cocinacapital.app.di.AppContainer
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -84,6 +86,13 @@ fun MainScaffold() {
         if (rutaActual != BottomNavItem.Home.route) navController.navegarA(BottomNavItem.Home)
     }
     BackHandler(puenteBusqueda && rutaActual == BottomNavItem.Home.route, onBack = ::volverAHome)
+    // HU-22: una notificación de promoción abre su detalle.
+    val promocionPendiente by AppContainer.promocionPendiente.collectAsStateWithLifecycle()
+    LaunchedEffect(promocionPendiente) {
+        val id = promocionPendiente ?: return@LaunchedEffect
+        navController.navigate(RutasDetalle.promocion(id)) { launchSingleTop = true }
+        AppContainer.promocionAbierta()
+    }
     val esPestana = rutaActual == null || BottomNavItem.items.any { it.route == rutaActual }
     val buscandoEnExplorar = rutaActual == BottomNavItem.Explorar.route && WindowInsets.ime.getBottom(LocalDensity.current) > 0
     val mostrandoPuente = (puenteBusqueda || restaurandoHome) && (rutaActual == BottomNavItem.Home.route || rutaActual == BottomNavItem.Explorar.route)

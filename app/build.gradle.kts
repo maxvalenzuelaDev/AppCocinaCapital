@@ -82,4 +82,5 @@ dependencies {
     // --- Coil 3 (imágenes desde URL) ---
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)     // Coil 3 necesita un motor de red explícito
+    implementation(libs.zxing.core)              // QR de los beneficios (HU-14 y HU-29), sin servicios de Google
 }

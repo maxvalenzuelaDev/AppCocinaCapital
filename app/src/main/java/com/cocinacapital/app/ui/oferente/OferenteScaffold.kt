@@ -20,10 +20,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material.icons.outlined.LocalOffer
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material.icons.outlined.RestaurantMenu
 import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material3.AssistChip
@@ -61,13 +63,15 @@ enum class OferenteTab(
     MIS_LOCALES(R.string.oferente_nav_locales, Icons.Filled.Storefront, Icons.Outlined.Storefront),
     CATALOGO(R.string.oferente_nav_catalogo, Icons.Filled.RestaurantMenu, Icons.Outlined.RestaurantMenu),
     PROMOCIONES(R.string.oferente_nav_promociones, Icons.Filled.LocalOffer, Icons.Outlined.LocalOffer),
+    /** HU-15 y HU-29: canje de beneficios; abarca todos sus locales, no necesita elegir uno. */
+    CANJEAR(R.string.oferente_nav_canjear, Icons.Filled.QrCodeScanner, Icons.Outlined.QrCodeScanner),
     CUENTA(R.string.oferente_nav_cuenta, Icons.Filled.Person, Icons.Outlined.Person)
 }
 
 /**
  * Estructura principal para cuentas con rol oferente (HU-04). AppEntry la muestra en lugar de
  * MainScaffold. Mis locales son sus tiendas (HU-25); Catálogo (HU-26) y Promociones (HU-27) trabajan
- * sobre el local elegido arriba de cada pestaña.
+ * sobre el local elegido arriba de cada pestaña; Canjear valida los beneficios de todos sus locales.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -113,6 +117,7 @@ fun OferenteScaffold(
                 OferenteTab.PROMOCIONES -> ConLocalElegido(misLocales) { localId ->
                     PromocionesScreen(snackbar, usuarioId, localId, onIrAMisLocales = irAMisLocales)
                 }
+                OferenteTab.CANJEAR -> CanjeScreen(usuarioId)
                 OferenteTab.CUENTA -> CuentaOferente(correo, cerrandoSesion, onCerrarSesion)
             }
         }

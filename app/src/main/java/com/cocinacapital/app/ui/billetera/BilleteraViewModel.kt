@@ -1,177 +1,125 @@
 package com.cocinacapital.app.ui.billetera
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.cocinacapital.app.R
+import com.cocinacapital.app.data.model.BeneficioUsuario
 import com.cocinacapital.app.data.repository.BilleteraRepository
+import com.cocinacapital.app.di.AppContainer
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.Clock
+import java.time.Instant
 
 /**
- * ViewModel de la billetera de Cocina Capital.
- *
- * Obtiene las promociones guardadas desde Supabase,
- * incluyendo su información real.
+ * Billetera del consumidor: sus beneficios vigentes con el código y QR para el local (HU-14), y el
+ * historial de canjeados y vencidos (HU-16). Quitar uno libera su cupo para otra persona.
  */
-class BilleteraViewModel : ViewModel() {
+class BilleteraViewModel(
+    private val billetera: BilleteraRepository,
+    private val reloj: Clock = Clock.systemDefaultZone()
+) : ViewModel() {
 
-    private val repository = BilleteraRepository()
+    private val _uiState = MutableStateFlow<BilleteraUiState>(BilleteraUiState.Loading)
+    val uiState: StateFlow<BilleteraUiState> = _uiState.asStateFlow()
 
-    private val _uiState = MutableStateFlow(
-        BilleteraUiState(cargando = true)
-    )
+    private val _mensajes = Channel<Int>(Channel.BUFFERED)
+    val mensajes: Flow<Int> = _mensajes.receiveAsFlow()
 
-    val uiState: StateFlow<BilleteraUiState> =
-        _uiState.asStateFlow()
+    val ahora: Instant get() = reloj.instant()
+
+    private var carga: Job? = null
 
     init {
-        cargarBeneficios()
+        cargar()
     }
 
     /**
-     * Consulta los beneficios y obtiene la información
-     * completa de las promociones guardadas.
+     * Vuelve a consultar Supabase (al entrar a la pestaña, por ejemplo tras un canje en el local).
+     * Con la lista ya visible no se muestra la carga: se reemplaza al llegar la respuesta.
      */
-    fun cargarBeneficios() {
-        viewModelScope.launch {
-
-            _uiState.update {
-                it.copy(
-                    cargando = true,
-                    mensajeError = null
-                )
-            }
-
+    fun cargar() {
+        carga?.cancel()
+        if (_uiState.value !is BilleteraUiState.Success) _uiState.value = BilleteraUiState.Loading
+        carga = viewModelScope.launch {
             try {
-                // Consulta los beneficios del consumidor.
-                val beneficios = repository.obtenerBeneficios()
-
-                // Consulta los datos completos de las promociones.
-                val promociones = repository.obtenerPromocionesGuardadas()
-
-                _uiState.update {
-                    it.copy(
-                        cargando = false,
-                        beneficios = beneficios,
-                        promocionesGuardadas = promociones
-                    )
+                val beneficios = billetera.misBeneficios()
+                _uiState.update { actual ->
+                    if (actual is BilleteraUiState.Success) actual.conBeneficios(beneficios)
+                    else BilleteraUiState.Success(beneficios)
                 }
-
-            } catch (e: CancellationException) {
-                throw e
-
-            } catch (e: Exception) {
-
-                android.util.Log.e(
-                    "CocinaCapitalBilletera",
-                    "Error al cargar la billetera",
-                    e
-                )
-
-                _uiState.update {
-                    it.copy(
-                        cargando = false,
-                        mensajeError = "No se pudieron cargar tus promociones. Inténtalo nuevamente."
-                    )
-                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                // Si ya había una lista se conserva; solo se avisa.
+                if (_uiState.value is BilleteraUiState.Success) avisar(R.string.billetera_error_cargar)
+                else _uiState.value = BilleteraUiState.Error(R.string.billetera_error_cargar)
             }
         }
     }
 
-    /**
-     * Guarda una promoción en Supabase y actualiza
-     * la información de la billetera.
-     */
-    fun guardarBeneficio(promocionId: String) {
-        if (_uiState.value.procesando) return
+    /** Al volver a la pestaña; la primera carga ya la hace `init`. */
+    fun refrescar() {
+        if (_uiState.value is BilleteraUiState.Success) cargar()
+    }
 
+    fun onMostrarCodigo(beneficio: BeneficioUsuario) = actualizar { it.copy(mostrando = beneficio) }
+
+    fun onCerrarCodigo() = actualizar { it.copy(mostrando = null) }
+
+    fun onPedirQuitar(beneficio: BeneficioUsuario) = actualizar { it.copy(porQuitar = beneficio) }
+
+    fun onCancelarQuitar() = actualizar { it.copy(porQuitar = null) }
+
+    fun onConfirmarQuitar() {
+        val actual = _uiState.value as? BilleteraUiState.Success ?: return
+        val beneficio = actual.porQuitar ?: return
+        if (actual.quitandoId != null) return
+        actualizar { it.copy(porQuitar = null, quitandoId = beneficio.id) }
         viewModelScope.launch {
-
-            _uiState.update {
-                it.copy(
-                    procesando = true,
-                    mensajeError = null
-                )
-            }
-
             try {
-                repository.guardarBeneficio(promocionId)
-
-                // Vuelve a consultar Supabase.
-                cargarBeneficios()
-
-            } catch (e: CancellationException) {
-                throw e
-
-            } catch (e: Exception) {
-
-                android.util.Log.e(
-                    "CocinaCapitalBilletera",
-                    "Error al guardar beneficio",
-                    e
-                )
-
-                _uiState.update {
-                    it.copy(
-                        mensajeError = "No se pudo guardar la promoción."
-                    )
+                billetera.liberar(beneficio.id)
+                actualizar { estado ->
+                    estado.copy(beneficios = estado.beneficios.filterNot { it.id == beneficio.id }, quitandoId = null)
                 }
-
-            } finally {
-                _uiState.update {
-                    it.copy(procesando = false)
-                }
+                avisar(R.string.billetera_quitado)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                actualizar { it.copy(quitandoId = null) }
+                avisar(R.string.billetera_error_quitar)
+                // Puede que se haya canjeado mientras tanto: se trae el estado real.
+                cargar()
             }
         }
     }
 
-    /**
-     * Elimina una promoción guardada y actualiza
-     * la información de la billetera.
-     */
-    fun eliminarBeneficio(promocionId: String) {
-        if (_uiState.value.procesando) return
+    /** Lista nueva conservando lo abierto solo si ese beneficio sigue en ella. */
+    private fun BilleteraUiState.Success.conBeneficios(nuevos: List<BeneficioUsuario>) = copy(
+        beneficios = nuevos,
+        mostrando = mostrando?.let { m -> nuevos.firstOrNull { it.id == m.id } },
+        porQuitar = porQuitar?.let { p -> nuevos.firstOrNull { it.id == p.id } }
+    )
 
-        viewModelScope.launch {
+    private fun actualizar(cambio: (BilleteraUiState.Success) -> BilleteraUiState.Success) =
+        _uiState.update { if (it is BilleteraUiState.Success) cambio(it) else it }
 
-            _uiState.update {
-                it.copy(
-                    procesando = true,
-                    mensajeError = null
-                )
-            }
+    private fun avisar(@StringRes mensaje: Int) { _mensajes.trySend(mensaje) }
 
-            try {
-                repository.eliminarBeneficio(promocionId)
-
-                // Actualiza la lista después de eliminar.
-                cargarBeneficios()
-
-            } catch (e: CancellationException) {
-                throw e
-
-            } catch (e: Exception) {
-
-                android.util.Log.e(
-                    "CocinaCapitalBilletera",
-                    "Error al eliminar beneficio",
-                    e
-                )
-
-                _uiState.update {
-                    it.copy(
-                        mensajeError = "No se pudo eliminar la promoción."
-                    )
-                }
-
-            } finally {
-                _uiState.update {
-                    it.copy(procesando = false)
-                }
-            }
+    companion object {
+        val Factory = viewModelFactory {
+            initializer { BilleteraViewModel(AppContainer.billeteraRepository) }
         }
     }
 }

@@ -38,6 +38,12 @@ class DetallePromocionViewModel(
 
     fun onReintentar() = cargar()
 
+    /**
+     * Tras obtener un beneficio (HU-13) los cupos cambiaron: se recarga sin ocultar la pantalla y,
+     * si falla, se conserva lo que ya se veía.
+     */
+    fun actualizarCupos() = cargar(silenciosa = true)
+
     /** Se actualiza mientras la pantalla está visible, sin repetir consultas de red. */
     fun actualizarVigencia() {
         mutable.update { actual ->
@@ -47,14 +53,15 @@ class DetallePromocionViewModel(
         }
     }
 
-    private fun cargar() {
+    private fun cargar(silenciosa: Boolean = false) {
         val version = ++generacion
         carga?.cancel()
         if (promocionId.isBlank()) {
             mutable.value = DetallePromocionUiState.NoEncontrada
             return
         }
-        mutable.value = DetallePromocionUiState.Loading
+        val visible = mutable.value is DetallePromocionUiState.Success
+        if (!silenciosa || !visible) mutable.value = DetallePromocionUiState.Loading
         carga = viewModelScope.launch {
             val resultado = try {
                 val detalle = consultar { repository.getPromocion(promocionId) }
@@ -87,7 +94,9 @@ class DetallePromocionViewModel(
             } catch (_: Exception) {
                 DetallePromocionUiState.Error
             }
-            if (version == generacion) mutable.value = resultado
+            val conservar = silenciosa && resultado is DetallePromocionUiState.Error &&
+                mutable.value is DetallePromocionUiState.Success
+            if (version == generacion && !conservar) mutable.value = resultado
         }
     }
 

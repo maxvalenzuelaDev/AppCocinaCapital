@@ -1,132 +1,39 @@
 package com.cocinacapital.app.data.repository
 
+import com.cocinacapital.app.data.model.BeneficioObtenido
 import com.cocinacapital.app.data.model.BeneficioUsuario
-import com.cocinacapital.app.data.model.LocalGastronomico
-import com.cocinacapital.app.data.model.Promocion
-import com.cocinacapital.app.data.model.PromocionGuardada
-import com.cocinacapital.app.data.remote.SupabaseProvider
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.postgrest.from
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
+import com.cocinacapital.app.data.model.ResultadoCanje
 
 /**
- * Repositorio de la billetera de Cocina Capital.
- *
- * Permite guardar, consultar y eliminar promociones
- * asociadas al usuario autenticado en Supabase.
+ * Billetera del consumidor (HU-13, HU-14 y HU-16). Todo pasa por las funciones de la migración T-03,
+ * que validan vigencia y cupos en Supabase; la app no escribe la tabla directamente.
  */
-class BilleteraRepository {
+interface BilleteraRepository {
+    /** Sus beneficios con la promoción y el local, del más reciente al más antiguo. */
+    suspend fun misBeneficios(): List<BeneficioUsuario>
+    /** El beneficio que ya tiene de esa promoción, o `null`. */
+    suspend fun beneficioDe(promocionId: String): BeneficioObtenido?
+    /** Obtiene el beneficio y descuenta un cupo; si ya lo tenía devuelve el mismo. */
+    suspend fun adquirir(promocionId: String): BeneficioObtenido
+    /** Quita un beneficio sin usar y devuelve su cupo a la promoción. */
+    suspend fun liberar(beneficioId: String)
+}
 
-    // Utiliza el cliente Supabase compartido del proyecto.
-    private val supabase = SupabaseProvider.client
+/** Validación del canje en el local (HU-15 y HU-29), solo para el oferente dueño del local. */
+interface CanjeRepository {
+    suspend fun consultar(codigo: String): ResultadoCanje
+    suspend fun canjear(codigo: String): ResultadoCanje
+}
 
-    /**
-     * Obtiene el ID del usuario que inició sesión.
-     */
-    private fun obtenerUsuarioId(): String {
-        return supabase.auth.currentUserOrNull()?.id
-            ?: throw IllegalStateException(
-                "Debes iniciar sesión para utilizar la billetera."
-            )
-    }
+/** Errores que lanzan las funciones de Supabase con un código conocido (ver migración T-03). */
+enum class MotivoBilletera {
+    SIN_SESION, PROMOCION_NO_DISPONIBLE, PROMOCION_NO_INICIADA, PROMOCION_VENCIDA, SIN_CUPOS,
+    BENEFICIO_NO_ENCONTRADO, BENEFICIO_CANJEADO, NO_AUTORIZADO, CODIGO_NO_ENCONTRADO;
 
-    /**
-     * Consulta las promociones guardadas del consumidor.
-     */
-    suspend fun obtenerBeneficios(): List<BeneficioUsuario> {
-        val usuarioId = obtenerUsuarioId()
-
-        return supabase.from("beneficios_usuario")
-            .select {
-                filter {
-                    eq("usuario_id", usuarioId)
-                }
-            }
-            .decodeList<BeneficioUsuario>()
-    }
-
-    /**
-     * Guarda una promoción en la billetera del consumidor.
-     *
-     * Supabase genera automáticamente el ID del registro
-     * y la fecha en que se guardó.
-     */
-    suspend fun guardarBeneficio(promocionId: String) {
-        val usuarioId = obtenerUsuarioId()
-
-        val nuevoBeneficio = buildJsonObject {
-            put("usuario_id", usuarioId)
-            put("promocion_id", promocionId)
-        }
-
-        supabase.from("beneficios_usuario")
-            .insert(nuevoBeneficio)
-    }
-
-    /**
-     * Elimina una promoción guardada por el consumidor.
-     */
-    suspend fun eliminarBeneficio(promocionId: String) {
-        val usuarioId = obtenerUsuarioId()
-
-        supabase.from("beneficios_usuario")
-            .delete {
-                filter {
-                    eq("usuario_id", usuarioId)
-                    eq("promocion_id", promocionId)
-                }
-            }
-    }
-
-    /**
-     * Obtiene las promociones guardadas con su
-     * información real y el nombre del local.
-     */
-    suspend fun obtenerPromocionesGuardadas(): List<PromocionGuardada> {
-
-        // Primero consultamos las promociones guardadas
-        // por el consumidor que inició sesión.
-        val beneficios = obtenerBeneficios()
-
-        val resultado = mutableListOf<PromocionGuardada>()
-
-        for (beneficio in beneficios) {
-
-            // Busca los datos reales de la promoción.
-            val promocion = supabase.from("promociones")
-                .select {
-                    filter {
-                        eq("id", beneficio.promocionId)
-                    }
-                }
-                .decodeSingleOrNull<Promocion>()
-
-            // Si la promoción ya no existe o no es visible,
-            // no la mostramos en la lista.
-            if (promocion == null) {
-                continue
-            }
-
-            // Busca el local asociado a la promoción.
-            val local = supabase.from("locales")
-                .select {
-                    filter {
-                        eq("id", promocion.localId)
-                    }
-                }
-                .decodeSingleOrNull<LocalGastronomico>()
-
-            // Une los datos del beneficio, promoción y local.
-            resultado.add(
-                PromocionGuardada(
-                    beneficio = beneficio,
-                    promocion = promocion,
-                    nombreLocal = local?.nombre ?: "Local no disponible"
-                )
-            )
-        }
-
-        return resultado
+    companion object {
+        /** El mensaje de la función es exactamente el código; cualquier otro texto no se reconoce. */
+        fun desde(mensaje: String?): MotivoBilletera? = entries.firstOrNull { it.name == mensaje?.trim() }
     }
 }
+
+class BilleteraException(val motivo: MotivoBilletera) : Exception(motivo.name)

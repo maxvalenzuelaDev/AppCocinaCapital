@@ -3,6 +3,19 @@
     <!-- HU-04: navegación y opciones de las cuentas con rol oferente -->
     <string name="oferente_nav_locales">Mis locales</string>
     <string name="oferente_nav_promociones">Promociones</string>
+    <!-- HU-30: métricas por promoción -->
+    <plurals name="promo_metricas_vistas">
+        <item quantity="one">%d vista</item>
+        <item quantity="other">%d vistas</item>
+    </plurals>
+    <plurals name="promo_metricas_obtenidos">
+        <item quantity="one">%d obtenido</item>
+        <item quantity="other">%d obtenidos</item>
+    </plurals>
+    <plurals name="promo_metricas_canjeados">
+        <item quantity="one">%d canjeado</item>
+        <item quantity="other">%d canjeados</item>
+    </plurals>
     <string name="oferente_nav_cuenta">Cuenta</string>
     <string name="oferente_rol">Cuenta de oferente</string>
     <string name="oferente_cerrar_sesion">Cerrar sesión</string>

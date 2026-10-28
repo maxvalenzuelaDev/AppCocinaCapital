@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import com.cocinacapital.app.R
 import com.cocinacapital.app.data.model.Promocion
 import com.cocinacapital.app.data.repository.DatosPromocion
+import com.cocinacapital.app.data.repository.MetricasPromocion
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
@@ -28,7 +29,9 @@ sealed interface PromocionesUiState {
         /** Promoción que espera confirmación para finalizarse. */
         val porFinalizar: Promocion? = null,
         /** Promoción que se está pausando, reanudando o finalizando (sus botones se desactivan). */
-        val procesandoId: String? = null
+        val procesandoId: String? = null,
+        /** HU-30: contadores por promoción; vacío mientras cargan o si fallaron (no bloquea la lista). */
+        val metricas: Map<String, MetricasPromocion> = emptyMap()
     ) : PromocionesUiState
 }
 

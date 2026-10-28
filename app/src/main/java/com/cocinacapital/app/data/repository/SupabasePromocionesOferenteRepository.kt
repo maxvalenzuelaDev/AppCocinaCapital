@@ -3,6 +3,7 @@ package com.cocinacapital.app.data.repository
 import com.cocinacapital.app.data.model.Promocion
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -38,6 +39,12 @@ class SupabasePromocionesOferenteRepository(
             vigenteDesde?.let { put("vigente_desde", it) }
             put("vigente_hasta", vigenteHasta)
         })
+
+    /** La función `metricas_promociones` (migración HU-30) valida que el local sea del oferente. */
+    override suspend fun metricas(localId: String): Map<String, MetricasPromocion> =
+        supabase.postgrest.rpc("metricas_promociones", buildJsonObject { put("p_local_id", localId) })
+            .decodeList<MetricasPromocion>()
+            .associateBy { it.promocionId }
 
     /** Si RLS no lo permite no se actualiza ninguna fila y `decodeSingle` falla: la app lo informa como error. */
     private suspend inline fun <reified T : Any> cambiar(promocionId: String, valores: T): Promocion =

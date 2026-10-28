@@ -34,4 +34,16 @@ interface PromocionesOferenteRepository {
     suspend fun cambiarActiva(promocionId: String, activa: Boolean): Promocion
     /** Cambia la vigencia; se usa para finalizarla ahora. [vigenteDesde] `null` = no cambia. */
     suspend fun cambiarVigencia(promocionId: String, vigenteDesde: String?, vigenteHasta: String): Promocion
+
+    /** HU-30: contadores por promoción del local, por id de promoción. */
+    suspend fun metricas(localId: String): Map<String, MetricasPromocion> = emptyMap()
 }
+
+/** HU-30: vistas del detalle (de quienes dieron consentimiento), beneficios obtenidos y canjeados. */
+@Serializable
+data class MetricasPromocion(
+    @SerialName("promocion_id") val promocionId: String,
+    val vistas: Int,
+    val obtenidos: Int,
+    val canjeados: Int
+)

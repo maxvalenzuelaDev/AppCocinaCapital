@@ -53,6 +53,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.cocinacapital.app.R
+import com.cocinacapital.app.ui.components.AvisoSinConexion
 
 /** Pestañas del oferente: gestiona su local y sus promociones, no explora como consumidor. */
 enum class OferenteTab(
@@ -90,20 +91,23 @@ fun OferenteScaffold(
         snackbarHost = { SnackbarHost(snackbar) },
         topBar = { TopAppBar(title = { Text(stringResource(tab.labelRes)) }) },
         bottomBar = {
-            NavigationBar {
-                OferenteTab.entries.forEach { item ->
-                    val seleccionado = item == tab
-                    NavigationBarItem(
-                        selected = seleccionado,
-                        onClick = { tab = item },
-                        icon = {
-                            Icon(
-                                imageVector = if (seleccionado) item.selectedIcon else item.unselectedIcon,
-                                contentDescription = stringResource(item.labelRes)
-                            )
-                        },
-                        label = { Text(stringResource(item.labelRes), maxLines = 1, overflow = TextOverflow.Ellipsis) }
-                    )
+            Column {
+                AvisoSinConexion() // HU-35
+                NavigationBar {
+                    OferenteTab.entries.forEach { item ->
+                        val seleccionado = item == tab
+                        NavigationBarItem(
+                            selected = seleccionado,
+                            onClick = { tab = item },
+                            icon = {
+                                Icon(
+                                    imageVector = if (seleccionado) item.selectedIcon else item.unselectedIcon,
+                                    contentDescription = stringResource(item.labelRes)
+                                )
+                            },
+                            label = { Text(stringResource(item.labelRes), maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                        )
+                    }
                 }
             }
         }

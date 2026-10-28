@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- HU-35: saber si hay conexión para avisar y reintentar solo (permiso normal, no se pide al usuario). -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Foto de perfil con la cámara (T-23). La galería usa el selector de fotos, que no requiere permiso. -->
     <uses-permission android:name="android.permission.CAMERA" />

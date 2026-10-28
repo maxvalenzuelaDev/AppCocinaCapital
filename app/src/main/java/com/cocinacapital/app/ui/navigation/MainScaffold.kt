@@ -14,6 +14,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,6 +38,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.LaunchedEffect
 import com.cocinacapital.app.di.AppContainer
+import com.cocinacapital.app.ui.components.AvisoSinConexion
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -101,33 +104,38 @@ fun MainScaffold() {
         snackbarHost = { SnackbarHost(snackbar) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
-            // expand/shrink (no slide) para que el contenido también se ajuste suavemente.
-            AnimatedVisibility(
-                visible = esPestana && !buscandoEnExplorar && !mostrandoPuente,
-                enter = expandVertically(tween(DURACION_MS)),
-                exit = shrinkVertically(tween(DURACION_MS))
-            ) { NavigationBar {
-                BottomNavItem.items.forEach { item ->
-                    val seleccionado = rutaActual == item.route
-                    NavigationBarItem(
-                        selected = seleccionado,
-                        onClick = {
-                            if (item == BottomNavItem.Home && puenteBusqueda) volverAHome()
-                            else {
-                                if (item != BottomNavItem.Explorar) cerrarPuenteBusqueda()
-                                navController.navegarA(item)
-                            }
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = if (seleccionado) item.selectedIcon else item.unselectedIcon,
-                                contentDescription = stringResource(item.labelRes)
-                            )
-                        },
-                        label = { Text(stringResource(item.labelRes), maxLines = 1, overflow = TextOverflow.Ellipsis) }
-                    )
-                }
-            } }
+            val conBarra = esPestana && !buscandoEnExplorar && !mostrandoPuente
+            Column {
+                // HU-35: sobre la barra inferior; sin barra (detalles), por encima de la navegación del sistema.
+                AvisoSinConexion(if (conBarra) Modifier else Modifier.navigationBarsPadding())
+                // expand/shrink (no slide) para que el contenido también se ajuste suavemente.
+                AnimatedVisibility(
+                    visible = conBarra,
+                    enter = expandVertically(tween(DURACION_MS)),
+                    exit = shrinkVertically(tween(DURACION_MS))
+                ) { NavigationBar {
+                    BottomNavItem.items.forEach { item ->
+                        val seleccionado = rutaActual == item.route
+                        NavigationBarItem(
+                            selected = seleccionado,
+                            onClick = {
+                                if (item == BottomNavItem.Home && puenteBusqueda) volverAHome()
+                                else {
+                                    if (item != BottomNavItem.Explorar) cerrarPuenteBusqueda()
+                                    navController.navegarA(item)
+                                }
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector = if (seleccionado) item.selectedIcon else item.unselectedIcon,
+                                    contentDescription = stringResource(item.labelRes)
+                                )
+                            },
+                            label = { Text(stringResource(item.labelRes), maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                        )
+                    }
+                } }
+            }
         }
     ) { innerPadding ->
         NavHost(

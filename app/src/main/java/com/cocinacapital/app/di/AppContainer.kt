@@ -17,6 +17,8 @@ import com.cocinacapital.app.data.local.FotoPerfilArchivos
 import com.cocinacapital.app.data.local.HistorialSesion
 import com.cocinacapital.app.data.local.PreferenciasHistorialSesion
 import com.cocinacapital.app.data.remote.SupabaseProvider
+import com.cocinacapital.app.data.remote.AndroidConectividad
+import com.cocinacapital.app.data.remote.Conectividad
 import com.cocinacapital.app.data.repository.ExperienciasRepository
 import com.cocinacapital.app.data.repository.FakeExperienciasRepository
 import com.cocinacapital.app.data.repository.SupabaseExperienciasRepository
@@ -111,6 +113,9 @@ object AppContainer {
     val promocionPendiente: kotlinx.coroutines.flow.StateFlow<String?> = _promocionPendiente
     fun abrirPromocion(id: String) { _promocionPendiente.value = id }
     fun promocionAbierta() { _promocionPendiente.value = null }
+
+    /** HU-35: si hay internet; lo usan el aviso "Sin conexión" y la recarga automática. */
+    val conectividad: Conectividad by lazy { AndroidConectividad(appContext) }
 
     val ubicacionRepository: UbicacionRepository by lazy {
         AndroidUbicacionRepository(AndroidLocationSource(appContext), SystemClock::elapsedRealtime)

@@ -13,6 +13,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import com.cocinacapital.app.data.remote.reconexiones
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,7 +30,8 @@ import java.time.Instant
  */
 class BilleteraViewModel(
     private val billetera: BilleteraRepository,
-    private val reloj: Clock = Clock.systemDefaultZone()
+    private val reloj: Clock = Clock.systemDefaultZone(),
+    reconexiones: Flow<Unit> = emptyFlow()
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<BilleteraUiState>(BilleteraUiState.Loading)
@@ -43,6 +46,8 @@ class BilleteraViewModel(
 
     init {
         cargar()
+        // HU-35: tras un error por falta de red, se recarga sola al volver la conexión.
+        viewModelScope.launch { reconexiones.collect { if (_uiState.value is BilleteraUiState.Error) cargar() } }
     }
 
     /**
@@ -119,7 +124,9 @@ class BilleteraViewModel(
 
     companion object {
         val Factory = viewModelFactory {
-            initializer { BilleteraViewModel(AppContainer.billeteraRepository) }
+            initializer {
+                BilleteraViewModel(AppContainer.billeteraRepository, reconexiones = AppContainer.conectividad.reconexiones())
+            }
         }
     }
 }

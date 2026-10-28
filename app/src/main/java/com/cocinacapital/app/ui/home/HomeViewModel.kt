@@ -15,6 +15,8 @@ import com.cocinacapital.app.data.model.PreferenciasUsuario
 import com.cocinacapital.app.data.model.Recomendador
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.emptyFlow
+import com.cocinacapital.app.data.remote.reconexiones
 import com.cocinacapital.app.di.AppContainer
 import com.cocinacapital.app.util.distanciaKm
 import kotlinx.coroutines.CancellationException
@@ -39,7 +41,8 @@ class HomeViewModel(
     private val repository: HomeRepository,
     private val ubicaciones: com.cocinacapital.app.data.location.UbicacionRepository,
     preferencias: Flow<PreferenciasUsuario> = flowOf(PreferenciasUsuario()),
-    private val historial: HistorialInteracciones = HistorialInteracciones.Vacio
+    private val historial: HistorialInteracciones = HistorialInteracciones.Vacio,
+    reconexiones: Flow<Unit> = emptyFlow()
 ) : ViewModel() {
 
     // ---- Estado crudo de la carga remota (privado) ----
@@ -91,6 +94,10 @@ class HomeViewModel(
     init {
         cargarHome()
         refrescarActividad()
+        // HU-35: si la carga falló por falta de red, se reintenta sola al volver la conexión.
+        viewModelScope.launch {
+            reconexiones.collect { if (dataState.value is DataState.Failed) cargarHome() }
+        }
     }
 
     /** Al volver al Inicio: lo que vio o canjeó cambia sus recomendaciones. Sin red se conserva lo anterior. */
@@ -203,7 +210,8 @@ class HomeViewModel(
             initializer {
                 HomeViewModel(
                     AppContainer.homeRepository, AppContainer.ubicacionRepository,
-                    AppContainer.preferenciasRepository.observar(), AppContainer.historialInteracciones
+                    AppContainer.preferenciasRepository.observar(), AppContainer.historialInteracciones,
+                    AppContainer.conectividad.reconexiones()
                 )
             }
         }

@@ -57,6 +57,8 @@
     <string name="home_cargando">Cargando locales y promociones…</string>
     <string name="home_error">No pudimos cargar el contenido. Revisa tu conexión e inténtalo de nuevo.</string>
     <string name="home_para_ti">Para ti</string>
+    <!-- HU-35 -->
+    <string name="sin_conexion">Sin conexión. Verás lo último que se cargó; se actualizará al volver la señal.</string>
     <string name="home_locales_vacios">No encontramos locales con ese criterio.</string>
     <string name="home_promociones_titulo">Promociones vigentes</string>
     <string name="home_promociones_vacias">No hay promociones vigentes con ese criterio.</string>

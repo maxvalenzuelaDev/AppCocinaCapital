@@ -36,12 +36,13 @@ Proyecto de la asignatura **DSY1105** (Duoc UC). Todos los datos de prueba son f
 - Desde Perfil se puede borrar el historial de actividad o eliminar la cuenta con todos sus datos.
 
 **Consumidor**
-- **Inicio:** categorías de cocina, sección "Para ti" y promociones vigentes.
+- **Inicio:** categorías de cocina, "Para ti" con locales recomendados según tus cocinas preferidas, rango de precios, actividad y cercanía, "Promociones para ti" y promociones vigentes.
 - **Explorar:** locales cercanos por GPS o por zona, búsqueda, filtros (radio, presupuesto por persona, cocinas preferidas), mapa y rutas a pie o en auto.
 - **Detalle de local:** foto, valoración, horario, dirección con "Cómo llegar" (Google Maps), menú destacado y promociones activas.
 - **Detalle de promoción:** descuento, vigencia, días y franja horaria (hora de Chile), cupos y condiciones.
 - **Experiencias culinarias:** degustaciones y menús temáticos de los locales.
 - **Billetera:** "Obtener beneficio" descuenta un cupo y entrega un código único con QR para mostrar en el local. Vigentes e historial de canjeados y vencidos. Quitar un beneficio libera el cupo.
+- **Notificaciones:** con "Promociones" activado en Perfil, avisa una promoción afín que puedas usar en ese momento (respeta "Solo cerca de mí" y "Solo de mis cocinas preferidas") y al tocarla abre su detalle.
 - **Perfil:** foto (cámara o galería), nombre, cocinas preferidas, rango de precios, avisos, tema claro u oscuro y favoritos. Las preferencias se sincronizan con Supabase y aparecen al iniciar sesión en otro teléfono.
 
 **Oferente (portal del local)**
@@ -55,11 +56,13 @@ Proyecto de la asignatura **DSY1105** (Duoc UC). Todos los datos de prueba son f
 - Catálogo ficticio de locales, platos, promociones y experiencias.
 - Dataset anonimizado de 40 perfiles de consumo y sus interacciones, para probar recomendaciones sin datos reales.
 
-**Pendiente** (tablero de Trello): recomendaciones personalizadas (HU-21, HU-24), notificaciones de promociones (HU-22), métricas del oferente (HU-30) y modo sin conexión (HU-35).
+**Funcionamiento sin conexión**
+- Aviso "Sin conexión" mientras no hay internet; lo ya cargado se sigue viendo.
+- Cada pantalla que no pudo cargar ofrece "Reintentar", y el Inicio, Explorar y la Billetera se recargan solos al volver la señal.
 
 ## Tecnologías
 
-Kotlin · Jetpack Compose y Material 3 · MVVM con `StateFlow` · Navigation Compose · [Supabase](https://supabase.com) (Auth, Postgres con RLS y funciones, Storage) con `supabase-kt` · Room · Coil · ZXing (QR) · MapLibre y Leaflet (mapa) · JUnit y kotlinx-coroutines-test.
+Kotlin · Jetpack Compose y Material 3 · MVVM con `StateFlow` · Navigation Compose · WorkManager (avisos) · [Supabase](https://supabase.com) (Auth, Postgres con RLS y funciones, Storage) con `supabase-kt` · Room · Coil · ZXing (QR) · MapLibre y Leaflet (mapa) · JUnit y kotlinx-coroutines-test.
 
 ## Requisitos
 
@@ -267,7 +270,8 @@ app/src/main/java/com/cocinacapital/app/
 │   ├── local/        Room (CocinaDatabase, DAOs, entidades), foto de perfil, lector de QR
 │   ├── location/     Ubicación del teléfono
 │   ├── model/        Modelos (LocalGastronomico, Promocion, BeneficioUsuario, Perfil…)
-│   ├── remote/       SupabaseProvider y cliente HTTP de rutas
+│   ├── notificaciones/  Avisos de promociones (WorkManager)
+│   ├── remote/       SupabaseProvider, cliente HTTP de rutas y estado de la conexión
 │   └── repository/   Repositorios: catálogo, detalle, billetera y canje, preferencias,
 │                     interacciones y cuenta, oferente, rutas
 ├── di/               AppContainer
@@ -294,7 +298,7 @@ docs/capturas/        Capturas del README
 
 ## Pruebas
 
-`./gradlew testDebugUnitTest` ejecuta 287 pruebas unitarias (ViewModels, repositorios, reglas de vigencia, sincronización de preferencias, códigos y QR). Las funciones de Supabase se prueban con los scripts `supabase/verificar_*.sql`.
+`./gradlew testDebugUnitTest` ejecuta 310 pruebas unitarias (ViewModels, repositorios, reglas de vigencia, recomendaciones, avisos, sincronización de preferencias, códigos y QR). Las funciones de Supabase se prueban con los scripts `supabase/verificar_*.sql`.
 
 ## Cómo contribuir
 

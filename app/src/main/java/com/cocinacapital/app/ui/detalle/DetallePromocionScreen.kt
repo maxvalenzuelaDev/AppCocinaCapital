@@ -1,8 +1,7 @@
+
 package com.cocinacapital.app.ui.detalle
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -14,10 +13,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.cocinacapital.app.R
 import com.cocinacapital.app.ui.detalle.components.DetalleTopBar
+import com.cocinacapital.app.ui.billetera.GuardarPromocionButton
 
 /**
- * Detalle de una promoción (RF-09). Por ahora solo muestra el id recibido por la ruta;
- * HU-12 agrega el ViewModel con condiciones, vigencia, horario y cupos.
+ * Detalle de una promoción (RF-09).
+ *
+ * Mantiene la pantalla provisional de promociones
+ * e incorpora la opción de guardar en la billetera.
+ *
+ * HU-12 agregará las condiciones, vigencia,
+ * horarios y cupos de la promoción.
  */
 @Composable
 fun DetallePromocionScreen(
@@ -27,13 +32,34 @@ fun DetallePromocionScreen(
 ) {
     Scaffold(
         modifier = modifier,
+
         topBar = {
             DetalleTopBar(
-                titulo = stringResource(R.string.detalle_promocion_titulo),
+                titulo = stringResource(
+                    R.string.detalle_promocion_titulo
+                ),
                 onVolver = onVolver
             )
+        },
+
+        // Botón de guardar en la parte inferior.
+        bottomBar = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(
+                        horizontal = 20.dp,
+                        vertical = 12.dp
+                    )
+            ) {
+                GuardarPromocionButton(
+                    promocionId = promocionId
+                )
+            }
         }
     ) { innerPadding ->
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -42,8 +68,12 @@ fun DetallePromocionScreen(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = stringResource(R.string.detalle_promocion_pendiente, promocionId),
+                text = stringResource(
+                    R.string.detalle_promocion_pendiente,
+                    promocionId
+                ),
                 style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center
             )
         }

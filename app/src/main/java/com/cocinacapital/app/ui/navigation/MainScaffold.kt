@@ -32,6 +32,7 @@ import com.cocinacapital.app.ui.detalle.DetalleLocalScreen
 import com.cocinacapital.app.ui.detalle.DetallePromocionScreen
 import com.cocinacapital.app.ui.home.HomeScreen
 import com.cocinacapital.app.ui.perfil.PerfilScreen
+import com.cocinacapital.app.ui.billetera.BilleteraScreen
 
 /**
  * Estructura principal de la app (ya autenticado): barra inferior + contenido.
@@ -112,7 +113,20 @@ fun MainScaffold() {
                 )
             }
             composable(BottomNavItem.Explorar.route) { PantallaPendiente("Explorar (locales y mapa)") }
-            composable(BottomNavItem.Billetera.route) { PantallaPendiente("Billetera (mis beneficios)") }
+            // Muestra las promociones guardadas del consumidor.
+            composable(BottomNavItem.Billetera.route) {
+                BilleteraScreen(
+                    onExplorarPromociones = {
+                        navController.navigate(BottomNavItem.Home.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
+            }
             composable(BottomNavItem.Perfil.route) { PerfilScreen() }
 
             composable(

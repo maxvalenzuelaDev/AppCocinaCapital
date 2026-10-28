@@ -214,6 +214,7 @@ fun MainScaffold() {
                     }
                 )
             }
+            composable(BottomNavItem.Perfil.route) { PerfilScreen() }
 
             composable(
                 route = RutasDetalle.LOCAL,

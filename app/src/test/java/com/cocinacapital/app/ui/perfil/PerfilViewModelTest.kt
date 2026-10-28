@@ -17,6 +17,9 @@ import com.cocinacapital.app.data.model.TipoFavorito
 import com.cocinacapital.app.data.repository.FavoritosRepository
 import com.cocinacapital.app.data.repository.HomeRepository
 import com.cocinacapital.app.data.repository.PreferenciasRepository
+import com.cocinacapital.app.data.model.EstadoBeneficio
+import com.cocinacapital.app.ui.billetera.BilleteraFalsa
+import com.cocinacapital.app.ui.billetera.beneficio
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -45,6 +48,7 @@ class PerfilViewModelTest {
     private val sesion = SesionDePrueba()
     private val favoritosDao = FavoritosDaoEnMemoria()
     private val catalogo = Catalogo()
+    private val billetera = BilleteraFalsa()
 
     @BeforeTest fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
     @AfterTest fun tearDown() = Dispatchers.resetMain()
@@ -55,7 +59,8 @@ class PerfilViewModelTest {
             PreferenciasRepository(PreferenciasDaoEnMemoria(), sesion),
             FavoritosRepository(favoritosDao, sesion),
             catalogo,
-            SinArchivos()
+            SinArchivos(),
+            billetera
         )
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
         return vm
@@ -69,6 +74,19 @@ class PerfilViewModelTest {
         assertEquals("Ana Pérez", state.usuario?.nombre)
         assertEquals(listOf("c1", "c2"), state.categorias.map { it.id })
         assertFalse(state.preferencias.consentimiento)
+    }
+
+    @Test fun `cuenta los beneficios canjeados de la billetera y conserva el valor si falla`() = runTest {
+        billetera.beneficios = mutableListOf(
+            beneficio("a", EstadoBeneficio.CANJEADO), beneficio("b", EstadoBeneficio.CANJEADO), beneficio("c")
+        )
+        val vm = modelo()
+        assertEquals(0, vm.success().canjeados)
+        vm.actualizarCanjeados()
+        assertEquals(2, vm.success().canjeados)
+        billetera.lista = { error("sin red") }
+        vm.actualizarCanjeados()
+        assertEquals(2, vm.success().canjeados)
     }
 
     @Test fun `si fallan las categorias muestra error y se puede reintentar`() = runTest {

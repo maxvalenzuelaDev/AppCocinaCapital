@@ -70,6 +70,10 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val ubicacion by viewModel.ubicacion.collectAsStateWithLifecycle(initialValue = null)
+    // HU-21: al volver al Inicio se considera lo que vio o canjeó mientras tanto.
+    androidx.lifecycle.compose.LifecycleEventEffect(androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+        viewModel.refrescarActividad()
+    }
 
     HomeContent(
         uiState = uiState,
@@ -217,7 +221,14 @@ private fun SuccessContent(
 
         // ---- Para ti ----
         item(key = "para_ti_titulo") {
-            SectionHeader(stringResource(R.string.home_para_ti), stringResource(if (state.tieneUbicacion) R.string.home_destacados_gps else R.string.home_destacados_general))
+            SectionHeader(
+                stringResource(R.string.home_para_ti),
+                stringResource(when {
+                    state.personalizado -> R.string.home_para_ti_personalizado
+                    state.tieneUbicacion -> R.string.home_destacados_gps
+                    else -> R.string.home_destacados_general
+                })
+            )
         }
         item(key = "para_ti") {
             if (state.localesParaTi.isEmpty()) {
@@ -236,6 +247,26 @@ private fun SuccessContent(
                         )
                     }
                 }
+            }
+        }
+
+        // ---- Promociones para ti (HU-21) ----
+        if (state.promocionesParaTi.isNotEmpty()) {
+            item(key = "promos_para_ti_titulo") {
+                SectionHeader(
+                    stringResource(R.string.home_promociones_para_ti),
+                    stringResource(R.string.home_promociones_para_ti_detalle),
+                    Modifier.animateItem()
+                )
+            }
+            items(state.promocionesParaTi, key = { "para_ti_${it.id}" }) { promo ->
+                PromocionCard(
+                    promocion = promo,
+                    onClick = { onPromocionClick(promo.id) },
+                    modifier = Modifier
+                        .animateItem()
+                        .padding(horizontal = 16.dp)
+                )
             }
         }
 
@@ -262,8 +293,8 @@ private fun SuccessContent(
 }
 
 @Composable
-private fun SectionHeader(titulo: String, subtitulo: String) {
-    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+private fun SectionHeader(titulo: String, subtitulo: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier.padding(horizontal = 16.dp)) {
         Text(titulo, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         Text(
             subtitulo,

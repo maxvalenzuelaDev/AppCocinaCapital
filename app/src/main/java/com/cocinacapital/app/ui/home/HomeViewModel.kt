@@ -8,6 +8,13 @@ import com.cocinacapital.app.data.model.Categoria
 import com.cocinacapital.app.data.model.LocalGastronomico
 import com.cocinacapital.app.data.model.Promocion
 import com.cocinacapital.app.data.repository.HomeRepository
+import com.cocinacapital.app.data.repository.HistorialInteracciones
+import com.cocinacapital.app.data.model.ActividadReciente
+import com.cocinacapital.app.data.model.PerfilRecomendacion
+import com.cocinacapital.app.data.model.PreferenciasUsuario
+import com.cocinacapital.app.data.model.Recomendador
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import com.cocinacapital.app.di.AppContainer
 import com.cocinacapital.app.util.distanciaKm
 import kotlinx.coroutines.CancellationException
@@ -30,7 +37,9 @@ import kotlinx.coroutines.launch
  */
 class HomeViewModel(
     private val repository: HomeRepository,
-    private val ubicaciones: com.cocinacapital.app.data.location.UbicacionRepository
+    private val ubicaciones: com.cocinacapital.app.data.location.UbicacionRepository,
+    preferencias: Flow<PreferenciasUsuario> = flowOf(PreferenciasUsuario()),
+    private val historial: HistorialInteracciones = HistorialInteracciones.Vacio
 ) : ViewModel() {
 
     // ---- Estado crudo de la carga remota (privado) ----
@@ -49,14 +58,29 @@ class HomeViewModel(
 
     val ubicacion = ubicaciones.posicion
 
+    /** HU-21: actividad reciente en Supabase; se vuelve a leer al volver al Inicio. */
+    private val actividad = MutableStateFlow<List<ActividadReciente>>(emptyList())
+
+    /**
+     * Gustos elegidos en Perfil más la actividad, que solo se usa con el consentimiento activo
+     * (HU-03): al revocarlo, las recomendaciones dejan de considerarla aunque siga guardada.
+     */
+    private val perfil = combine(preferencias, actividad) { prefs, recientes ->
+        PerfilRecomendacion(
+            categoriasPreferidas = prefs.categoriasIds,
+            rangoPrecio = prefs.rangoPrecio,
+            actividad = if (prefs.consentimiento) recientes else emptyList()
+        )
+    }
+
     /** Estado único que observa la pantalla. */
     val uiState: StateFlow<HomeUiState> = combine(
-        dataState, categoriaSeleccionadaId, ubicacion
-    ) { data, categoriaId, ubicacion ->
+        dataState, categoriaSeleccionadaId, ubicacion, perfil
+    ) { data, categoriaId, ubicacion, perfil ->
         when (data) {
             DataState.Loading -> HomeUiState.Loading
             DataState.Failed -> HomeUiState.Error(com.cocinacapital.app.R.string.home_error)
-            is DataState.Loaded -> construirSuccess(data, categoriaId, ubicacion)
+            is DataState.Loaded -> construirSuccess(data, categoriaId, ubicacion, perfil)
         }
     }.stateIn(
         scope = viewModelScope,
@@ -66,6 +90,19 @@ class HomeViewModel(
 
     init {
         cargarHome()
+        refrescarActividad()
+    }
+
+    /** Al volver al Inicio: lo que vio o canjeó cambia sus recomendaciones. Sin red se conserva lo anterior. */
+    fun refrescarActividad() {
+        viewModelScope.launch {
+            try {
+                actividad.value = historial.recientes()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+            }
+        }
     }
 
     // ---------------- Acciones de la UI ----------------
@@ -121,7 +158,8 @@ class HomeViewModel(
     private fun construirSuccess(
         data: DataState.Loaded,
         categoriaId: String?,
-        ubicacion: UbicacionUsuario?
+        ubicacion: UbicacionUsuario?,
+        perfil: PerfilRecomendacion
     ): HomeUiState.Success {
         val gps = ubicacion?.takeIf { it.latitud.isFinite() && it.longitud.isFinite() &&
             it.latitud in -90.0..90.0 && it.longitud in -180.0..180.0 }
@@ -145,30 +183,29 @@ class HomeViewModel(
         val promosFiltradas = data.promociones.filter { categoriaId == null || it.localCategoriaId == categoriaId }
             .map { it.copy(distanciaKm = distancias[it.localId]) }
 
+        // HU-21: las recomendadas se muestran aparte y no se repiten en la lista general.
+        val paraTi = Recomendador.promocionesRecomendadas(promosFiltradas, locales, perfil)
+        val resto = promosFiltradas.filterNot { promo -> paraTi.any { it.id == promo.id } }
+
         return HomeUiState.Success(
             categorias = data.categorias,
             categoriaSeleccionadaId = categoriaId,
-            localesParaTi = localesFiltrados.sortedByDescending(::afinidad),
-            promociones = if (gps != null) promosFiltradas.sortedBy { it.distanciaKm ?: Double.POSITIVE_INFINITY } else promosFiltradas,
-            tieneUbicacion = gps != null
+            localesParaTi = Recomendador.ordenarLocales(localesFiltrados, perfil),
+            promociones = if (gps != null) resto.sortedBy { it.distanciaKm ?: Double.POSITIVE_INFINITY } else resto,
+            tieneUbicacion = gps != null,
+            promocionesParaTi = paraTi,
+            personalizado = perfil.personalizado
         )
     }
 
-    /**
-     * Puntaje provisional para "Para ti" (60 % valoración, 40 % cercanía).
-     * TODO(RF-14): incorporar preferencias del usuario e historial de interacciones.
-     */
-    private fun afinidad(local: LocalGastronomico): Double {
-        val valoracion = local.valoracion / 5.0
-        val cercania = 1.0 - ((local.distanciaKm ?: MAX_KM) / MAX_KM).coerceIn(0.0, 1.0)
-        return valoracion * 0.6 + cercania * 0.4
-    }
-
     companion object {
-        private const val MAX_KM = 20.0
-
         val Factory = viewModelFactory {
-            initializer { HomeViewModel(AppContainer.homeRepository, AppContainer.ubicacionRepository) }
+            initializer {
+                HomeViewModel(
+                    AppContainer.homeRepository, AppContainer.ubicacionRepository,
+                    AppContainer.preferenciasRepository.observar(), AppContainer.historialInteracciones
+                )
+            }
         }
     }
 }

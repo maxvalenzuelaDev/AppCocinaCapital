@@ -6,5 +6,9 @@
     <string name="home_destacados_general">Locales destacados para descubrir</string>
     <string name="home_promociones_cercania">Ordenadas por cercanía a tu ubicación</string>
     <string name="home_promociones_general">Aprovecha las horas de baja demanda</string>
+    <!-- HU-21 y HU-24: recomendaciones -->
+    <string name="home_para_ti_personalizado">Según tus cocinas preferidas, tu actividad y la cercanía</string>
+    <string name="home_promociones_para_ti">Promociones para ti</string>
+    <string name="home_promociones_para_ti_detalle">Elegidas según lo que te gusta</string>
     <string name="home_promocion_distancia">%1$s km en línea recta</string>
 </resources>

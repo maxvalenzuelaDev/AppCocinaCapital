@@ -47,6 +47,8 @@ import com.cocinacapital.app.data.repository.SupabaseMisLocalesRepository
 import com.cocinacapital.app.data.repository.PreferenciasRepository
 import com.cocinacapital.app.data.repository.SupabasePreferenciasRemotas
 import com.cocinacapital.app.data.repository.GestionCuenta
+import com.cocinacapital.app.data.repository.HistorialInteracciones
+import com.cocinacapital.app.data.repository.SupabaseHistorialInteracciones
 import com.cocinacapital.app.data.repository.RegistroInteracciones
 import com.cocinacapital.app.data.repository.SupabaseGestionCuenta
 import com.cocinacapital.app.data.repository.SupabaseRegistroInteracciones
@@ -185,6 +187,7 @@ object AppContainer {
             segundoPlano = applicationScope
         )
     }
+    val historialInteracciones: HistorialInteracciones by lazy { SupabaseHistorialInteracciones(SupabaseProvider.client) }
     val gestionCuenta: GestionCuenta by lazy {
         SupabaseGestionCuenta(
             SupabaseProvider.client, perfilSesion,

@@ -48,6 +48,7 @@ import com.cocinacapital.app.ui.detalle.DetallePromocionScreen
 import com.cocinacapital.app.ui.home.HomeScreen
 import com.cocinacapital.app.ui.location.rememberUbicacionAction
 import com.cocinacapital.app.ui.perfil.PerfilScreen
+import com.cocinacapital.app.ui.billetera.BilleteraScreen
 
 /**
  * Estructura principal de la app (ya autenticado): barra inferior + contenido.
@@ -205,8 +206,14 @@ fun MainScaffold() {
                     onLocal = { id -> navController.navigate(RutasDetalle.local(id)) { launchSingleTop = true } }
                 )
             }
-            composable(BottomNavItem.Billetera.route) { PantallaPendiente(stringResource(R.string.nav_billetera_pendiente)) }
-            composable(BottomNavItem.Perfil.route) { PerfilScreen() }
+
+            composable(BottomNavItem.Billetera.route) {
+                BilleteraScreen(
+                    onExplorarPromociones = {
+                        navController.navegarA(BottomNavItem.Home)
+                    }
+                )
+            }
 
             composable(
                 route = RutasDetalle.LOCAL,

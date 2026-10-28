@@ -75,6 +75,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import com.cocinacapital.app.ui.billetera.GuardarPromocionButton
 
 @Composable
 fun DetallePromocionScreen(
@@ -109,16 +110,41 @@ fun DetallePromocionContent(
 ) {
     Scaffold(
         modifier = modifier,
+
         bottomBar = {
-            val local = (state as? DetallePromocionUiState.Success)?.local
-            if (local != null) {
+            val detalle = state as? DetallePromocionUiState.Success
+
+            if (detalle != null) {
                 Surface(tonalElevation = 2.dp) {
-                    Button(
-                        onClick = { onLocalClick(local.id) },
-                        modifier = Modifier.navigationBarsPadding().padding(horizontal = 20.dp, vertical = 12.dp)
+                    Column(
+                        modifier = Modifier
                             .fillMaxWidth()
+                            .navigationBarsPadding()
+                            .padding(
+                                horizontal = 20.dp,
+                                vertical = 12.dp
+                            ),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text(stringResource(R.string.detalle_promocion_ver_local))
+
+                        // Botón de nuestra billetera.
+                        GuardarPromocionButton(
+                            promocionId = detalle.promocion.id
+                        )
+
+                        // Botón Ver local de nuestros compañeros.
+                        detalle.local?.let { local ->
+                            Button(
+                                onClick = { onLocalClick(local.id) },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    stringResource(
+                                        R.string.detalle_promocion_ver_local
+                                    )
+                                )
+                            }
+                        }
                     }
                 }
             }

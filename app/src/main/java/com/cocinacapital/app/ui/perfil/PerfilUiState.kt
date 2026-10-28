@@ -13,10 +13,10 @@ sealed interface PerfilUiState {
         val usuario: PerfilUsuario?,
         val preferencias: PreferenciasUsuario,
         val categorias: List<Categoria>,
-        val favoritos: List<Favorito>
-    ) : PerfilUiState {
-        val canjeados: Int get() = 0 // TODO(BD): contar beneficios canjeados (tabla `beneficios`)
-    }
+        val favoritos: List<Favorito>,
+        /** Beneficios canjeados en locales (HU-16); 0 si aún no se pudo consultar la billetera. */
+        val canjeados: Int = 0
+    ) : PerfilUiState
 }
 
 /**

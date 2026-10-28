@@ -66,6 +66,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cocinacapital.app.data.model.RangoPrecio
 import com.cocinacapital.app.data.model.TemaApp
@@ -87,6 +89,7 @@ fun PerfilScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val foto by viewModel.foto.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.actualizarCanjeados() }
 
     // ---- Foto de perfil (T-23): la pantalla solo lanza lo que pide el ViewModel ----
     val camara = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { exito ->

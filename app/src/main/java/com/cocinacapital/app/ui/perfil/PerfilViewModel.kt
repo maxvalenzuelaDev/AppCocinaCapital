@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.cocinacapital.app.data.auth.PerfilSesion
+import com.cocinacapital.app.data.model.EstadoBeneficio
+import com.cocinacapital.app.data.repository.BilleteraRepository
 import com.cocinacapital.app.data.local.ArchivoFoto
 import com.cocinacapital.app.data.local.FotoPerfilArchivos
 import com.cocinacapital.app.data.model.Categoria
@@ -34,11 +36,15 @@ class PerfilViewModel(
     private val preferencias: PreferenciasRepository,
     private val favoritos: FavoritosRepository,
     private val catalogo: HomeRepository,
-    private val archivosFoto: FotoPerfilArchivos
+    private val archivosFoto: FotoPerfilArchivos,
+    private val billetera: BilleteraRepository? = null
 ) : ViewModel() {
 
     /** `null` = cargando; `Result.failure` = error. */
     private val categorias = MutableStateFlow<Result<List<Categoria>>?>(null)
+
+    /** Canjeados de la billetera; un fallo no impide mostrar el perfil. */
+    private val canjeados = MutableStateFlow(0)
 
     private val _foto = MutableStateFlow(FotoPerfilUiState())
     val foto: StateFlow<FotoPerfilUiState> = _foto.asStateFlow()
@@ -47,18 +53,32 @@ class PerfilViewModel(
     private var archivoCamara: ArchivoFoto? = null
 
     val uiState: StateFlow<PerfilUiState> = combine(
-        auth.usuario, preferencias.observar(), favoritos.observar(), categorias
-    ) { usuario, prefs, favs, cats ->
+        auth.usuario, preferencias.observar(), favoritos.observar(), categorias, canjeados
+    ) { usuario, prefs, favs, cats, canjes ->
         when {
             cats == null -> PerfilUiState.Loading
             cats.isFailure -> PerfilUiState.Error(com.cocinacapital.app.R.string.perfil_error_cargar)
-            else -> PerfilUiState.Success(usuario, prefs, cats.getOrThrow(), favs)
+            else -> PerfilUiState.Success(usuario, prefs, cats.getOrThrow(), favs, canjes)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PerfilUiState.Loading)
 
     init { cargarCategorias() }
 
     fun onReintentar() = cargarCategorias()
+
+    /** Al volver a Perfil: pudo canjear un beneficio en un local. */
+    fun actualizarCanjeados() {
+        val repo = billetera ?: return
+        viewModelScope.launch {
+            try {
+                canjeados.value = repo.misBeneficios().count { it.estado == EstadoBeneficio.CANJEADO }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                // Se conserva el último valor.
+            }
+        }
+    }
 
     private fun cargarCategorias() {
         viewModelScope.launch {
@@ -174,7 +194,8 @@ class PerfilViewModel(
                     AppContainer.preferenciasRepository,
                     AppContainer.favoritosRepository,
                     AppContainer.homeRepository,
-                    AppContainer.fotoPerfilArchivos
+                    AppContainer.fotoPerfilArchivos,
+                    AppContainer.billeteraRepository
                 )
             }
         }

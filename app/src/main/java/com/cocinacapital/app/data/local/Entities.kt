@@ -13,6 +13,8 @@ data class PreferenciasEntity(
     val soloCategoriasFavoritas: Boolean = false,
     val consentimiento: Boolean = false,
     val consentimientoFecha: Long? = null,
+    /** Respondió la pantalla de consentimiento (HU-03), aceptando o no; sin esto se le vuelve a mostrar. */
+    val consentimientoRespondido: Boolean = false,
     val tema: String = "SISTEMA",
     /** Ruta absoluta de la foto de perfil dentro de la carpeta privada de la app. */
     val fotoPerfilRuta: String? = null

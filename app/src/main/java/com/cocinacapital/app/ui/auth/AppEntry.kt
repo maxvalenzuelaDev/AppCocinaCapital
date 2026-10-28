@@ -20,6 +20,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cocinacapital.app.data.remote.SupabaseProvider
 import com.cocinacapital.app.data.auth.Rol
 import com.cocinacapital.app.ui.navigation.MainScaffold
+import com.cocinacapital.app.ui.consentimiento.ConConsentimiento
 import com.cocinacapital.app.ui.oferente.OferenteScaffold
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.LaunchedEffect
@@ -87,6 +88,9 @@ fun AppEntry(onRegisterRequested: (() -> Unit)? = null) {
                         cerrandoSesion = state.busy,
                         onCerrarSesion = model::logout
                     )
+                } else if (user != null) {
+                    // HU-03: el consumidor responde el consentimiento antes del primer uso.
+                    ConConsentimiento(user.id) { MainScaffold() }
                 } else MainScaffold()
             }
         }

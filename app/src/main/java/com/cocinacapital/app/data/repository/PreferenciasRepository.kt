@@ -11,6 +11,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 
 internal const val INVITADO = "invitado"
 
@@ -46,8 +47,22 @@ class PreferenciasRepository(
     suspend fun setTema(tema: TemaApp) = modificar { it.copy(tema = tema.name) }
 
     /** Guarda la fecha y hora de aceptación (RF-03); al revocar se borra. */
-    suspend fun setConsentimiento(acepta: Boolean) = modificar {
-        it.copy(consentimiento = acepta, consentimientoFecha = if (acepta) System.currentTimeMillis() else null)
+    suspend fun setConsentimiento(acepta: Boolean) = responderConsentimiento(userId, acepta)
+
+    /**
+     * Si [id] ya respondió la pantalla de consentimiento (HU-03). Recibe el usuario de la sesión
+     * recién iniciada para no leer las preferencias de otro mientras la sesión termina de cargar.
+     */
+    fun consentimientoRespondido(id: String): Flow<Boolean> =
+        dao.observar(id).map { it?.consentimientoRespondido == true }
+
+    /** Respuesta de la pantalla del primer uso o del interruptor de Perfil. */
+    suspend fun responderConsentimiento(id: String, acepta: Boolean) = modificar(id) {
+        it.copy(
+            consentimiento = acepta,
+            consentimientoFecha = if (acepta) System.currentTimeMillis() else null,
+            consentimientoRespondido = true
+        )
     }
 
     /** Guarda la nueva ruta (o `null` para quitar la foto) y devuelve la anterior, para borrar su archivo. */
@@ -57,8 +72,7 @@ class PreferenciasRepository(
         return anterior
     }
 
-    private suspend fun modificar(cambio: (PreferenciasEntity) -> PreferenciasEntity) {
-        val id = userId
+    private suspend fun modificar(id: String = userId, cambio: (PreferenciasEntity) -> PreferenciasEntity) {
         dao.guardar(cambio(dao.obtener(id) ?: PreferenciasEntity(userId = id)))
     }
 
@@ -70,6 +84,7 @@ class PreferenciasRepository(
         soloCategoriasFavoritas = soloCategoriasFavoritas,
         consentimiento = consentimiento,
         consentimientoFecha = consentimientoFecha,
+        consentimientoRespondido = consentimientoRespondido,
         tema = runCatching { TemaApp.valueOf(tema) }.getOrDefault(TemaApp.SISTEMA),
         fotoPerfilRuta = fotoPerfilRuta
     )

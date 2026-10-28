@@ -45,6 +45,7 @@ import com.cocinacapital.app.data.repository.HomeRepository
 import com.cocinacapital.app.data.repository.MisLocalesRepository
 import com.cocinacapital.app.data.repository.SupabaseMisLocalesRepository
 import com.cocinacapital.app.data.repository.PreferenciasRepository
+import com.cocinacapital.app.data.repository.SupabasePreferenciasRemotas
 import com.cocinacapital.app.data.repository.SupabaseDetalleLocalRepository
 import com.cocinacapital.app.data.repository.SupabaseHomeRepository
 import com.cocinacapital.app.data.repository.RutaRepository
@@ -141,7 +142,11 @@ object AppContainer {
     }
 
     val preferenciasRepository: PreferenciasRepository by lazy {
-        PreferenciasRepository(database.preferenciasDao(), perfilSesion)
+        // T-06: los cambios se suben a Supabase en segundo plano, sin depender de la pantalla abierta.
+        PreferenciasRepository(
+            database.preferenciasDao(), perfilSesion,
+            SupabasePreferenciasRemotas(SupabaseProvider.client), applicationScope
+        )
     }
 
     val fotoPerfilArchivos: FotoPerfilArchivos by lazy { AndroidFotoPerfilArchivos(appContext) }

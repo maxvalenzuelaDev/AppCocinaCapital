@@ -7,6 +7,8 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.cocinacapital.app.data.repository.PreferenciasRepository
 import com.cocinacapital.app.di.AppContainer
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -33,11 +35,32 @@ class ConsentimientoViewModel(
 
     private val guardando = MutableStateFlow(false)
 
+    /** Se trajeron (o se intentó traer) las preferencias de Supabase: en un teléfono nuevo ya respondió. */
+    private val sincronizado = MutableStateFlow(false)
+
     val estado: StateFlow<EstadoConsentimiento> =
-        combine(preferencias.consentimientoRespondido(usuarioId), guardando) { respondido, enviando ->
-            // Mientras se guarda la respuesta la app ya puede seguir: Room la confirma enseguida.
-            if (respondido || enviando) EstadoConsentimiento.RESPONDIDO else EstadoConsentimiento.PENDIENTE
+        combine(preferencias.consentimientoRespondido(usuarioId), guardando, sincronizado) { respondido, enviando, listo ->
+            when {
+                // Mientras se guarda la respuesta la app ya puede seguir: Room la confirma enseguida.
+                respondido || enviando -> EstadoConsentimiento.RESPONDIDO
+                !listo -> EstadoConsentimiento.CARGANDO
+                else -> EstadoConsentimiento.PENDIENTE
+            }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), EstadoConsentimiento.CARGANDO)
+
+    init {
+        // T-06: al iniciar sesión se sincronizan las preferencias. Sin red se sigue con lo del teléfono.
+        viewModelScope.launch {
+            try {
+                withTimeout(ESPERA_SINCRONIZACION_MS) { preferencias.sincronizar(usuarioId) }
+            } catch (_: TimeoutCancellationException) {
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+            }
+            sincronizado.value = true
+        }
+    }
 
     fun onAceptar() = responder(true)
 
@@ -60,6 +83,8 @@ class ConsentimientoViewModel(
     }
 
     companion object {
+        private const val ESPERA_SINCRONIZACION_MS = 5_000L
+
         fun factory(usuarioId: String) = viewModelFactory {
             initializer { ConsentimientoViewModel(usuarioId, AppContainer.preferenciasRepository) }
         }

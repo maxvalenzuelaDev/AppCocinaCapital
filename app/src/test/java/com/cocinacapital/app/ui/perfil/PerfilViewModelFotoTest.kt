@@ -39,6 +39,7 @@ class PerfilViewModelFotoTest {
         override suspend fun obtenerCategorias(userId: String) = emptyList<String>()
         override suspend fun agregarCategoria(categoria: CategoriaPreferidaEntity) = Unit
         override suspend fun quitarCategoria(userId: String, categoriaId: String) = Unit
+        override suspend fun borrarCategorias(userId: String) = Unit
     }
 
     private class FakeFavoritosDao : FavoritosDao {

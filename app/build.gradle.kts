@@ -29,9 +29,27 @@ android {
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"${localProps.getProperty("SUPABASE_ANON_KEY", "")}\"")
     }
 
+    // Firma del APK release (HU-36, T-19). El keystore y sus contraseñas están en local.properties,
+    // fuera del repositorio; sin ellos el APK release se genera sin firmar y debug funciona igual.
+    val firmaRelease = localProps.getProperty("RELEASE_STORE_FILE")?.let { rootProject.file(it) }?.takeIf { it.exists() }
+    signingConfigs {
+        if (firmaRelease != null) {
+            create("release") {
+                storeFile = firmaRelease
+                storePassword = localProps.getProperty("RELEASE_STORE_PASSWORD")
+                keyAlias = localProps.getProperty("RELEASE_KEY_ALIAS")
+                keyPassword = localProps.getProperty("RELEASE_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false // si activas R8, agrega reglas para kotlinx.serialization
+            // R8 reduce y ofusca el código; las reglas para serialization, Ktor y supabase-kt están en proguard-rules.pro.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (firmaRelease != null) signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {

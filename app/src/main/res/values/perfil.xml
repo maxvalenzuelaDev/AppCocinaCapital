@@ -43,7 +43,11 @@
     <string name="perfil_cerrar_sesion">Cerrar sesión</string>
 
     <string name="perfil_borrar_titulo">¿Borrar tu historial?</string>
-    <string name="perfil_borrar_mensaje">Se eliminarán tus búsquedas e interacciones usadas para recomendarte ofertas.</string>
+    <string name="perfil_borrar_mensaje">Se eliminarán tus búsquedas y los locales, promociones y canjes registrados para recomendarte ofertas. Tus beneficios de la billetera no se borran.</string>
+    <!-- T-07 -->
+    <string name="perfil_historial_borrado">Tu historial de actividad se borró.</string>
+    <string name="perfil_error_borrar_historial">No se pudo borrar el historial. Revisa tu conexión e inténtalo nuevamente.</string>
+    <string name="perfil_error_eliminar_cuenta">No se pudo eliminar la cuenta. Revisa tu conexión e inténtalo nuevamente; tus datos siguen intactos.</string>
     <string name="perfil_borrar_confirmar">Borrar</string>
     <string name="perfil_eliminar_titulo">¿Eliminar tu cuenta?</string>
     <string name="perfil_eliminar_mensaje">Se eliminarán tu cuenta y tus datos de forma permanente. Esta acción no se puede deshacer.</string>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- T-16: política de privacidad y términos de uso. Se muestran desde la pantalla de
+         consentimiento y desde Perfil → Aplicación. Si cambia lo que hace la app con los datos,
+         actualizar estos textos y la fecha. -->
+    <string name="legal_privacidad">Política de privacidad</string>
+    <string name="legal_terminos">Términos de uso</string>
+    <string name="legal_cerrar">Cerrar</string>
+    <string name="legal_vigencia">Vigente desde el 28 de octubre de 2026.</string>
+    <string name="legal_aviso_academico">Cocina Capital es un proyecto académico (asignatura DSY1105, Duoc UC) que usa un catálogo de locales y promociones ficticio.</string>
+
+    <string name="privacidad_1_titulo">1. Quién trata tus datos</string>
+    <string name="privacidad_1_texto">El equipo de desarrollo de Cocina Capital. Esta política se rige por la Ley N.º 19.628 sobre protección de la vida privada y la Ley N.º 21.719 que la actualiza.</string>
+    <string name="privacidad_2_titulo">2. Qué datos usamos y para qué</string>
+    <string name="privacidad_2_texto">• Cuenta: correo, nombre y tipo de cuenta (consumidor u oferente), para iniciar sesión y mostrar tu perfil.\n• Preferencias: tipos de cocina, rango de precios, avisos y tema, para personalizar lo que ves. Se guardan en tu teléfono y en nuestro servidor para usarlas en otro teléfono.\n• Billetera: los beneficios que obtienes, su código y la fecha de canje, para que el local pueda validarlos.\n• Actividad, solo si aceptas personalizar: búsquedas, locales y promociones que abres y beneficios que canjeas, para recomendarte ofertas.\n• Consentimiento: si aceptaste o no y cuándo, como respaldo de tu decisión.\n• Foto de perfil: queda solo en tu teléfono; no se sube.</string>
+    <string name="privacidad_3_titulo">3. Ubicación</string>
+    <string name="privacidad_3_texto">Solo se usa cuando tocas «Usar mi ubicación» o pides una ruta, para mostrar locales cercanos y calcular distancias. No se guarda en el servidor ni en tu historial.</string>
+    <string name="privacidad_4_titulo">4. Con quién se comparten</string>
+    <string name="privacidad_4_texto">No vendemos tus datos. Los servicios que usa la app reciben solo lo necesario:\n• Supabase aloja la base de datos y las cuentas.\n• Los mapas de OpenFreeMap y OpenStreetMap reciben la zona del mapa que estás viendo.\n• El servicio de rutas de routing.openstreetmap.de recibe el origen y el destino de la ruta, sin datos de tu cuenta.\n• Al tocar «Cómo llegar» se abre Google Maps con el destino y, si lo indicaste en el mapa, tu punto de partida.\nLos oferentes solo ven los códigos de beneficios de sus propios locales.</string>
+    <string name="privacidad_5_titulo">5. Cuánto tiempo los guardamos</string>
+    <string name="privacidad_5_texto">Mientras tu cuenta exista. Tu actividad se guarda hasta que la borres o elimines tu cuenta. Al eliminar la cuenta se borran tu perfil, preferencias, consentimientos, beneficios y actividad.</string>
+    <string name="privacidad_6_titulo">6. Tus derechos y cómo ejercerlos</string>
+    <string name="privacidad_6_texto">Desde Perfil puedes:\n• Ver y corregir tu nombre y tus preferencias.\n• Activar o revocar el consentimiento para personalizar (Privacidad y datos). Al revocarlo dejamos de registrar tu actividad.\n• Borrar tu historial de actividad.\n• Eliminar tu cuenta y todos tus datos.\nPara otras solicitudes, como recibir una copia de tus datos, escribe al equipo en el repositorio público de la app en GitHub (maxvalenzuelaDev/AppCocinaCapital).</string>
+    <string name="privacidad_7_titulo">7. Seguridad</string>
+    <string name="privacidad_7_texto">Las conexiones van cifradas (HTTPS). En el servidor, cada cuenta solo puede leer y modificar sus propios datos, y los canjes se validan en el servidor.</string>
+
+    <string name="terminos_1_titulo">1. Uso de la app</string>
+    <string name="terminos_1_texto">Cocina Capital te ayuda a encontrar locales gastronómicos, promociones y experiencias en la región. Tu cuenta es personal: no compartas tu contraseña.</string>
+    <string name="terminos_2_titulo">2. Beneficios</string>
+    <string name="terminos_2_texto">• Obtener un beneficio no tiene costo: no hay pagos en la app.\n• Cada código es personal y se puede canjear una sola vez, en el local de la promoción.\n• El canje solo es válido dentro de la vigencia, los días y el horario que indica la promoción, y mientras queden cupos al obtenerlo.\n• Si no lo vas a usar, quítalo de tu billetera para liberar el cupo.</string>
+    <string name="terminos_3_titulo">3. Locales y promociones</string>
+    <string name="terminos_3_texto">Cada oferente es responsable de la información de su local, de sus promociones y de respetar las condiciones que publica. El local puede rechazar un código vencido, ya canjeado o fuera de su horario.</string>
+    <string name="terminos_4_titulo">4. Uso indebido</string>
+    <string name="terminos_4_texto">No está permitido usar la app para fines ilícitos, intentar canjear códigos ajenos, alterar el funcionamiento del servicio ni publicar información falsa como oferente. Las cuentas que lo hagan pueden ser suspendidas.</string>
+    <string name="terminos_5_titulo">5. Alcance</string>
+    <string name="terminos_5_texto">La app se entrega tal como está, como prototipo académico, y puede cambiar o dejar de estar disponible. Estos términos se rigen por la ley chilena.</string>
+</resources>

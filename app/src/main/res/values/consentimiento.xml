@@ -8,7 +8,8 @@
     <string name="consentimiento_que_preferencias">Tus tipos de cocina y rango de precios preferidos.</string>
     <string name="consentimiento_garantias_titulo">Siempre</string>
     <string name="consentimiento_garantia_ubicacion">Tu ubicación solo se usa cuando tocas «Usar mi ubicación» y no se guarda.</string>
-    <string name="consentimiento_garantia_terceros">No vendemos ni compartimos tus datos con terceros.</string>
+    <string name="consentimiento_garantia_terceros">No vendemos tus datos. Los servicios de mapas solo reciben la zona que ves y, si pides una ruta, el origen y el destino, sin datos de tu cuenta.</string>
+    <string name="consentimiento_leer_documentos">Lee la política de privacidad y los términos de uso antes de continuar.</string>
     <string name="consentimiento_garantia_revocar">Puedes cambiar tu decisión cuando quieras en Perfil → Privacidad y datos.</string>
     <string name="consentimiento_aceptar">Aceptar y continuar</string>
     <string name="consentimiento_rechazar">Continuar sin personalizar</string>

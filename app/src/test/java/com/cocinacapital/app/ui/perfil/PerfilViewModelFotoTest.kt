@@ -40,6 +40,7 @@ class PerfilViewModelFotoTest {
         override suspend fun agregarCategoria(categoria: CategoriaPreferidaEntity) = Unit
         override suspend fun quitarCategoria(userId: String, categoriaId: String) = Unit
         override suspend fun borrarCategorias(userId: String) = Unit
+        override suspend fun borrar(userId: String) = Unit
     }
 
     private class FakeFavoritosDao : FavoritosDao {
@@ -47,6 +48,7 @@ class PerfilViewModelFotoTest {
         override suspend fun existe(userId: String, itemId: String, tipo: String) = 0
         override suspend fun guardar(favorito: FavoritoEntity) = Unit
         override suspend fun eliminar(userId: String, itemId: String, tipo: String) = Unit
+        override suspend fun borrarTodos(userId: String) = Unit
     }
 
     private class FakeCatalogo : HomeRepository {

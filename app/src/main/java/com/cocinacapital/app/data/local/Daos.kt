@@ -31,6 +31,10 @@ interface PreferenciasDao {
 
     @Query("DELETE FROM categorias_preferidas WHERE userId = :userId")
     suspend fun borrarCategorias(userId: String)
+
+    /** Al eliminar la cuenta (T-07). */
+    @Query("DELETE FROM preferencias_usuario WHERE userId = :userId")
+    suspend fun borrar(userId: String)
 }
 
 @Dao
@@ -46,4 +50,8 @@ interface FavoritosDao {
 
     @Query("DELETE FROM favoritos WHERE userId = :userId AND itemId = :itemId AND tipo = :tipo")
     suspend fun eliminar(userId: String, itemId: String, tipo: String)
+
+    /** Al eliminar la cuenta (T-07). */
+    @Query("DELETE FROM favoritos WHERE userId = :userId")
+    suspend fun borrarTodos(userId: String)
 }

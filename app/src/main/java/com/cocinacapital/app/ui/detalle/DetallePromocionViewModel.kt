@@ -8,6 +8,9 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.cocinacapital.app.data.model.vigenciaParaDetalle
 import com.cocinacapital.app.data.repository.DetallePromocionRepository
 import com.cocinacapital.app.di.AppContainer
+import com.cocinacapital.app.data.repository.Interaccion
+import com.cocinacapital.app.data.repository.RegistroInteracciones
+import com.cocinacapital.app.data.repository.TipoInteraccion
 import java.time.Clock
 import java.util.concurrent.TimeoutException
 import kotlinx.coroutines.CancellationException
@@ -25,8 +28,11 @@ import kotlinx.coroutines.withTimeout
 class DetallePromocionViewModel(
     private val promocionId: String,
     private val repository: DetallePromocionRepository,
-    private val reloj: Clock = Clock.systemUTC()
+    private val reloj: Clock = Clock.systemUTC(),
+    private val interacciones: RegistroInteracciones = RegistroInteracciones.Ninguno
 ) : ViewModel() {
+    /** HU-20: la vista se registra una vez por apertura, no al reintentar ni al actualizar cupos. */
+    private var vistaRegistrada = false
     private val mutable = MutableStateFlow<DetallePromocionUiState>(DetallePromocionUiState.Loading)
     val uiState: StateFlow<DetallePromocionUiState> = mutable.asStateFlow()
     private var carga: Job? = null
@@ -69,6 +75,12 @@ class DetallePromocionViewModel(
                     DetallePromocionUiState.NoEncontrada
                 } else {
                     val promocion = detalle.promocion
+                    if (!vistaRegistrada) {
+                        vistaRegistrada = true
+                        interacciones.registrar(
+                            Interaccion(TipoInteraccion.VISTA_PROMOCION, localId = promocion.localId, promocionId = promocion.id)
+                        )
+                    }
                     var errorLocal = false
                     val local = try {
                         consultar { repository.getLocal(promocion.localId) }?.takeIf {
@@ -113,7 +125,10 @@ class DetallePromocionViewModel(
 
         fun factory(promocionId: String): ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                DetallePromocionViewModel(promocionId, AppContainer.detallePromocionRepository)
+                DetallePromocionViewModel(
+                    promocionId, AppContainer.detallePromocionRepository,
+                    interacciones = AppContainer.registroInteracciones
+                )
             }
         }
     }

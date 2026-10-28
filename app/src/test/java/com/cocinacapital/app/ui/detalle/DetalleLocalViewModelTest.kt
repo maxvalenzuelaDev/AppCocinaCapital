@@ -41,6 +41,7 @@ class DetalleLocalViewModelTest {
         override suspend fun eliminar(userId: String, itemId: String, tipo: String) {
             filas.value = filas.value.filterNot { it.userId == userId && it.itemId == itemId && it.tipo == tipo }
         }
+        override suspend fun borrarTodos(userId: String) { filas.value = filas.value.filterNot { it.userId == userId } }
     }
 
     private val favoritosDao = FakeFavoritosDao()

@@ -38,6 +38,8 @@ data class PreferenciasUsuario(
     /** Consentimiento para registrar actividad y personalizar (Ley 21.719 / 19.628). */
     val consentimiento: Boolean = false,
     val consentimientoFecha: Long? = null,
+    /** Ya respondió la pantalla de consentimiento del primer uso (HU-03). */
+    val consentimientoRespondido: Boolean = false,
     val tema: TemaApp = TemaApp.SISTEMA,
     /** Foto elegida en el Perfil (archivo local); tiene prioridad sobre [PerfilUsuario.fotoUrl]. */
     val fotoPerfilRuta: String? = null

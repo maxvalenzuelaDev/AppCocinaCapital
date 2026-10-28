@@ -90,6 +90,9 @@ create table if not exists consentimientos (
   registrado_en timestamptz not null default now()
 );
 
+-- Dataset ficticio de perfiles de consumo (HU-34): tablas dataset_perfiles_consumo y
+-- dataset_interacciones en migraciones/2026-10-28_hu34_*; se cargan con dataset_perfiles_consumo.sql.
+
 -- Seguridad (RLS): lectura pública del catálogo; escritura solo desde el panel/servicio.
 alter table categorias enable row level security;
 alter table locales enable row level security;

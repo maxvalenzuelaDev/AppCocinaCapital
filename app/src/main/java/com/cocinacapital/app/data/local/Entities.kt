@@ -17,7 +17,9 @@ data class PreferenciasEntity(
     val consentimientoRespondido: Boolean = false,
     val tema: String = "SISTEMA",
     /** Ruta absoluta de la foto de perfil dentro de la carpeta privada de la app. */
-    val fotoPerfilRuta: String? = null
+    val fotoPerfilRuta: String? = null,
+    /** Hay cambios que aún no se suben a Supabase (T-06); al iniciar sesión se suben antes de descargar. */
+    val pendienteSincronizar: Boolean = false
 )
 
 /** Categorías gastronómicas elegidas por el usuario (relación muchos a muchos simple). */

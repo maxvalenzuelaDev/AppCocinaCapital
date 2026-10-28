@@ -28,6 +28,9 @@ class PreferenciasDaoEnMemoria : PreferenciasDao {
     override suspend fun quitarCategoria(userId: String, categoriaId: String) {
         categorias.value = categorias.value - CategoriaPreferidaEntity(userId, categoriaId)
     }
+    override suspend fun borrarCategorias(userId: String) {
+        categorias.value = categorias.value.filterNot { it.userId == userId }.toSet()
+    }
 }
 
 class FavoritosDaoEnMemoria : FavoritosDao {

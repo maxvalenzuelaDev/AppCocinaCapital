@@ -21,6 +21,7 @@ import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material.icons.outlined.ToggleOn
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -43,7 +44,7 @@ import com.cocinacapital.app.R
 
 /**
  * Muestra [contenido] solo cuando la cuenta ya respondió el consentimiento (HU-03); antes, la
- * pantalla que lo pide. Mientras se leen las preferencias se ve el fondo, sin parpadeos.
+ * pantalla que lo pide. En un teléfono nuevo espera la descarga de Supabase (T-06), por si ya respondió.
  */
 @Composable
 fun ConConsentimiento(
@@ -56,7 +57,9 @@ fun ConConsentimiento(
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     when (estado) {
-        EstadoConsentimiento.CARGANDO -> Surface(Modifier.fillMaxSize()) {}
+        EstadoConsentimiento.CARGANDO -> Surface(Modifier.fillMaxSize()) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+        }
         EstadoConsentimiento.PENDIENTE -> ConsentimientoScreen(viewModel::onAceptar, viewModel::onRechazar)
         EstadoConsentimiento.RESPONDIDO -> contenido()
     }

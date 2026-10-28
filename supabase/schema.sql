@@ -66,6 +66,30 @@ create table if not exists beneficios_usuario (
     check (estado in ('vigente', 'canjeado') and (estado = 'canjeado') = (canjeado_en is not null))
 );
 
+-- Preferencias del consumidor (HU-02, T-06): copia de lo guardado en Room para usarlas en otro teléfono.
+-- Consentimientos: historial de aceptaciones y revocaciones con fecha (HU-03). Políticas, trigger y
+-- permisos en migraciones/2026-10-28_t06_preferencias_y_consentimientos.sql
+create table if not exists preferencias_usuario (
+  usuario_id uuid primary key default auth.uid() references auth.users(id) on delete cascade,
+  categorias uuid[] not null default '{}',     -- ids de categorias elegidas
+  rango_precio text not null default 'MEDIO',  -- ECONOMICO | MEDIO | PREMIUM
+  notificaciones boolean not null default false,
+  solo_cercanas boolean not null default false,
+  solo_categorias_favoritas boolean not null default false,
+  tema text not null default 'SISTEMA',        -- SISTEMA | CLARO | OSCURO
+  consentimiento boolean not null default false,
+  consentimiento_fecha timestamptz,
+  consentimiento_respondido boolean not null default false,
+  actualizado_en timestamptz not null default now()
+);
+
+create table if not exists consentimientos (
+  id bigint generated always as identity primary key,
+  usuario_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  acepto boolean not null,
+  registrado_en timestamptz not null default now()
+);
+
 -- Seguridad (RLS): lectura pública del catálogo; escritura solo desde el panel/servicio.
 alter table categorias enable row level security;
 alter table locales enable row level security;

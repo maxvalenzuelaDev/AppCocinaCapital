@@ -28,6 +28,9 @@ interface PreferenciasDao {
 
     @Query("DELETE FROM categorias_preferidas WHERE userId = :userId AND categoriaId = :categoriaId")
     suspend fun quitarCategoria(userId: String, categoriaId: String)
+
+    @Query("DELETE FROM categorias_preferidas WHERE userId = :userId")
+    suspend fun borrarCategorias(userId: String)
 }
 
 @Dao

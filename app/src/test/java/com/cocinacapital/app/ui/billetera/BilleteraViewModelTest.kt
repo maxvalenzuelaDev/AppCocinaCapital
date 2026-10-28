@@ -13,6 +13,7 @@ import java.time.Instant
 import java.time.ZoneOffset
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.test.*
 import org.junit.*
 import org.junit.Assert.*
@@ -66,6 +67,16 @@ class BilleteraViewModelTest {
         assertEquals(BilleteraUiState.Error(R.string.billetera_error_cargar), vm.uiState.value)
         repo.lista = { listOf(beneficio("a")) }
         vm.cargar(); runCurrent()
+        assertEquals(1, (vm.uiState.value as BilleteraUiState.Success).beneficios.size)
+    }
+
+    @Test fun `tras un error sin red se recarga sola al volver la conexion`() = runTest {
+        val repo = BilleteraFalsa().apply { lista = { throw IOException() } }
+        val reconexiones = MutableSharedFlow<Unit>()
+        val vm = BilleteraViewModel(repo, reloj, reconexiones); runCurrent()
+        assertTrue(vm.uiState.value is BilleteraUiState.Error)
+        repo.lista = { listOf(beneficio("a")) }
+        reconexiones.emit(Unit); runCurrent()
         assertEquals(1, (vm.uiState.value as BilleteraUiState.Success).beneficios.size)
     }
 

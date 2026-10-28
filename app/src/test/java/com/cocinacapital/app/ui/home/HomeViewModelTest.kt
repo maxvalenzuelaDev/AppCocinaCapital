@@ -12,6 +12,7 @@ import com.cocinacapital.app.data.repository.HistorialInteracciones
 import com.cocinacapital.app.data.model.ActividadReciente
 import com.cocinacapital.app.data.model.PreferenciasUsuario
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -134,5 +135,17 @@ class HomeViewModelTest {
         falla = true
         vm.refrescarActividad(); advanceUntilIdle()
         assertEquals("l3", vm.success().localesParaTi.first().id)
+    }
+
+    // ---- HU-35: sin conexión ----
+
+    @Test fun `al volver la conexion se recarga solo si habia fallado`() = runTest {
+        val catalogo = CatalogoQueFalla()
+        val reconexiones = MutableSharedFlow<Unit>()
+        val vm = HomeViewModel(catalogo, sinGps(), reconexiones = reconexiones); observar(vm); advanceUntilIdle()
+        assertIs<HomeUiState.Error>(vm.uiState.value)
+        catalogo.falla = false
+        reconexiones.emit(Unit); advanceUntilIdle()
+        assertEquals(6, vm.success().localesParaTi.size)
     }
 }

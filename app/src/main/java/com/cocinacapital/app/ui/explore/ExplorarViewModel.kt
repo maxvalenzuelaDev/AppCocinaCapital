@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.cocinacapital.app.data.location.UbicacionRepository
 import com.cocinacapital.app.data.repository.Interaccion
+import com.cocinacapital.app.data.remote.reconexiones
 import com.cocinacapital.app.data.repository.RegistroInteracciones
 import com.cocinacapital.app.data.repository.TipoInteraccion
 import com.cocinacapital.app.data.model.Categoria
@@ -58,7 +59,8 @@ fun localesCercanos(locales: List<LocalGastronomico>, filtros: FiltrosExplorar, 
 
 class ExplorarViewModel(private val catalogo: HomeRepository, private val ubicacion: UbicacionRepository,
     preferencias: Flow<PreferenciasUsuario>, private val saved: SavedStateHandle,
-    private val interacciones: RegistroInteracciones = RegistroInteracciones.Ninguno) : ViewModel() {
+    private val interacciones: RegistroInteracciones = RegistroInteracciones.Ninguno,
+    reconexiones: Flow<Unit> = emptyFlow()) : ViewModel() {
     private sealed interface Catalogo {
         data object Cargando : Catalogo
         data object Error : Catalogo
@@ -83,7 +85,11 @@ class ExplorarViewModel(private val catalogo: HomeRepository, private val ubicac
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ExplorarUiState.Loading)
 
-    init { saved.remove<String>("precio"); recargar() }
+    init {
+        saved.remove<String>("precio"); recargar()
+        // HU-35: si el catálogo no se pudo cargar, se reintenta solo al volver la conexión.
+        viewModelScope.launch { reconexiones.collect { if (datos.value is Catalogo.Error) recargar() } }
+    }
     fun recargar() {
         carga?.cancel()
         carga = viewModelScope.launch {
@@ -149,7 +155,8 @@ class ExplorarViewModel(private val catalogo: HomeRepository, private val ubicac
 
         val Factory = viewModelFactory { initializer {
             ExplorarViewModel(AppContainer.homeRepository, AppContainer.ubicacionRepository,
-                AppContainer.preferenciasRepository.observar(), createSavedStateHandle(), AppContainer.registroInteracciones)
+                AppContainer.preferenciasRepository.observar(), createSavedStateHandle(), AppContainer.registroInteracciones,
+                AppContainer.conectividad.reconexiones())
         } }
     }
 }

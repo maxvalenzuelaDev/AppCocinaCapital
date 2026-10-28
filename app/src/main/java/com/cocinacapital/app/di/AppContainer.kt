@@ -53,6 +53,9 @@ import com.cocinacapital.app.data.repository.RegistroInteracciones
 import com.cocinacapital.app.data.repository.SupabaseGestionCuenta
 import com.cocinacapital.app.data.repository.SupabaseRegistroInteracciones
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
+import com.cocinacapital.app.data.notificaciones.AvisosPromociones
 import com.cocinacapital.app.data.repository.SupabaseDetalleLocalRepository
 import com.cocinacapital.app.data.repository.SupabaseHomeRepository
 import com.cocinacapital.app.data.repository.RutaRepository
@@ -86,6 +89,7 @@ object AppContainer {
     }
 
     private var sesionJob: Job? = null
+    private var avisosJob: Job? = null
     fun observarSesion() {
         if (sesionJob != null || !SupabaseProvider.isConfigured) return
         sesionJob = applicationScope.launch {
@@ -94,7 +98,19 @@ object AppContainer {
                 rutaRepository.limpiar()
             }
         }
+        // HU-22: los avisos siguen el interruptor "Promociones" de la cuenta con sesión (sin sesión, apagados).
+        avisosJob = applicationScope.launch {
+            preferenciasRepository.observar().map { it.notificaciones }.distinctUntilChanged().collect { activos ->
+                if (activos) AvisosPromociones.activar(appContext) else AvisosPromociones.desactivar(appContext)
+            }
+        }
     }
+
+    /** HU-22: promoción que se abrió desde una notificación; MainScaffold navega a su detalle. */
+    private val _promocionPendiente = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
+    val promocionPendiente: kotlinx.coroutines.flow.StateFlow<String?> = _promocionPendiente
+    fun abrirPromocion(id: String) { _promocionPendiente.value = id }
+    fun promocionAbierta() { _promocionPendiente.value = null }
 
     val ubicacionRepository: UbicacionRepository by lazy {
         AndroidUbicacionRepository(AndroidLocationSource(appContext), SystemClock::elapsedRealtime)

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- HU-22: notificaciones de promociones -->
+    <string name="aviso_canal">Promociones</string>
+    <string name="aviso_canal_descripcion">Ofertas afines a tu perfil que puedes usar en ese momento.</string>
+    <string name="aviso_titulo">%1$d%% de descuento en %2$s</string>
+    <string name="aviso_texto">%1$s. Disponible ahora: toca para ver el detalle.</string>
+</resources>

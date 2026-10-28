@@ -7,6 +7,9 @@ import com.cocinacapital.app.data.local.PreferenciasDao
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.postgrest.query.Order
+import com.cocinacapital.app.data.model.ActividadReciente
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.buildJsonObject
@@ -62,6 +65,30 @@ class SupabaseRegistroInteracciones(
 
     private companion object {
         const val LARGO_MAXIMO_TERMINO = 100
+    }
+}
+
+/** Actividad reciente de la persona para recomendarle (HU-21). RLS entrega solo sus filas. */
+fun interface HistorialInteracciones {
+    suspend fun recientes(): List<ActividadReciente>
+
+    companion object {
+        val Vacio = HistorialInteracciones { emptyList() }
+    }
+}
+
+class SupabaseHistorialInteracciones(private val supabase: SupabaseClient) : HistorialInteracciones {
+    override suspend fun recientes(): List<ActividadReciente> =
+        supabase.from("interacciones")
+            .select(Columns.list("tipo", "local_id", "termino")) {
+                order("ocurrido_en", Order.DESCENDING)
+                limit(LIMITE)
+            }
+            .decodeList<ActividadReciente>()
+
+    private companion object {
+        /** Lo más reciente basta para saber qué le interesa hoy. */
+        const val LIMITE = 200L
     }
 }
 

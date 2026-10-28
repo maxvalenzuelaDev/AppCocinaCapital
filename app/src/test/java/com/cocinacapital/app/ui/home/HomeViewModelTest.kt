@@ -8,6 +8,11 @@ import com.cocinacapital.app.data.model.LocalGastronomico
 import com.cocinacapital.app.data.model.Promocion
 import com.cocinacapital.app.data.repository.FakeHomeRepository
 import com.cocinacapital.app.data.repository.HomeRepository
+import com.cocinacapital.app.data.repository.HistorialInteracciones
+import com.cocinacapital.app.data.model.ActividadReciente
+import com.cocinacapital.app.data.model.PreferenciasUsuario
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -86,5 +91,48 @@ class HomeViewModelTest {
         catalogo.falla = false
         vm.onReintentar(); advanceUntilIdle()
         assertEquals(6, vm.success().localesParaTi.size)
+    }
+
+    // ---- HU-21 y HU-24: recomendaciones ----
+
+    @Test fun `una cocina preferida en Perfil sube al primer lugar de Para ti`() = runTest {
+        val prefs = MutableStateFlow(PreferenciasUsuario())
+        val vm = HomeViewModel(FakeHomeRepository(), sinGps(), prefs); observar(vm); advanceUntilIdle()
+        assertEquals("l6", vm.success().localesParaTi.first().id)
+        assertFalse(vm.success().personalizado)
+        prefs.value = PreferenciasUsuario(categoriasIds = setOf("c3"))
+        advanceUntilIdle()
+        assertEquals("l3", vm.success().localesParaTi.first().id)
+        assertTrue(vm.success().personalizado)
+        assertTrue(vm.success().promocionesParaTi.all { it.localId == "l3" })
+    }
+
+    @Test fun `la actividad solo cambia las recomendaciones con consentimiento`() = runTest {
+        val prefs = MutableStateFlow(PreferenciasUsuario(consentimiento = false))
+        val historial = HistorialInteracciones { listOf(ActividadReciente("canje", "l3"), ActividadReciente("vista_local", "l3")) }
+        val vm = HomeViewModel(FakeHomeRepository(), sinGps(), prefs, historial); observar(vm); advanceUntilIdle()
+        assertEquals("l6", vm.success().localesParaTi.first().id)
+        prefs.value = PreferenciasUsuario(consentimiento = true)
+        advanceUntilIdle()
+        assertEquals("l3", vm.success().localesParaTi.first().id)
+    }
+
+    @Test fun `las promociones para ti no se repiten en la lista general`() = runTest {
+        val prefs = MutableStateFlow(PreferenciasUsuario(categoriasIds = setOf("c1")))
+        val vm = HomeViewModel(FakeHomeRepository(), sinGps(), prefs); observar(vm); advanceUntilIdle()
+        val state = vm.success()
+        val recomendadas = state.promocionesParaTi.map { it.id }.toSet()
+        assertTrue(recomendadas.isNotEmpty())
+        assertTrue(state.promociones.none { it.id in recomendadas })
+    }
+
+    @Test fun `sin red el historial anterior se conserva`() = runTest {
+        var falla = false
+        val historial = HistorialInteracciones { if (falla) error("sin red") else listOf(ActividadReciente("canje", "l3")) }
+        val vm = HomeViewModel(FakeHomeRepository(), sinGps(), flowOf(PreferenciasUsuario(consentimiento = true)), historial)
+        observar(vm); advanceUntilIdle()
+        falla = true
+        vm.refrescarActividad(); advanceUntilIdle()
+        assertEquals("l3", vm.success().localesParaTi.first().id)
     }
 }
